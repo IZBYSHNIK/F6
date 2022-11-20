@@ -40,6 +40,10 @@ class Student:
     def fio(self):
         return self.__fio
 
+    @fio.setter
+    def fio(self, value):
+        self.__fio = self.chech_fio(value)
+
     @staticmethod
     def create_shorts_fio(fio: str):
         last_name, first_name, middle_name = fio.title().split()
@@ -66,8 +70,8 @@ class Student:
     def get_statistic_for_student(self):
         return {
             'FIO': self.create_shorts_fio(self.fio),
-            "Sick_days: ": (self.sick_days, sum(self.sick_days.values())),
-            "Absence_days: ": (self.absence_days, sum(self.absence_days.values())),
+            "Sick_days": (self.sick_days, sum(self.sick_days.values())),
+            "Absence_days": (self.absence_days, sum(self.absence_days.values())),
         }
 
     def add_day(self, number_day, hours, type_day='A'):
@@ -508,7 +512,12 @@ class ManagerStudents:
 
         all_absence = sack_days_hours + absence_days_hours
 
-        return all_hours, sack_days_hours, absence_days_hours, all_absence
+        return {
+            'all_hours': all_hours,
+            'sack_days_hours': sack_days_hours,
+            'absence_days_hours': absence_days_hours,
+            'all_absence': all_absence,
+        }
 
 
 
