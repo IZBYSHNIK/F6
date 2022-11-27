@@ -69,7 +69,7 @@ class Student:
 
     def get_statistic_for_student(self):
         return {
-            'FIO': self.create_shorts_fio(self.fio),
+            'FIO': self.fio,
             "Sick_days": (self.sick_days, sum(self.sick_days.values())),
             "Absence_days": (self.absence_days, sum(self.absence_days.values())),
         }
