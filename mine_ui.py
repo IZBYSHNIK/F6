@@ -524,28 +524,28 @@ class MainWindow(QtWidgets.QMainWindow):
         self.save_user_push.clicked.connect(self.save_user)
 
 
-        self.save_user_push.setIcon(QIcon(os.path.join('media', 'buttons_icon', 'save.svg')))
+        self.save_user_push.setIcon(QIcon(os.path.join('media', 'buttons', 'save.svg')))
         self.save_user_push.setIconSize(QtCore.QSize(40, 40))
         self.save_user_push.setToolTip('Сохронить изменения')
         self.save_user_push.setMaximumSize(50, 50)
 
 
-        self.del_user_push.setIcon(QIcon(os.path.join('media', 'buttons_icon', 'del_user.svg')))
+        self.del_user_push.setIcon(QIcon(os.path.join('media', 'buttons', 'del_user.svg')))
         self.del_user_push.setIconSize(QtCore.QSize(40, 40))
         self.del_user_push.setToolTip('Удалить пользователя')
         self.del_user_push.setMaximumSize(50, 50)
 
 
-        self.set_password_push.setIcon(QIcon(os.path.join('media', 'buttons_icon', 'set_password.svg')))
+        self.set_password_push.setIcon(QIcon(os.path.join('media', 'buttons', 'set_password.svg')))
         self.set_password_push.setIconSize(QtCore.QSize(40, 40))
         self.set_password_push.setToolTip('Изменить пароль')
         self.set_password_push.setMaximumSize(50, 50)
 
 
         self.save_to_exel_push.setIcon(QIcon('media\\save_exel.svg'))
-        self.save_to_exel_push.setIconSize(QtCore.QSize(35, 35))
+        self.save_to_exel_push.setIconSize(QtCore.QSize(50, 50))
         self.save_to_exel_push.setToolTip('Сохронить в EXEL')
-        self.save_to_exel_push.setMinimumSize(35, 35)
+        self.save_to_exel_push.setMinimumSize(40, 40)
 
         self.game_over_push.setIcon(QIcon('media\\game_over.svg'))
         self.game_over_push.setIconSize(QtCore.QSize(40, 40))
