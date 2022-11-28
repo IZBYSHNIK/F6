@@ -21,8 +21,8 @@ class User:
             parametrs = {}
         self.path = None
         self.username = self.check_username(username)
-        self.__teamleader = parametrs.get('teamleader')
-        self.__offical_name = parametrs.get('offical_name')
+        self.parametrs = parametrs
+
         self.user_id = self.generate_user_id()
         self.__password = self.check_password(password)
 
@@ -33,23 +33,6 @@ class User:
                     [item.isalpha() and len(item) >= 2 for item in fio.split()]) == 3:
                 return fio
             raise ValueError('ФИО должно состоять только из букв и быть из 3 частей, каждая из которых не менее 2 символов')
-
-    @property
-    def teamleader(self):
-        return self.__teamleader
-
-    @property
-    def offical_name(self):
-        return self.__offical_name
-
-    @teamleader.setter
-    def teamleader(self, value):
-        self.__teamleader = self.check_fio(value)
-
-    @offical_name.setter
-    def offical_name(self, value):
-        self.__offical_name = self.check_fio(value)
-
 
     @property
     def password(self):
@@ -78,8 +61,9 @@ class User:
         date = {
             "username": self.username,
             "user_id": self.user_id,
-            'teamleader': self.teamleader,
-            'offical_name': self.offical_name,
+            "parametrs": self.parametrs,
+            # 'teamleader': self.teamleader,
+            # 'offical_name': self.offical_name,
             "password": bcrypt.hashpw(self.__password.encode(), bcrypt.gensalt()).decode()
         }
         user_path = os.path.join(self.path, file_name)
@@ -93,9 +77,7 @@ class User:
     def load_user(data, password):
         new_obj = User(data['username'], password)
         new_obj.user_id = data['user_id']
-        new_obj.teamleader = data['teamleader']
-        new_obj.offical_name = data['offical_name']
-
+        new_obj.parametrs = data['parametrs']
         return new_obj
 
 

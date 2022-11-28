@@ -93,11 +93,9 @@ class ManagerStudents:
         10: [4],
     }
 
-    def __init__(self, special, group, period,  user, days=None):
+    def __init__(self, period,  user, days=None):
         self.user = user
-        self.group = group
         self.period = period
-        self.special = special
         self.days = days if days else self.generate_work_days()
         self.__students = []
         self.date = datetime.datetime.now().timetuple()
@@ -136,9 +134,11 @@ class ManagerStudents:
     def add_student(self, student):
         self.__students.append(student)
 
-
     def remove_student_id(self, id_s):
         del self.__students[id_s]
+
+    def __delitem__(self, key):
+        self.remove_student_id(key)
 
     def remove_student_obj(self, obj):
         self.__students.remove(obj)
@@ -164,8 +164,6 @@ class ManagerStudents:
         """Преобразует данные для сохранения в Json"""
         liststudents, psc, R = self.__encode()
         data = {
-            "Specialization": self.special,
-            "Group": self.group,
             "Period": self.period,
             "Liststudents": liststudents,
             'Days': self.days,
@@ -265,10 +263,10 @@ class ManagerStudents:
         BASE_COORDS = (0, 0)
 
         CELLS_INIT = {
-            self.get_number_by_chars(9 + BASE_COORDS[0]) + str(2 + BASE_COORDS[1]): self.special,
-            self.get_number_by_chars(21 + BASE_COORDS[0]) + str(2 + BASE_COORDS[1]): self.group,
-            self.get_number_by_chars(24 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1]): 'Кл.руководитель ' + (self.user.teamleader if self.user.teamleader else ''),
-            self.get_number_by_chars(24 + BASE_COORDS[0]) + str(38 + BASE_COORDS[1]): "Староста группы " + (self.user.offical_name if self.user.offical_name else ''),
+            # self.get_number_by_chars(9 + BASE_COORDS[0]) + str(2 + BASE_COORDS[1]): self.special,
+            # self.get_number_by_chars(21 + BASE_COORDS[0]) + str(2 + BASE_COORDS[1]): self.group,
+            self.get_number_by_chars(24 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1]): 'Кл.руководитель ' + self.user.parametrs.get('teamleader', ''),
+            self.get_number_by_chars(24 + BASE_COORDS[0]) + str(38 + BASE_COORDS[1]): "Староста группы " + self.user.parametrs.get('offical_name', ''),
             self.get_number_by_chars(35+BASE_COORDS[0])+str(3+BASE_COORDS[1]): 'Из них',
             self.get_number_by_chars(34 + BASE_COORDS[0]) + str(2 + BASE_COORDS[1]): f'за {self.MONTHS[self.period[0]-1]} {str(self.period[1])}',
             self.get_number_by_chars(1 + BASE_COORDS[0]) + str(3 + BASE_COORDS[1]): '№',
@@ -477,7 +475,7 @@ class ManagerStudents:
             with open(os.path.join(user_path, file_name), 'r') as f:
                 data = json.load(f)
 
-        new_obj = ManagerStudents(data['Specialization'], data['Group'], data['Period'], user, {int(k): int(v) for k, v in data['Days'].items()})
+        new_obj = ManagerStudents(data['Period'], user, {int(k): int(v) for k, v in data['Days'].items()})
         students = new_obj.convert_str_to_list(new_obj.decode(data['Liststudents'], data['PSC']))
         for student in students:
             new_obj.add_student(student)

@@ -18,14 +18,19 @@ VERSION = '1.0.8'
 
 
 class Push(QtWidgets.QPushButton):
-    def __init__(self, parent=None):
+    def __init__(self, parent, base_weight, base_height, growth):
         super().__init__()
+        self.base_height = base_height
+        self.base_weight = base_weight
+        self.growth = growth
+        self.setIconSize(QtCore.QSize(self.base_weight, self.base_height))
+
 
     def enterEvent(self, e):
-        self.setIconSize(QtCore.QSize(40, 40))
+        self.setIconSize(QtCore.QSize(self.base_weight + self.growth, self.base_height + self.growth))
 
     def leaveEvent(self, e):
-        self.setIconSize(QtCore.QSize(35, 35))
+        self.setIconSize(QtCore.QSize(self.base_weight, self.base_height))
 
 
 is_work = True
@@ -45,6 +50,7 @@ USER_MANAGER = UserManager(BD_PATH)
 
 class Regist(QtWidgets.QWidget):
     def __init__(self):
+        self.status = 0
         super().__init__()
         self.setWindowIcon(QtGui.QIcon('media\\logo.ico'))
         self.setObjectName("Regist")
@@ -228,23 +234,28 @@ class Regist(QtWidgets.QWidget):
             username, password, kwargs = self.check_lables()
             USER_MANAGER.link_user_by_obj(USER_MANAGER.USER_CLASS(username, password, kwargs))
             USER_MANAGER.save_users()
-            self.obj_auth.spin_box.addItem(QIcon('0'),  username)
-            self.click_cancel_push()
+
+
         except BaseException as message:
             self.message_regist.setText('*'+str(message))
+        else:
+            self.status = 1
+            self.close()
 
     def click_cancel_push(self):
+        self.status = 2
         self.close()
-        self.obj_auth.show()
+
 
 
 class MainWindow(QtWidgets.QMainWindow):
 
     def __init__(self):
+        self.status = 0
         super().__init__()
         self.setStyleSheet(
             """
-            #game_over_push, #save_to_exel_push {border: none;} #game_over_push:hover {background: rgb(0,0,0); margin-right: 5px; margin-left: 5px; margin-top: 5px; margin-bottom: 5px; border-radius: 2px;}
+            #game_over_push, #save_to_exel_push, #save_table_push {border: none;} #game_over_push:hover {background: rgb(0,0,0); margin-right: 5px; margin-left: 5px; margin-top: 5px; margin-bottom: 5px; border-radius: 2px;}
             #tableView {margin-left: auto; margin-right: auto;}
             #profile QPushButton {background-color: rgba(249, 248, 244, 0);}
             
@@ -308,7 +319,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.horizontalLayout_2.addLayout(self.horizontalLayout_4)
 
-        self.save_table_push = QtWidgets.QPushButton(self.frame)
+        self.save_table_push = Push(self.frame, 40, 40, 5)
         self.save_table_push.setObjectName("save_table_push")
         self.horizontalLayout_2.addWidget(self.save_table_push)
 
@@ -316,7 +327,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.game_over_push.setObjectName("game_over_push")
         self.horizontalLayout_2.addWidget(self.game_over_push)
 
-        self.save_to_exel_push = QtWidgets.QPushButton(self.frame)
+        self.save_to_exel_push = Push(self.frame, 55, 55, 5)
         self.save_to_exel_push.setObjectName("save_to_exel_push")
         self.horizontalLayout_2.addWidget(self.save_to_exel_push)
         self.horizontalLayout_3.addLayout(self.horizontalLayout_2)
@@ -466,13 +477,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.horizontalLayout_7 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_7.setObjectName("horizontalLayout_7")
-        self.save_user_push = Push(self.profile)
+        self.save_user_push = Push(self.profile, 35, 35, 5,)
         self.save_user_push.setObjectName("save_user_push")
         self.horizontalLayout_7.addWidget(self.save_user_push)
-        self.set_password_push = Push(self.profile)
+        self.set_password_push = Push(self.profile, 35, 35, 5)
         self.set_password_push.setObjectName("set_password_push")
         self.horizontalLayout_7.addWidget(self.set_password_push)
-        self.del_user_push = Push(self.profile)
+        self.del_user_push = Push(self.profile, 35, 35, 5)
         self.del_user_push.setObjectName("del_user_push")
         self.horizontalLayout_7.addWidget(self.del_user_push)
         self.verticalLayout_8.addLayout(self.horizontalLayout_7)
@@ -481,8 +492,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.verticalLayout_7.setObjectName("verticalLayout_7")
         self.verticalLayout_12 = QtWidgets.QVBoxLayout()
         self.verticalLayout_12.setObjectName("verticalLayout_12")
-
-
 
         self.photo = QtWidgets.QLabel(self.profile)
         photo = QtGui.QPixmap(os.path.join('media', 'profile', f'{str(random.randint(1, 10))}.svg'))
@@ -534,30 +543,22 @@ class MainWindow(QtWidgets.QMainWindow):
         self.del_push.clicked.connect(self.del_student)
         self.save_user_push.clicked.connect(self.save_user)
         self.save_table_push.clicked.connect(self.save_table)
+        self.del_user_push.clicked.connect(self.del_user)
 
 
         self.save_user_push.setIcon(QIcon(os.path.join('media', 'buttons', 'save.svg')))
-        self.save_user_push.setIconSize(QtCore.QSize(40, 40))
         self.save_user_push.setToolTip('Сохронить изменения')
-        self.save_user_push.setMaximumSize(50, 50)
-
-
+        self.save_table_push.setIcon(QIcon(os.path.join('media', 'buttons', 'save.svg')))
+        self.save_table_push.setToolTip('Сохронить изменения')
         self.del_user_push.setIcon(QIcon(os.path.join('media', 'buttons', 'del_user.svg')))
-        self.del_user_push.setIconSize(QtCore.QSize(40, 40))
         self.del_user_push.setToolTip('Удалить пользователя')
-        self.del_user_push.setMaximumSize(50, 50)
-
-
         self.set_password_push.setIcon(QIcon(os.path.join('media', 'buttons', 'set_password.svg')))
-        self.set_password_push.setIconSize(QtCore.QSize(40, 40))
         self.set_password_push.setToolTip('Изменить пароль')
-        self.set_password_push.setMaximumSize(50, 50)
+
 
 
         self.save_to_exel_push.setIcon(QIcon('media\\save_exel.svg'))
-        self.save_to_exel_push.setIconSize(QtCore.QSize(50, 50))
         self.save_to_exel_push.setToolTip('Сохронить в EXEL')
-        self.save_to_exel_push.setMinimumSize(40, 40)
 
         self.game_over_push.setIcon(QIcon('media\\game_over.svg'))
         self.game_over_push.setIconSize(QtCore.QSize(40, 40))
@@ -595,8 +596,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def update_user_info(self):
         self.username_edit.setText(USER_MANAGER.user.username)
-        self.fio_teamleader_edit.setText(USER_MANAGER.user.teamleader)
-        self.fio_user_edit.setText(USER_MANAGER.user.offical_name)
+        self.fio_teamleader_edit.setText(USER_MANAGER.user.parametrs.get('teamleader', ''))
+        self.fio_user_edit.setText(USER_MANAGER.user.parametrs.get('offical_name', ''))
 
     def update_list_students(self):
         self.listWidget.clear()
@@ -606,6 +607,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def update_table_students(self):
         self.tableWidget.clear()
         self.generate_table()
+
+    def update_hours_day(self):
+        self.tableWidget.item(2, 33).setText(str(sum(self.manager_students.days.values())))
 
     def update_statistics_student(self, row):
         statistics = self.manager_students.students[row-3].get_statistic_for_student()
@@ -620,9 +624,11 @@ class MainWindow(QtWidgets.QMainWindow):
     def save_user(self):
         try:
             if self.fio_user_edit.text():
-                USER_MANAGER.user.offical_name = USER_MANAGER.USER_CLASS.check_fio(self.fio_user_edit.text())
+                USER_MANAGER.user.parametrs['offical_name'] = USER_MANAGER.USER_CLASS.check_fio(self.fio_user_edit.text()).title()
+                self.fio_user_edit.setText(USER_MANAGER.user.parametrs.get('offical_name'))
             if self.fio_teamleader_edit.text():
-                USER_MANAGER.user.teamleader = USER_MANAGER.USER_CLASS.check_fio(self.fio_teamleader_edit.text())
+                USER_MANAGER.user.parametrs['teamleader'] = USER_MANAGER.USER_CLASS.check_fio(self.fio_teamleader_edit.text()).title()
+                self.fio_teamleader_edit.setText(USER_MANAGER.user.parametrs.get('teamleader'))
             # USER_MANAGER.user.username = USER_MANAGER.USER_CLASS.check_username(self.username_edit.text())
 
         except BaseException as f:
@@ -641,7 +647,7 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             self.manager_students = ManagerStudents.load_manager_students(USER_MANAGER.user)
         except BaseException as message:
-            self.manager_students = ManagerStudents('', '', (datetime.date.today().month, datetime.date.today().year), USER_MANAGER.user)
+            self.manager_students = ManagerStudents((datetime.date.today().month, datetime.date.today().year), USER_MANAGER.user)
             self.manager_students.save_students()
 
     def add_hours_in_table(self, row, column, hours, type_day='s'):
@@ -669,7 +675,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tableWidget.setSpan(1, 34, 1, 2)
         self.tableWidget.setSpan(1, 0, 2, 1)
 
-        self.tableWidget.setItem(0, 0, QTableWidgetItem(f"ВЕДОМОСТЬ УЧЁТА ЧАСОВ ПРОГУЛОВ за {str(self.manager_students.MONTHS[self.manager_students.period[0]])+' '+str(self.manager_students.period[1])}"))
+        self.tableWidget.setItem(0, 0, QTableWidgetItem(f"ВЕДОМОСТЬ УЧЁТА ЧАСОВ ПРОГУЛОВ за {str(self.manager_students.MONTHS[self.manager_students.period[0]-1])+' '+str(self.manager_students.period[1])}"))
         title = self.tableWidget.item(0, 0)
         title.setBackground(QtGui.QColor(153, 153, 153))
         # table.item(0, 0).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
@@ -700,7 +706,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         for i in range(2, 32 + 1):
             if i-1 in self.manager_students.days:
-                self.tableWidget.setItem(1, i, QTableWidgetItem(str(self.manager_students.days[i-1])))
+                self.tableWidget.setItem(1, i, QTableWidgetItem(str(self.manager_students.days[i-1] if self.manager_students.days[i-1] else '')))
             else:
                 self.tableWidget.setItem(1, i, QTableWidgetItem(str('✖')))
                 self.tableWidget.item(1, i).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
@@ -756,15 +762,23 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def del_student(self):
         if self.listWidget.currentItem():
-            # self.message_main = QtWidgets.QMessageBox().information(self, "Ошибка", str('ds njxyj'), QtWidgets.QMessageBox.StandardButton.Ok|QtWidgets.QMessageBox.StandardButton.Cancel)
-            self.manager_students.remove_student_id(self.listWidget.row(self.listWidget.currentItem()))
-            self.listWidget.removeItemWidget(self.listWidget.currentItem())
-            self.update_list_students()
-            self.update_table_students()
+            message_main = QtWidgets.QMessageBox().question(self, "Удаление студента", str(f'Вы точно хотите навсегда удалить студента {" ".join(self.listWidget.currentItem().text().split()[1:])}?'), QtWidgets.QMessageBox.StandardButton.Yes|QtWidgets.QMessageBox.StandardButton.No)
+            if message_main == message_main.Yes:
+                self.manager_students.remove_student_id(self.listWidget.row(self.listWidget.currentItem()))
+                self.listWidget.removeItemWidget(self.listWidget.currentItem())
+                self.update_list_students()
+                self.update_table_students()
 
         if len(self.manager_students.students) == 0:
             self.students.setEnabled(False)
             self.save_to_exel_push.setEnabled(False)
+
+    def del_user(self):
+        message = QtWidgets.QMessageBox.question(self, 'Удаление пользователя', "Вы точно хотите удалить свой аккаунт?", QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
+        if message == message.Yes:
+            USER_MANAGER.del_user()
+            self.status = 2
+            self.close()
 
     def check_value(self, tablewidget):
         if len(self.manager_students.students) != 0:
@@ -775,10 +789,15 @@ class MainWindow(QtWidgets.QMainWindow):
         if not item is None:
             try:
                 if item.row() == 1 and 2 <= item.column() <= 32:
-                    if item.text().isnumeric() and 0 <= int(item.text()) <= 8:
+                    if item.text() == '' or item.text() == ' ':
+                        if self.manager_students.days.get(item.column()-1):
+                            self.manager_students.days[item.column()-1] = 0
+                        item.setText('')
+                    elif item.text().isnumeric() and 0 <= int(item.text()) <= 8:
                         self.manager_students.add_hours_by_day(item.column()-1, int(item.text()))
                     else:
                         item.setText(str(self.manager_students.days.get(item.column()-1, '')))
+                    self.update_hours_day()
 
                 elif 32 >= item.column() >= 2 and len(self.manager_students.students)+2 >= item.row() >= 2:
                     if item.text() == '' or item.text() == ' ':
@@ -787,7 +806,6 @@ class MainWindow(QtWidgets.QMainWindow):
                         if item.column() - 1 in self.manager_students.students[item.row() - 3].sick_days:
                             del self.manager_students.students[item.row() - 3].sick_days[item.column() - 1]
                         item.setBackground(QtGui.QColor(255, 255, 255))
-
 
                     elif item.text().isnumeric() and 0 < int(item.text()) <= 8:
                         if self.is_sick_rb.isChecked():
@@ -852,6 +870,7 @@ class Auth(QtWidgets.QWidget):
     CLASS_WINDOW = MainWindow
 
     def __init__(self):
+        self.status = 0
         super(Auth, self).__init__()
         self.setFixedSize(442, 580)
         self.setWindowIcon(QtGui.QIcon('media\\logo.ico'))
@@ -944,22 +963,63 @@ class Auth(QtWidgets.QWidget):
             except BaseException as message:
                 self.message_auth.setText('*' + str(message))
             else:
-                self.obj_window = self.CLASS_WINDOW()
-                self.obj_window.obj_auth = self
+                self.status = 1
                 self.close()
-                self.obj_window.show()
 
     def click_regis_push(self):
-        self.obj_regist = self.CLASS_REGIST()
-        self.obj_regist.obj_auth = self
+        self.status = 3
         self.close()
-        self.obj_regist.show()
+
+
+class ControlerWindows:
+    def __init__(self, auth, regist, main):
+        self.auth = auth()
+        self.regist = regist()
+        self.main = main
+
+        self.auth.closeEvent = self.close_event_by_auth
+        self.main.closeEvent = self.close_event_by_main
+        self.regist.closeEvent = self.close_event_by_regist
+
+    def close_event_by_auth(self, e):
+        if self.auth.status == 1:
+            self.main = self.main()
+            self.main.show()
+        elif self.auth.status == 3:
+            self.regist.show()
+        else:
+            self.auth.close()
+        self.auth.status = 0
+
+    def close_event_by_main(self, e):
+        if self.main.status == 2:
+            self.auth.show()
+        elif self.auth.status == 3:
+            self.regist.show()
+        else:
+            self.main.close()
+        self.main.status = 0
+
+    def close_event_by_regist(self, e):
+        if self.regist.status == 1:
+            self.main = self.main()
+            self.main.show()
+        elif self.regist.status == 2:
+            self.auth.show()
+        else:
+            self.regist.close()
+        self.regist.status = 0
+
+
+    def show(self):
+        self.auth.show()
+
 
 
 app = QtWidgets.QApplication(sys.argv)
 
-auth = Auth()
-auth.show()
+windows = ControlerWindows(Auth, Regist, MainWindow)
+windows.show()
 
 status = app.exec()
 #
@@ -970,5 +1030,5 @@ status = app.exec()
 #     pass
 # else:
 #     pass
-print(status)
+print(status, '-')
 sys.exit(status)
