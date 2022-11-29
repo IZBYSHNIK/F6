@@ -93,7 +93,7 @@ class ManagerStudents:
         10: [4],
     }
 
-    def __init__(self, period,  user, days=None):
+    def __init__(self, period,  user=None, days=None):
         self.user = user
         self.period = period
         self.days = days if days else self.generate_work_days()
@@ -263,10 +263,10 @@ class ManagerStudents:
         BASE_COORDS = (0, 0)
 
         CELLS_INIT = {
-            # self.get_number_by_chars(9 + BASE_COORDS[0]) + str(2 + BASE_COORDS[1]): self.special,
-            # self.get_number_by_chars(21 + BASE_COORDS[0]) + str(2 + BASE_COORDS[1]): self.group,
-            self.get_number_by_chars(24 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1]): 'Кл.руководитель ' + self.user.parametrs.get('teamleader', ''),
-            self.get_number_by_chars(24 + BASE_COORDS[0]) + str(38 + BASE_COORDS[1]): "Староста группы " + self.user.parametrs.get('offical_name', ''),
+            self.get_number_by_chars(9 + BASE_COORDS[0]) + str(2 + BASE_COORDS[1]): self.user.parametrs.get('specialization', ''),
+            self.get_number_by_chars(21 + BASE_COORDS[0]) + str(2 + BASE_COORDS[1]): self.user.parametrs.get('group', ''),
+            self.get_number_by_chars(24 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1]): 'Кл.руководитель ' + (self.user.create_shorts_fio(self.user.parametrs.get('teamleader')) if self.user.parametrs.get('teamleader') else ''),
+            self.get_number_by_chars(24 + BASE_COORDS[0]) + str(38 + BASE_COORDS[1]): "Староста группы " + (self.user.create_shorts_fio(self.user.parametrs.get('offical_name')) if self.user.parametrs.get('offical_name') else ''),
             self.get_number_by_chars(35+BASE_COORDS[0])+str(3+BASE_COORDS[1]): 'Из них',
             self.get_number_by_chars(34 + BASE_COORDS[0]) + str(2 + BASE_COORDS[1]): f'за {self.MONTHS[self.period[0]-1]} {str(self.period[1])}',
             self.get_number_by_chars(1 + BASE_COORDS[0]) + str(3 + BASE_COORDS[1]): '№',
@@ -524,7 +524,7 @@ class ManagerStudents:
 
 
 if __name__ == '__main__':
-    ms = ManagerStudents('18.19.20.12', '1GRC-20', (10, 2022), 'user')
+    ms = ManagerStudents('18.19.20.12', '1GRC-20', (10, 2022))
 
     ms.add_student(Student('Иванов Иван Иванович', {1: 4, 6: 2, 8: 8, 13: 2}, {2: 4, 5: 2, 6: 8, 10: 6}))
     ms.add_student(Student('Иванов Иван Иванович', {2: 4, 6: 2, 9: 8, 14: 2}, {2: 4, 5: 2, 6: 8, 10: 6}))
