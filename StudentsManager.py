@@ -509,13 +509,28 @@ class ManagerStudents:
             absence_days_hours += statistic['Absence_days'][1]
 
         all_absence = sack_days_hours + absence_days_hours
-
-        return {
+        man_hours = len(self.students) * all_hours
+        statisitcs = {
             'all_hours': all_hours,
             'sack_days_hours': sack_days_hours,
             'absence_days_hours': absence_days_hours,
             'all_absence': all_absence,
+            'man_hours': man_hours,
         }
+        if man_hours > 0:
+            total_attendance = (man_hours-absence_days_hours)/man_hours
+            quality_attendance = (man_hours - all_absence)/man_hours
+            absences_by_student = all_absence/len(self.students)
+
+            statisitcs['total_attendance'] = total_attendance
+            statisitcs["quality_attendance"] = quality_attendance
+            statisitcs['absences_by_student'] = absences_by_student
+
+
+
+
+
+        return statisitcs
 
 
 

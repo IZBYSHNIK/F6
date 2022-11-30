@@ -16,7 +16,7 @@ from StudentsManager import ManagerStudents, Student
 from UserManager import UserManager, User
 
 
-VERSION = '1.0.8'
+VERSION = '1.0.9beta'
 
 
 class SplashScreen(QtWidgets.QSplashScreen):
@@ -24,12 +24,10 @@ class SplashScreen(QtWidgets.QSplashScreen):
         super().__init__()
         self.setObjectName("splash_screen")
         self.setFixedSize(379, 443)
-        # print(QScreen.availableSize())
-        self.move(0, 100)
+        self.move((app.primaryScreen().size().width()-self.size().width())//2, (app.primaryScreen().size().height()-self.size().height())//2-40)
         self.logo = QtWidgets.QLabel(self)
         self.logo.setMinimumWidth(379)
         logo = QtGui.QPixmap(os.path.join('media', 'logo.svg'))
-        # logo = logo.scaled(200, 200)
         self.logo.setPixmap(logo)
         self.logo.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         font = QtGui.QFont()
@@ -43,7 +41,7 @@ class SplashScreen(QtWidgets.QSplashScreen):
         self.progressBar.setTextVisible(False)
         self.progressBar.setObjectName("progressBar")
         self.version = QtWidgets.QLabel(self)
-        self.version.setGeometry(QtCore.QRect(320, 400, 61, 41))
+        self.version.setGeometry(QtCore.QRect(340, 400, 61, 41))
         font = QtGui.QFont()
         font.setItalic(True)
         self.version.setFont(font)
@@ -71,7 +69,7 @@ class Regist(QtWidgets.QWidget):
     def __init__(self):
         self.status = 0
         super().__init__()
-        self.setWindowIcon(QtGui.QIcon('media\\logo.ico'))
+        self.setWindowIcon(QtGui.QIcon('media\\logo.svg'))
         self.setObjectName("Regist")
         self.setFixedSize(442, 700)
         self.setStyleSheet("QPushButton{\n"
@@ -271,8 +269,8 @@ class Auth(QtWidgets.QWidget):
     def __init__(self):
         self.status = 0
         super(Auth, self).__init__()
+        self.setWindowIcon(QtGui.QIcon('media\\logo.svg'))
         self.setFixedSize(442, 580)
-        self.setWindowIcon(QtGui.QIcon('media\\logo.ico'))
         self.setStyleSheet("QPushButton{font: 18px; border: none; color: white; padding: 0px; margin: 0px}\n"
                            "QPushButton:hover {font-size: 21px;}\n"
                            "Form {background: #f9f8f4;}\n"
@@ -425,6 +423,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.label_2.setFont(QtGui.QFont('Calibri', 15))
         self.horizontalLayout.addWidget(self.label_2)
         self.horizontalLayout_3.addLayout(self.horizontalLayout)
+        self.wLayout = QtWidgets.QVBoxLayout()
+        self.statustic1 = QtWidgets.QLabel(self.frame)
+        self.statustic2 = QtWidgets.QLabel(self.frame)
+
+        self.wLayout.addWidget(self.statustic1)
+        self.wLayout.addWidget(self.statustic2)
+        self.horizontalLayout_3.addLayout(self.wLayout)
+
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding,
                                            QtWidgets.QSizePolicy.Policy.Minimum)
         self.horizontalLayout_3.addItem(spacerItem)
@@ -526,10 +532,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.horizontalLayout_6.addLayout(self.verticalLayout_4)
         self.group.addTab(self.students, "")
 
-        self.settings = QtWidgets.QWidget()
-        self.settings.setObjectName("settings")
-        self.group.addTab(self.settings, "")
-        self.profile = QtWidgets.QWidget()
 
         self.profile = QtWidgets.QWidget()
         self.profile.setObjectName("profile")
@@ -724,7 +726,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.save_push.setText(_translate("MainWindow", "Сохранить"))
         self.group.setTabText(self.group.indexOf(self.students), _translate("MainWindow", "Студенты"))
         self.label.setText(_translate("MainWindow", "Список студентов"))
-        self.group.setTabText(self.group.indexOf(self.settings), _translate("MainWindow", "Настройки"))
+        # self.group.setTabText(self.group.indexOf(self.settings), _translate("MainWindow", "Настройки"))
         self.accaunt_label.setText(_translate("MainWindow", "Аккаунт"))
         self.username_label.setText(_translate("MainWindow", "Имя пользователя"))
         self.fio_user_label.setText(_translate("MainWindow", "ФИО Своё"))
@@ -742,6 +744,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.email_edit.setText(USER_MANAGER.user.parametrs.get('email', ''))
         self.group_edit.setText(USER_MANAGER.user.parametrs.get('group', ''))
         self.specialization_edit.setText(USER_MANAGER.user.parametrs.get('specialization', ''))
+
+    def update_statistics(self):
+        statistics = self.manager_students.get_statistics()
+        if statistics.get('man_hours') > 0:
+            self.statustic1.setText(f'Чел.час = {str(statistics.get("man_hours"))} \t\t Посещ.Кач. = {str(round(statistics.get("quality_attendance"), 2)*100)}%')
+            self.statustic2.setText(f'Посещ.Общ. = {str(round(statistics.get("total_attendance", 2)*100))}% \t Прогул 1 студ. = {str(round(statistics.get("absences_by_student", 1)))}')
+        else:
+            self.statustic1.clear()
+            self.statustic2.clear()
 
     def update_list_students(self):
         self.listWidget.clear()
@@ -789,9 +800,7 @@ class MainWindow(QtWidgets.QMainWindow):
             USER_MANAGER.user.save_user()
 
     def save_to_exel(self):
-        print(12)
         self.manager_students.save_f6('beta.xlsx')
-        print(13)
 
     def save_table(self):
         self.manager_students.save_students()
@@ -810,6 +819,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.update_list_students()
         self.update_table_students()
         self.update_user_info()
+        self.update_statistics()
 
     def add_hours_in_table(self, row, column, hours, type_day='s'):
         self.tableWidget.item(row, column).setText(str(hours))
@@ -937,6 +947,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if len(self.manager_students.students) == 0:
             self.students.setEnabled(False)
             self.save_to_exel_push.setEnabled(False)
+        self.update_statistics()
 
     def del_user(self):
         message = QtWidgets.QMessageBox.question(self, 'Удаление пользователя', "Вы точно хотите удалить свой аккаунт?",
@@ -1035,6 +1046,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             except BaseException as f:
                 print(f)
+            self.update_statistics()
 
 
 class Push(QtWidgets.QPushButton):
@@ -1072,7 +1084,7 @@ class ControlerWindows:
     def load_splash_screen(self, starts=0, end=0):
         for i in range(starts, end):
             self.splash_screen.progressBar.setValue(i)
-            QtCore.QThread.msleep(2)
+            QtCore.QThread.msleep(4)
 
     def close_event_by_auth(self, e):
         if self.auth.status == 1:
@@ -1135,6 +1147,7 @@ USER_MANAGER = UserManager(BD_PATH)
 
 
 app = QtWidgets.QApplication(sys.argv)
+
 
 windows = ControlerWindows(SplashScreen, Auth, Regist, MainWindow)
 windows.show()
