@@ -41,7 +41,7 @@ class SplashScreen(QtWidgets.QSplashScreen):
         self.progressBar.setTextVisible(False)
         self.progressBar.setObjectName("progressBar")
         self.version = QtWidgets.QLabel(self)
-        self.version.setGeometry(QtCore.QRect(340, 400, 61, 41))
+        self.version.setGeometry(QtCore.QRect(320, 400, 61, 41))
         font = QtGui.QFont()
         font.setItalic(True)
         self.version.setFont(font)

@@ -392,7 +392,7 @@ class ManagerStudents:
         for indx, student in enumerate(students):
             row = str(5 + indx + BASE_COORDS[1])
             fio, s_d, a_d = student.get_statistic_for_student().values()
-            ws[column+row] = fio
+            ws[column+row] = self.CLASS_STUDENT.create_shorts_fio(fio)
             ws[self.get_number_by_chars(self.get_chars_by_number(column)-1)+row] = indx + 1
             for c in range(3, 34):
                 if c-2 in a_d[0]:
