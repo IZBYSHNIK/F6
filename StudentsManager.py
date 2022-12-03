@@ -18,6 +18,9 @@ class Student:
         self.__sick_days = sick_days
         self.__absence_days = absence_days
 
+    def __str__(self):
+        return self.create_shorts_fio(self.fio)
+
     @staticmethod
     def chech_fio(fio):
         if isinstance(fio.replace(' ', ''), str) and sum([item.isalpha() and len(item) >= 2 for item in fio.split()]) == 3:
@@ -415,6 +418,7 @@ class ManagerStudents:
                         ws[self.get_number_by_chars(i + BASE_COORDS[0]) + str(j)].fill = patternfull
 
         wb.save(file_name)
+        return file_name
 
     def __encode(self):
         data = self.__convert_students()
@@ -526,11 +530,15 @@ class ManagerStudents:
             statisitcs["quality_attendance"] = quality_attendance
             statisitcs['absences_by_student'] = absences_by_student
 
-
-
-
-
         return statisitcs
+
+    def finished_table(self):
+        # os.makedirs(os.path.join(self.user.path, 'archive'))
+        # print()
+        pass
+
+
+
 
 
 

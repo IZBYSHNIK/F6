@@ -18,6 +18,20 @@ from UserManager import UserManager, User
 
 VERSION = '1.0.9beta'
 
+is_work = True
+is_new_user = False
+dirname, filename = os.path.split(os.path.abspath(__file__))
+
+
+BASE_PATH = dirname
+DOCUMENTS_PATH = os.path.expanduser("~/F6")
+PACH_SAVE_F6 = DOCUMENTS_PATH
+BD_PATH = os.path.join(DOCUMENTS_PATH, 'BD')
+if not os.path.exists(os.path.join(DOCUMENTS_PATH, 'BD')):
+    os.makedirs(os.path.join(DOCUMENTS_PATH, "BD"))
+
+USER_MANAGER = UserManager(BD_PATH)
+
 
 class SplashScreen(QtWidgets.QSplashScreen):
     def __init__(self):
@@ -636,6 +650,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.del_user_push = Push(self.profile, 35, 35, 5)
         self.del_user_push.setObjectName("del_user_push")
         self.horizontalLayout_7.addWidget(self.del_user_push)
+        self.logout_push = Push(self.profile, 35, 35, 5)
+        self.logout_push.setObjectName("logout_push")
+        self.horizontalLayout_7.addWidget(self.logout_push)
         self.verticalLayout_8.addLayout(self.horizontalLayout_7)
         self.horizontalLayout_8.addLayout(self.verticalLayout_8)
         self.verticalLayout_7 = QtWidgets.QVBoxLayout()
@@ -703,6 +720,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.del_user_push.setToolTip('Удалить пользователя')
         self.set_password_push.setIcon(QIcon(os.path.join('media', 'buttons', 'set_password.svg')))
         self.set_password_push.setToolTip('Изменить пароль')
+        self.logout_push.setIcon(QIcon(os.path.join('media', 'buttons', 'logout.svg')))
+        self.logout_push.setToolTip('Выйти из аккаунта')
 
         self.save_to_exel_push.setIcon(QIcon('media\\save_exel.svg'))
         self.save_to_exel_push.setToolTip('Сохронить в EXEL')
@@ -800,7 +819,12 @@ class MainWindow(QtWidgets.QMainWindow):
             USER_MANAGER.user.save_user()
 
     def save_to_exel(self):
-        self.manager_students.save_f6('beta.xlsx')
+        try:
+            path = self.manager_students.save_f6(os.path.join(DOCUMENTS_PATH, 'user_1.xlsx'))
+        except BaseException as f:
+            QtWidgets.QMessageBox.critical(self, 'Ошибка сохранения', 'Файл не был сохранен. Повторите попытку')
+        else:
+            QtWidgets.QMessageBox.information(self, 'Успешное сохранение', f'Файл успешно сохранен в дириктории: {path}')
 
     def save_table(self):
         self.manager_students.save_students()
@@ -815,7 +839,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if len(self.manager_students.students) == 0:
             self.students.setEnabled(False)
         self.label_2.setText(f"Добро пожаловать, {USER_MANAGER.user.username}!")
-
+        self.manager_students.finished_table()
         self.update_list_students()
         self.update_table_students()
         self.update_user_info()
@@ -850,7 +874,6 @@ class MainWindow(QtWidgets.QMainWindow):
             f"ВЕДОМОСТЬ УЧЁТА ЧАСОВ ПРОГУЛОВ за {str(self.manager_students.MONTHS[self.manager_students.period[0] - 1]) + ' ' + str(self.manager_students.period[1])}"))
         title = self.tableWidget.item(0, 0)
         title.setBackground(QtGui.QColor(153, 153, 153))
-        # table.item(0, 0).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         title.setFont(QtGui.QFont('Calibri', 20))
         title.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
 
@@ -1114,10 +1137,10 @@ class ControlerWindows:
 
     def close_event_by_regist(self, e):
         if self.regist.status == 1:
+            self.auth.update_users()
             self.main.init_students_manager()
             self.main.show()
         elif self.regist.status == 2:
-            self.auth.update_users()
             self.auth.show()
         else:
             self.regist.close()
@@ -1131,19 +1154,7 @@ class ControlerWindows:
             self.regist.show()
 
 
-is_work = True
-is_new_user = False
-dirname, filename = os.path.split(os.path.abspath(__file__))
 
-
-BASE_PATH = dirname
-DOCUMENTS_PATH = os.path.expanduser("~/F6")
-PACH_SAVE_F6 = DOCUMENTS_PATH
-BD_PATH = os.path.join(DOCUMENTS_PATH, 'BD')
-if not os.path.exists(os.path.join(DOCUMENTS_PATH, 'BD')):
-    os.makedirs(os.path.join(DOCUMENTS_PATH, "BD"))
-
-USER_MANAGER = UserManager(BD_PATH)
 
 
 app = QtWidgets.QApplication(sys.argv)
