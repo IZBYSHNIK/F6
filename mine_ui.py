@@ -10,19 +10,18 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QTableWidget,
     QTableWidgetItem, QVBoxLayout, QHeaderView
-
 )
 from StudentsManager import ManagerStudents, Student
 from UserManager import UserManager, User
 
 
 VERSION = '1.0.9beta'
-
+# QtCore.QCoreApplication.setLibraryPaths(['plugins'])
 is_work = True
 is_new_user = False
 dirname, filename = os.path.split(os.path.abspath(__file__))
 
-
+print(QtCore.QCoreApplication.libraryPaths())
 BASE_PATH = dirname
 DOCUMENTS_PATH = os.path.expanduser("~/F6")
 PACH_SAVE_F6 = DOCUMENTS_PATH
@@ -378,6 +377,7 @@ class Auth(QtWidgets.QWidget):
             except BaseException as message:
                 self.message_auth.setText('*' + str(message))
             else:
+                self.password_edit.clear()
                 self.status = 1
                 self.close()
 
@@ -480,9 +480,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.verticalLayout.addLayout(self.verticalLayout_3)
 
         self.tableWidget = QtWidgets.QTableWidget()
-
         self.tableWidget.setStyleSheet("""QTableWidget {border: none;}""")
-
         self.tableWidget.setObjectName("tableView")
         self.verticalLayout.addWidget(self.tableWidget)
 
@@ -711,6 +709,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.save_user_push.clicked.connect(self.save_user)
         self.save_table_push.clicked.connect(self.save_table)
         self.del_user_push.clicked.connect(self.del_user)
+        self.logout_push.clicked.connect(self.logout)
+        self.game_over_push.clicked.connect(self.click_end_period)
 
         self.save_user_push.setIcon(QIcon(os.path.join('media', 'buttons', 'save.svg')))
         self.save_user_push.setToolTip('Сохронить изменения')
@@ -797,6 +797,11 @@ class MainWindow(QtWidgets.QMainWindow):
     Прогулы по ув. причине: {str(statistics["Sick_days"][1])}
                         """)
 
+    def logout(self):
+        USER_MANAGER.user = None
+        self.status = 2
+        self.close()
+
     def save_user(self):
         try:
             if self.fio_user_edit.text():
@@ -839,7 +844,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if len(self.manager_students.students) == 0:
             self.students.setEnabled(False)
         self.label_2.setText(f"Добро пожаловать, {USER_MANAGER.user.username}!")
-        self.manager_students.finished_table()
+
         self.update_list_students()
         self.update_table_students()
         self.update_user_info()
@@ -1070,6 +1075,17 @@ class MainWindow(QtWidgets.QMainWindow):
             except BaseException as f:
                 print(f)
             self.update_statistics()
+
+    def click_end_period(self):
+
+        try:
+            self.manager_students.push_archive()
+        except BaseException as f:
+            print(f)
+        else:
+            self.manager_students.create_new_table()
+            self.update_statistics()
+            self.update_table_students()
 
 
 class Push(QtWidgets.QPushButton):

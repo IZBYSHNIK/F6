@@ -532,13 +532,33 @@ class ManagerStudents:
 
         return statisitcs
 
-    def finished_table(self):
-        # os.makedirs(os.path.join(self.user.path, 'archive'))
-        # print()
-        pass
+    def push_archive(self):
+        if not os.path.exists(os.path.join(self.user.path, 'archive')):
+            os.makedirs(os.path.join(self.user.path, "archive"))
+        self.replace_file(os.path.join(self.user.path, 'students.json'),
+                   os.path.join(self.user.path, 'archive', 'students.json'))
+        self.rename_file(os.path.join(self.user.path, 'archive', 'students.json'),
+                  os.path.join(self.user.path, 'archive', str(self.period[1])+'_'+str(self.period[0])+self.MONTHS[self.period[0]-1]+'.json'))
 
+    def create_new_table(self):
+        if 1 <= self.period[0] < 12:
+            month = self.period[0] + 1
+            year = self.period[1]
+        else:
+            month = 1
+            year = self.period[1] + 1
 
+        self.set_period(month, year)
+        for s in self.students:
+            s.sick_days.clear()
+            s.absence_days.clear()
+        self.save_students()
 
+    def replace_file(self, path1, path2):
+        os.replace(path1, path2)
+
+    def rename_file(self, path1, path2):
+        os.rename(path1, path2)
 
 
 
