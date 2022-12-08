@@ -269,6 +269,12 @@ class Regist(QtWidgets.QWidget):
         except BaseException as message:
             self.message_regist.setText('*' + str(message))
         else:
+            self.password_edit.clear()
+            self.password_edit_2.clear()
+            self.email_edit.clear()
+            self.login_edit.clear()
+            self.teamleader_edit.clear()
+            self.office_name_edit.clear()
             self.status = 1
             self.close()
 
@@ -396,6 +402,7 @@ class MainWindow(QtWidgets.QMainWindow):
             #game_over_push, #save_to_exel_push, #save_table_push {border: none;} #game_over_push:hover {background: rgb(0,0,0); margin-right: 5px; margin-left: 5px; margin-top: 5px; margin-bottom: 5px; border-radius: 2px;}
             #tableView {margin-left: auto; margin-right: auto;}
             #profile QPushButton {background-color: rgba(249, 248, 244, 0);}
+            QScrollArea {border: none}
 
             """)
         self.setWindowIcon(QtGui.QIcon('media\\logo.svg'))
@@ -543,6 +550,71 @@ class MainWindow(QtWidgets.QMainWindow):
         self.verticalLayout_4.addLayout(self.verticalLayout_5)
         self.horizontalLayout_6.addLayout(self.verticalLayout_4)
         self.group.addTab(self.students, "")
+
+        self.settings = QtWidgets.QWidget()
+        self.settings.setObjectName("settings")
+        self.verticalLayout_10 = QtWidgets.QVBoxLayout(self.settings)
+        self.verticalLayout_10.setObjectName("verticalLayout_10")
+        self.scrollArea = QtWidgets.QScrollArea(self.settings)
+        self.scrollArea.setWidgetResizable(True)
+        self.scrollArea.setObjectName("scrollArea")
+        self.scrollAreaWidgetContents = QtWidgets.QWidget()
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 950, 712))
+        self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
+        self.verticalLayout_9 = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents)
+        self.verticalLayout_9.setObjectName("verticalLayout_9")
+        self.setings1_label = QtWidgets.QLabel(self.scrollAreaWidgetContents)
+        font = QtGui.QFont()
+        font.setPointSize(14)
+        font.setBold(False)
+        font.setItalic(False)
+        font.setUnderline(False)
+        font.setWeight(50)
+        self.setings1_label.setFont(font)
+        self.setings1_label.setObjectName("setings1_label")
+        self.verticalLayout_9.addWidget(self.setings1_label)
+        self.add_work_day_link_button = QtWidgets.QCommandLinkButton(self.scrollAreaWidgetContents)
+        self.add_work_day_link_button.setTabletTracking(True)
+        self.add_work_day_link_button.setObjectName("add_work_day_link_button")
+        self.verticalLayout_9.addWidget(self.add_work_day_link_button)
+        self.del_work_day_link_button = QtWidgets.QCommandLinkButton(self.scrollAreaWidgetContents)
+        self.del_work_day_link_button.setCheckable(False)
+        self.del_work_day_link_button.setObjectName("del_work_day_link_button")
+        self.verticalLayout_9.addWidget(self.del_work_day_link_button)
+        self.line_2 = QtWidgets.QFrame(self.scrollAreaWidgetContents)
+        self.line_2.setFrameShape(QtWidgets.QFrame.Shape.HLine)
+        self.line_2.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
+        self.line_2.setObjectName("line_2")
+        self.verticalLayout_9.addWidget(self.line_2)
+        self.setings2_label = QtWidgets.QLabel(self.scrollAreaWidgetContents)
+        font = QtGui.QFont()
+        font.setPointSize(14)
+        font.setBold(False)
+        font.setItalic(False)
+        font.setUnderline(False)
+        font.setWeight(50)
+        self.setings2_label.setFont(font)
+        self.setings2_label.setObjectName("setings2_label")
+        self.verticalLayout_9.addWidget(self.setings2_label)
+        self.set_path_save_bd_link_button = QtWidgets.QCommandLinkButton(self.scrollAreaWidgetContents)
+        self.set_path_save_bd_link_button.setTabletTracking(True)
+        self.set_path_save_bd_link_button.setObjectName("set_path_save_bd_link_button")
+        self.verticalLayout_9.addWidget(self.set_path_save_bd_link_button)
+        self.set_path_save_exel_link_button = QtWidgets.QCommandLinkButton(self.scrollAreaWidgetContents)
+        self.set_path_save_exel_link_button.setCheckable(False)
+        self.set_path_save_exel_link_button.setObjectName("set_path_save_exel_link_button")
+        self.verticalLayout_9.addWidget(self.set_path_save_exel_link_button)
+        self.line_3 = QtWidgets.QFrame(self.scrollAreaWidgetContents)
+        self.line_3.setFrameShape(QtWidgets.QFrame.Shape.HLine)
+        self.line_3.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
+        self.line_3.setObjectName("line_3")
+        self.verticalLayout_9.addWidget(self.line_3)
+        spacerItem2 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum,
+                                            QtWidgets.QSizePolicy.Policy.Expanding)
+        self.verticalLayout_9.addItem(spacerItem2)
+        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
+        self.verticalLayout_10.addWidget(self.scrollArea)
+        self.group.addTab(self.settings, "")
 
 
         self.profile = QtWidgets.QWidget()
@@ -711,6 +783,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.del_user_push.clicked.connect(self.del_user)
         self.logout_push.clicked.connect(self.logout)
         self.game_over_push.clicked.connect(self.click_end_period)
+        self.add_work_day_link_button.clicked.connect(self.add_work_day)
 
         self.save_user_push.setIcon(QIcon(os.path.join('media', 'buttons', 'save.svg')))
         self.save_user_push.setToolTip('Сохронить изменения')
@@ -745,7 +818,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.save_push.setText(_translate("MainWindow", "Сохранить"))
         self.group.setTabText(self.group.indexOf(self.students), _translate("MainWindow", "Студенты"))
         self.label.setText(_translate("MainWindow", "Список студентов"))
-        # self.group.setTabText(self.group.indexOf(self.settings), _translate("MainWindow", "Настройки"))
+        self.setings1_label.setText(_translate("MainWindow", "Рабочие/нерабочие дни"))
+        self.add_work_day_link_button.setText(_translate("MainWindow", "Добавить рабочий день"))
+        self.del_work_day_link_button.setText(_translate("MainWindow", "Удалить рабочий день"))
+        self.setings2_label.setText(_translate("MainWindow", "Пути сохранения"))
+        self.set_path_save_bd_link_button.setText(_translate("MainWindow", "Изменить путь сохранения базы данных"))
+        self.set_path_save_exel_link_button.setText(_translate("MainWindow", "Изменить путь сохранения файлов exel"))
+        self.group.setTabText(self.group.indexOf(self.settings), _translate("MainWindow", "Настройки"))
         self.accaunt_label.setText(_translate("MainWindow", "Аккаунт"))
         self.username_label.setText(_translate("MainWindow", "Имя пользователя"))
         self.fio_user_label.setText(_translate("MainWindow", "ФИО Своё"))
@@ -755,6 +834,20 @@ class MainWindow(QtWidgets.QMainWindow):
         self.specialization_label.setText(_translate('MainWindow', "Специализация"))
         self.group.setTabText(self.group.indexOf(self.profile), _translate("MainWindow", "Профиль"))
         self.action_2.setText(_translate("MainWindow", "ншнге"))
+
+    def create_message_windows(self):
+        messages = QtWidgets.QWidget()
+        messages.setFixedSize(200, 400)
+        return messages
+
+    def add_work_day(self):
+        print(1)
+        try:
+            pass
+        except BaseException as f:
+            print(f)
+
+
 
     def update_user_info(self):
         self.username_edit.setText(USER_MANAGER.user.username)
@@ -825,7 +918,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def save_to_exel(self):
         try:
-            path = self.manager_students.save_f6(os.path.join(DOCUMENTS_PATH, 'user_1.xlsx'))
+            path = self.manager_students.save_f6_marks(os.path.join(DOCUMENTS_PATH, 'user_1.xlsx'))
         except BaseException as f:
             QtWidgets.QMessageBox.critical(self, 'Ошибка сохранения', 'Файл не был сохранен. Повторите попытку')
         else:
@@ -1077,15 +1170,17 @@ class MainWindow(QtWidgets.QMainWindow):
             self.update_statistics()
 
     def click_end_period(self):
-
-        try:
-            self.manager_students.push_archive()
-        except BaseException as f:
-            print(f)
-        else:
-            self.manager_students.create_new_table()
-            self.update_statistics()
-            self.update_table_students()
+        message = QtWidgets.QMessageBox.question(self, 'Завершение',
+                                                 'Вы точно хотите завершить этот месяц? \n После этого форма шесть будет сохранена, перенесена и находится в архиве.', QtWidgets.QMessageBox.StandardButton.No|QtWidgets.QMessageBox.StandardButton.Yes)
+        if message.Yes == message:
+            try:
+                self.manager_students.push_archive()
+            except BaseException as f:
+                print(f)
+            else:
+                self.manager_students.create_new_table()
+                self.update_statistics()
+                self.update_table_students()
 
 
 class Push(QtWidgets.QPushButton):
@@ -1180,6 +1275,7 @@ windows = ControlerWindows(SplashScreen, Auth, Regist, MainWindow)
 windows.show()
 
 status = app.exec()
+
 
 
 print(status, '-')

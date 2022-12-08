@@ -102,6 +102,7 @@ class ManagerStudents:
         self.days = days if days else self.generate_work_days()
         self.__students = []
         self.date = datetime.datetime.now().timetuple()
+        self.parametrs = {}
 
     def __getitem__(self, indx):
         return self.students[indx]
@@ -170,6 +171,7 @@ class ManagerStudents:
             "Period": self.period,
             "Liststudents": liststudents,
             'Days': self.days,
+            "Parametrs": self.parametrs,
             'PSC': psc,
             'Rang': R
         }
@@ -420,6 +422,109 @@ class ManagerStudents:
         wb.save(file_name)
         return file_name
 
+
+    def save_f6_marks(self, file_name='f6.xlsx'):
+        BASE_COORDS = (0, 0)
+
+        CELLS_INIT = {
+            self.get_number_by_chars(9 + BASE_COORDS[0]) + str(2 + BASE_COORDS[1]): self.user.parametrs.get('specialization', ''),
+            self.get_number_by_chars(21 + BASE_COORDS[0]) + str(2 + BASE_COORDS[1]): self.user.parametrs.get('group', ''),
+            self.get_number_by_chars(9 + BASE_COORDS[0]) + str(36 + BASE_COORDS[1]): 'Кл.руководитель ' + (self.user.create_shorts_fio(self.user.parametrs.get('teamleader')) if self.user.parametrs.get('teamleader') else ''),
+            self.get_number_by_chars(9 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1]): "Староста группы " + (self.user.create_shorts_fio(self.user.parametrs.get('offical_name')) if self.user.parametrs.get('offical_name') else ''),
+            self.get_number_by_chars(12 + BASE_COORDS[0]) + str(2 + BASE_COORDS[1]): f'за {self.MONTHS[self.period[0]-1]} {str(self.period[1])}',
+            self.get_number_by_chars(1 + BASE_COORDS[0]) + str(3 + BASE_COORDS[1]): '№',
+            self.get_number_by_chars(2+BASE_COORDS[0])+str(3+BASE_COORDS[1]): 'ФИО',
+            self.get_number_by_chars(8+BASE_COORDS[0])+str(2+BASE_COORDS[1]): 'Группа',
+            self.get_number_by_chars(3+BASE_COORDS[0])+str(2+BASE_COORDS[1]): 'Специальность',
+            self.get_number_by_chars(1+BASE_COORDS[0])+str(1+BASE_COORDS[1]): 'ВЕДОМОСТЬ УЧЁТА ЧАСОВ, УСПИВАЕМОСТИ СТУДЕНТАМИ',
+            self.get_number_by_chars(2 + BASE_COORDS[0]) + str(36 + BASE_COORDS[1]): 'Кол-во студ. им-х 2',
+            self.get_number_by_chars(2 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1]): 'Кол-во студ. им-х 5',
+            self.get_number_by_chars(2 + BASE_COORDS[0]) + str(38 + BASE_COORDS[1]): 'Кол-во студ. им-х одну 3',
+            self.get_number_by_chars(2 + BASE_COORDS[0]) + str(39 + BASE_COORDS[1]): 'Кол-во студ. им-х 4 и 5',
+
+        }
+        CELLS_MERGE = [
+            f'{self.get_number_by_chars(2+BASE_COORDS[0])+str(3+BASE_COORDS[1])}:{self.get_number_by_chars(2+BASE_COORDS[0])+str(4+BASE_COORDS[1])}',
+            f'{self.get_number_by_chars(1+BASE_COORDS[0]) + str(3 + BASE_COORDS[1])}:{self.get_number_by_chars(1 + BASE_COORDS[0]) + str(4 + BASE_COORDS[1])}',
+            f'{self.get_number_by_chars(1 + BASE_COORDS[0]) + str(1 + BASE_COORDS[1])}:{self.get_number_by_chars(13 + BASE_COORDS[0]) + str(1 + BASE_COORDS[1])}',
+
+        ]
+        SET_WIDTH_CELLS = {
+            self.get_number_by_chars(1+BASE_COORDS[0]): 3,
+            self.get_number_by_chars(2+BASE_COORDS[0]): 30,
+        }
+
+
+        wb = Workbook()
+        ws = wb.active
+
+        font = Font(name='Calibri', size=16, bold=True, italic=False, vertAlign=None, underline='none', strike=False,
+                    color='FF000000')
+        fill_border_style = Border(Side(border_style="thin", color="000000"), Side(border_style="thin", color="000000"),
+                                   Side(border_style="thin", color="000000"), Side(border_style="thin", color="000000"))
+
+
+        ws[self.get_number_by_chars(2+BASE_COORDS[0])+str(3+BASE_COORDS[1])].border = fill_border_style
+        ws[self.get_number_by_chars(1+BASE_COORDS[0])+str(1+BASE_COORDS[1])].font = font
+        # ws[self.get_number_by_chars(7 + BASE_COORDS[0]) + str(38 + BASE_COORDS[1])].number_format = BUILTIN_FORMATS[10]
+        # ws[self.get_number_by_chars(18 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1])].number_format = BUILTIN_FORMATS[10]
+        # ws[self.get_number_by_chars(7 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1])].number_format = BUILTIN_FORMATS[1]
+        # ws[self.get_number_by_chars(18 + BASE_COORDS[0]) + str(38 + BASE_COORDS[1])].number_format = BUILTIN_FORMATS[1]
+
+        for name_call in (
+                self.get_number_by_chars(12 + BASE_COORDS[0]) + str(36 + BASE_COORDS[1]),
+                self.get_number_by_chars(13 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1]),
+                self.get_number_by_chars(12 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1]),
+                self.get_number_by_chars(13 + BASE_COORDS[0]) + str(36 + BASE_COORDS[1]),
+        ):
+            ws[name_call].border = Border(bottom=Side(style='thin'))
+
+        #Настройка ширины столбцов и нумерация дней
+
+
+        for i in range(3, 14):
+            name_cell = self.get_number_by_chars(i+BASE_COORDS[0])+str(4+BASE_COORDS[1])
+
+            ws[name_cell] = i - 2
+            ws.column_dimensions[self.get_number_by_chars(i+BASE_COORDS[0])].width = 15
+
+            # if i-2 in self.days:
+            #     ws[self.get_number_by_chars(i+BASE_COORDS[0])+str(3+BASE_COORDS[1])] = self.days.get(i-2)
+            #
+            # else:
+            #     ws[name_cell].fill = patternfull
+            #     ws[self.get_number_by_chars(i + BASE_COORDS[0]) + str(3 + BASE_COORDS[1])] = '✖'
+
+        for name, value in CELLS_INIT.items():
+            ws[name] = value
+            ws[name].alignment = Alignment(horizontal='center')
+
+        for i in CELLS_MERGE:
+            ws.merge_cells(i)
+
+        for key, value in SET_WIDTH_CELLS.items():
+            ws.column_dimensions[key].width = value
+
+        students = self.students[:30]
+
+        column = self.get_number_by_chars(2+BASE_COORDS[0])
+
+        for indx, student in enumerate(students):
+            row = str(5 + indx + BASE_COORDS[1])
+            fio, s_d, a_d = student.get_statistic_for_student().values()
+            ws[column+row] = self.CLASS_STUDENT.create_shorts_fio(fio)
+            ws[self.get_number_by_chars(self.get_chars_by_number(column)-1)+row] = indx + 1
+
+
+        for i in range(1, 14):
+            for j in range(3, 35):
+                ws[self.get_number_by_chars(i+BASE_COORDS[0]) + str(j+BASE_COORDS[1])].border = fill_border_style
+                ws[self.get_number_by_chars(i+BASE_COORDS[0]) + str(j+BASE_COORDS[1])].alignment = Alignment(horizontal='center')
+                ws.row_dimensions[j].height = 15
+
+        wb.save(file_name)
+        return file_name
+
     def __encode(self):
         data = self.__convert_students()
         table, psc, R = self.crate_encryption_table(data)
@@ -483,6 +588,7 @@ class ManagerStudents:
         students = new_obj.convert_str_to_list(new_obj.decode(data['Liststudents'], data['PSC']))
         for student in students:
             new_obj.add_student(student)
+        new_obj.parametrs = data['Parametrs']
         return new_obj
 
     def add_day(self, student, number_day, hours, type_day='A'):
@@ -566,8 +672,10 @@ class ManagerStudents:
 
 
 
+
+
 if __name__ == '__main__':
-    ms = ManagerStudents('18.19.20.12', '1GRC-20', (10, 2022))
+    ms = ManagerStudents('18.19.20.12', '1GRC-20')
 
     ms.add_student(Student('Иванов Иван Иванович', {1: 4, 6: 2, 8: 8, 13: 2}, {2: 4, 5: 2, 6: 8, 10: 6}))
     ms.add_student(Student('Иванов Иван Иванович', {2: 4, 6: 2, 9: 8, 14: 2}, {2: 4, 5: 2, 6: 8, 10: 6}))
