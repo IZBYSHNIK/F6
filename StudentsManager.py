@@ -103,12 +103,14 @@ class ManagerStudents:
         self.__students = []
         self.date = datetime.datetime.now().timetuple()
         self.parametrs = {}
+        self.items = []
 
     def __getitem__(self, indx):
         return self.students[indx]
 
     def __setitem__(self, indx, student):
         self.__students[indx] = student
+
 
     def generate_work_days(self):
         work_days = {}
@@ -170,6 +172,7 @@ class ManagerStudents:
         data = {
             "Period": self.period,
             "Liststudents": liststudents,
+            "Items": self.items,
             'Days': self.days,
             "Parametrs": self.parametrs,
             'PSC': psc,
@@ -427,10 +430,10 @@ class ManagerStudents:
         BASE_COORDS = (0, 0)
 
         CELLS_INIT = {
-            self.get_number_by_chars(9 + BASE_COORDS[0]) + str(2 + BASE_COORDS[1]): self.user.parametrs.get('specialization', ''),
-            self.get_number_by_chars(21 + BASE_COORDS[0]) + str(2 + BASE_COORDS[1]): self.user.parametrs.get('group', ''),
-            self.get_number_by_chars(9 + BASE_COORDS[0]) + str(36 + BASE_COORDS[1]): 'Кл.руководитель ' + (self.user.create_shorts_fio(self.user.parametrs.get('teamleader')) if self.user.parametrs.get('teamleader') else ''),
-            self.get_number_by_chars(9 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1]): "Староста группы " + (self.user.create_shorts_fio(self.user.parametrs.get('offical_name')) if self.user.parametrs.get('offical_name') else ''),
+            self.get_number_by_chars(4 + BASE_COORDS[0]) + str(2 + BASE_COORDS[1]): self.user.parametrs.get('specialization', ''),
+            self.get_number_by_chars(9 + BASE_COORDS[0]) + str(2 + BASE_COORDS[1]): self.user.parametrs.get('group', ''),
+            self.get_number_by_chars(10 + BASE_COORDS[0]) + str(36 + BASE_COORDS[1]): 'Кл.руководитель ' + (self.user.create_shorts_fio(self.user.parametrs.get('teamleader')) if self.user.parametrs.get('teamleader') else ''),
+            self.get_number_by_chars(10 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1]): "Староста группы " + (self.user.create_shorts_fio(self.user.parametrs.get('offical_name')) if self.user.parametrs.get('offical_name') else ''),
             self.get_number_by_chars(12 + BASE_COORDS[0]) + str(2 + BASE_COORDS[1]): f'за {self.MONTHS[self.period[0]-1]} {str(self.period[1])}',
             self.get_number_by_chars(1 + BASE_COORDS[0]) + str(3 + BASE_COORDS[1]): '№',
             self.get_number_by_chars(2+BASE_COORDS[0])+str(3+BASE_COORDS[1]): 'ФИО',
@@ -585,6 +588,7 @@ class ManagerStudents:
                 data = json.load(f)
 
         new_obj = ManagerStudents(data['Period'], user, {int(k): int(v) for k, v in data['Days'].items()})
+        new_obj.items = data.get('Items')
         students = new_obj.convert_str_to_list(new_obj.decode(data['Liststudents'], data['PSC']))
         for student in students:
             new_obj.add_student(student)
