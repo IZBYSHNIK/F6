@@ -103,7 +103,10 @@ class ManagerStudents:
         self.__students = []
         self.date = datetime.datetime.now().timetuple()
         self.parametrs = {}
-        self.items = []
+        self.couples = {
+            'физ-ра': ('кутавой а.н', [(1, 5), (2, 3), (3, 4)]),
+        }
+        print(self.couples)
 
     def __getitem__(self, indx):
         return self.students[indx]
@@ -111,6 +114,14 @@ class ManagerStudents:
     def __setitem__(self, indx, student):
         self.__students[indx] = student
 
+    def create_couples(self, teacher, name_couple, marks=None):
+        if marks == None:
+            marks = []
+        self.couples[name_couple] = (teacher, marks)
+
+    def add_marks(self, name_couple, student_id, mark):
+        if self.couples.get(name_couple):
+            self.couples.get(name_couple)[1].append((student_id, mark))
 
     def generate_work_days(self):
         work_days = {}
@@ -166,17 +177,28 @@ class ManagerStudents:
             data = json.load(f)
         return data
 
+    @staticmethod
+    def convert_couples(couples):
+        result = ''
+        print(couples)
+        if couples:
+            for couple in couples:
+                print(couple)
+                result += (couple + '?' + couples.get(couple)[0] + '?' ) #+ '_'.join([f'{str(i[0])}_{str(i[1])}' for i in couples.get(couple)[1]]) + '?'
+        return result
+
     def serialization(self):
         """Преобразует данные для сохранения в Json"""
         liststudents, psc, R = self.__encode()
+        print(self.couples)
         data = {
             "Period": self.period,
             "Liststudents": liststudents,
-            "Items": self.items,
+            "Couples": self.convert_couples(self.couples),
             'Days': self.days,
             "Parametrs": self.parametrs,
             'PSC': psc,
-            'Rang': R
+            'Rang': R,
         }
         return data
 
@@ -588,11 +610,12 @@ class ManagerStudents:
                 data = json.load(f)
 
         new_obj = ManagerStudents(data['Period'], user, {int(k): int(v) for k, v in data['Days'].items()})
-        new_obj.items = data.get('Items')
+        new_obj.couples = data.get('Сouples')
         students = new_obj.convert_str_to_list(new_obj.decode(data['Liststudents'], data['PSC']))
         for student in students:
             new_obj.add_student(student)
         new_obj.parametrs = data['Parametrs']
+        new_obj.couples = data.get('Couples', {})
         return new_obj
 
     def add_day(self, student, number_day, hours, type_day='A'):

@@ -751,10 +751,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.statustic3 = QtWidgets.QLabel(self.frame_3)
         self.statustic4 = QtWidgets.QLabel(self.frame_3)
         self.statustic4.setFixedWidth(400)
-
+        self.statustic3.setText('11111111111111111111111111111111111111111111')
         self.statustic4.setText('11111111111111111111111111111111111111111111')
-        self.wLayout2.addWidget(self.statustic1)
-        self.wLayout2.addWidget(self.statustic2)
+        self.wLayout2.addWidget(self.statustic3)
+        self.wLayout2.addWidget(self.statustic4)
 
 
         self.horizontalLayout_17.addLayout(self.wLayout2)
@@ -768,9 +768,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.pushButton_9 = QtWidgets.QPushButton(self.frame_3)
         self.pushButton_9.setObjectName("pushButton_9")
         self.horizontalLayout_19.addWidget(self.pushButton_9)
-        self.pushButton_10 = QtWidgets.QPushButton(self.frame_3)
-        self.pushButton_10.setObjectName("pushButton_10")
-        self.horizontalLayout_19.addWidget(self.pushButton_10)
+        self.save_to_exel_marks_push = QtWidgets.QPushButton(self.frame_3)
+        self.save_to_exel_marks_push.setObjectName("pushButton_10")
+        self.horizontalLayout_19.addWidget(self.save_to_exel_marks_push)
         self.horizontalLayout_17.addLayout(self.horizontalLayout_19)
         self.verticalLayout_24.addWidget(self.frame_3)
         self.verticalLayout_25.addLayout(self.verticalLayout_24)
@@ -1091,6 +1091,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.logout_push.clicked.connect(self.logout)
         self.game_over_push.clicked.connect(self.click_end_period)
         self.add_work_day_link_button.clicked.connect(self.add_work_day)
+        self.save_to_exel_marks_push.clicked.connect(self.save_to_exel_marks)
 
     def init_students_manager(self):
         try:
@@ -1160,7 +1161,15 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def save_to_exel(self):
         try:
-            path = self.manager_students.save_f6_marks(os.path.join(DOCUMENTS_PATH, 'user_1.xlsx'))
+            path = self.manager_students.save_f6(os.path.join(DOCUMENTS_PATH, 'user_1.xlsx'))
+        except BaseException as f:
+            QtWidgets.QMessageBox.critical(self, 'Ошибка сохранения', 'Файл не был сохранен. Повторите попытку')
+        else:
+            QtWidgets.QMessageBox.information(self, 'Успешное сохранение', f'Файл успешно сохранен в дириктории: {path}')
+
+    def save_to_exel_marks(self):
+        try:
+            path = self.manager_students.save_f6_marks(os.path.join(DOCUMENTS_PATH, 'marks.xlsx'))
         except BaseException as f:
             QtWidgets.QMessageBox.critical(self, 'Ошибка сохранения', 'Файл не был сохранен. Повторите попытку')
         else:
