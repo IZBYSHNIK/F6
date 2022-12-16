@@ -712,7 +712,7 @@ class ManagerStudents:
         self.replace_file(os.path.join(self.user.path, 'students.json'),
                    os.path.join(self.user.path, 'archive', 'students.json'))
         self.rename_file(os.path.join(self.user.path, 'archive', 'students.json'),
-                  os.path.join(self.user.path, 'archive', str(self.period[1])+'_'+str(self.period[0])+self.MONTHS[self.period[0]-1]+'.json'))
+                  os.path.join(self.user.path, 'archive', str(self.period[1])+'_'+str(self.period[0]).rjust(2, '0')+self.MONTHS[self.period[0]-1]+'.json'))
 
     def create_new_table(self):
         if 1 <= self.period[0] < 12:
@@ -740,7 +740,10 @@ class ManagerStudents:
         path_archive = os.path.join(self.user.path, 'archive')
         if not os.path.exists(os.path.join(path_archive)):
             os.makedirs(os.path.join(path_archive))
-        print(os.walk(path_archive))
+        walk = tuple(os.walk(path_archive))
+        path_archive_files = walk[0][0]
+        name_files = sorted([i for i in walk[0][-1] if i.endswith('.json') and len(i) >= 15], reverse=True)
+        return path_archive_files, name_files
 
 
     def load_archive(self):

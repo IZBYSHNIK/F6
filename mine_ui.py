@@ -50,7 +50,7 @@ class SplashScreen(QtWidgets.QSplashScreen):
         self.progressBar.setTextVisible(False)
         self.progressBar.setObjectName("progressBar")
         self.version = QtWidgets.QLabel(self)
-        self.version.setGeometry(QtCore.QRect(320, 400, 61, 41))
+        self.version.setGeometry(QtCore.QRect(330, 400, 61, 41))
         font = QtGui.QFont()
         font.setItalic(True)
         self.version.setFont(font)
@@ -574,6 +574,7 @@ class TableMarks(QtWidgets.QTableWidget):
     ФИО: {statistics['FIO']};
                         """)
 
+
 class SettingsWindows(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super(SettingsWindows, self).__init__(parent)
@@ -659,6 +660,7 @@ class MainWindow(QtWidgets.QMainWindow):
             #game_over_push, #save_to_exel_push, #save_table_push {border: none;}
             #QButton {margin: auto;}
             QTableWidget {margin-left: auto; margin-right: auto;}
+            QListWidget {margin-left: auto; margin-top: 20%; margin-right: auto; border: none;}
             #profile QPushButton {background-color: rgba(249, 248, 244, 0);}
             QScrollArea {border: none}
 
@@ -1127,6 +1129,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.add_work_day_link_button.clicked.connect(self.add_work_day)
         self.del_work_day_link_button.clicked.connect(self.del_work_day)
         self.save_to_exel_marks_push.clicked.connect(self.save_to_exel_marks)
+        self.del_file_push.clicked.connect(self.clicked_del_file_push)
 
     def init_students_manager(self):
         try:
@@ -1148,7 +1151,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tableWidget_3.setObjectName("tableWidget_3")
         self.verticalLayout_25.addWidget(self.tableWidget_3)
         self.tableWidget_3.cellChanged.connect(lambda: self.clicked_table_marks(self.tableWidget_3))
-        self.manager_students.init_archive()
+
+        self.init_archive()
 
         self.update_list_students()
         self.tableWidget.update_table_students()
@@ -1433,7 +1437,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.update_statistics_2()
                 self.tableWidget.update_table_students()
                 self.tableWidget_3.update_table_students()
-
+                self.init_archive()
 
     def add_work_day(self):
         deal = SettingsWindows(self)
@@ -1455,10 +1459,27 @@ class MainWindow(QtWidgets.QMainWindow):
             self.tableWidget.update_table_students()
             self.update_statistics()
 
+    def init_archive(self):
+        path, files = self.manager_students.init_archive()
+        self.list_archive.clear()
+        for i in files:
+            self.list_archive.addItem(QtWidgets.QListWidgetItem(i))
+        self.path_archive = path
+        self.files_archive = files
 
-     # def init_archive(self):
-     #     USER_MANAGER.user.path
+    def clicked_del_file_push(self):
+        item = self.list_archive.currentItem()
+        if item:
+            self.del_file_archive(item.text())
 
+    def del_file_archive(self, file_name):
+        if file_name in self.files_archive:
+            message = QtWidgets.QMessageBox.question(self, 'Удаление архивного файла',
+                                                     f'Вы точно хотите удалить файл: {file_name}? \n После этого он будет удален навсегда',
+                                                    QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
+            if message == message.Yes:
+                os.remove(os.path.join(self.path_archive, file_name))
+                self.init_archive()
 
 
 class Push(QtWidgets.QPushButton):
@@ -1545,9 +1566,6 @@ class ControlerWindows:
             self.auth.show()
         else:
             self.regist.show()
-
-
-
 
 
 app = QtWidgets.QApplication(sys.argv)
