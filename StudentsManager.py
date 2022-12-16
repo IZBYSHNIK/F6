@@ -17,6 +17,7 @@ class Student:
         self.__fio = self.chech_fio(fio)
         self.__sick_days = sick_days
         self.__absence_days = absence_days
+        self.marks = {}
 
     def __str__(self):
         return self.create_shorts_fio(self.fio)
@@ -85,6 +86,9 @@ class Student:
         else:
             raise ValueError("Неверно указан тип дня")
 
+    # def add_mark(self, id_items, day):
+    #     self.marks.append((id_items, day))
+
 
 class ManagerStudents:
     CLASS_STUDENT = Student
@@ -94,6 +98,8 @@ class ManagerStudents:
     )
     HAPPY_DAYS = {
         10: [4],
+        1: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        12: [30, 31],
     }
 
     def __init__(self, period,  user=None, days=None):
@@ -103,10 +109,7 @@ class ManagerStudents:
         self.__students = []
         self.date = datetime.datetime.now().timetuple()
         self.parametrs = {}
-        self.couples = {
-            'физ-ра': ('кутавой а.н', [(1, 5), (2, 3), (3, 4)]),
-        }
-        print(self.couples)
+        self.couples = {}
 
     def __getitem__(self, indx):
         return self.students[indx]
@@ -114,14 +117,6 @@ class ManagerStudents:
     def __setitem__(self, indx, student):
         self.__students[indx] = student
 
-    def create_couples(self, teacher, name_couple, marks=None):
-        if marks == None:
-            marks = []
-        self.couples[name_couple] = (teacher, marks)
-
-    def add_marks(self, name_couple, student_id, mark):
-        if self.couples.get(name_couple):
-            self.couples.get(name_couple)[1].append((student_id, mark))
 
     def generate_work_days(self):
         work_days = {}
@@ -133,11 +128,19 @@ class ManagerStudents:
                     work_days[week[day]] = 0
         return work_days
 
-    def on_off_day(self, day, hours=None):
+    def off_day(self, day):
         if day in self.days:
+
+            for st in self.students:
+                if st.sick_days.get(day):
+                    del st.sick_days[day]
+                elif st.absence_days.get(day):
+                    del st.absence_days[day]
+
             del self.days[day]
-        else:
-            self.days[day] = hours
+
+    def on_day(self, day, hours=0):
+        self.days[day] = hours
 
     def add_hours_by_day(self, day, hours):
         if day in self.days:
@@ -164,11 +167,13 @@ class ManagerStudents:
         """
         Сохраняет базу данных о студентах
         """
+
         date = self.serialization()
         if not os.path.isdir(self.user.path):
             os.mkdir(self.user.path)
         with open(os.path.join(self.user.path, file_name), 'w') as f:
             json.dump(date, f)
+
 
     def load_students(self, file_name='students.json'):
         """Считывает данные из БД и возвращает из них словарь"""
@@ -189,12 +194,12 @@ class ManagerStudents:
 
     def serialization(self):
         """Преобразует данные для сохранения в Json"""
+
         liststudents, psc, R = self.__encode()
-        print(self.couples)
         data = {
             "Period": self.period,
             "Liststudents": liststudents,
-            "Couples": self.convert_couples(self.couples),
+            "Couples": self.couples,
             'Days': self.days,
             "Parametrs": self.parametrs,
             'PSC': psc,
@@ -316,15 +321,6 @@ class ManagerStudents:
             self.get_number_by_chars(12 + BASE_COORDS[0]) + str(38 + BASE_COORDS[1]): 'Прогул 1 студ.',
             self.get_number_by_chars(17 + BASE_COORDS[0]) + str(38 + BASE_COORDS[1]): '=',
             self.get_number_by_chars(29 + BASE_COORDS[0]) + str(35 + BASE_COORDS[1]): 'Итого',
-            self.get_number_by_chars(34 + BASE_COORDS[0]) + str(35 + BASE_COORDS[1]): f'=SUM({f"{self.get_number_by_chars(3 + BASE_COORDS[0]) + str(5 + BASE_COORDS[1])}:{self.get_number_by_chars(33 + BASE_COORDS[0]) + str(34 + BASE_COORDS[1])}"})',
-            self.get_number_by_chars(35 + BASE_COORDS[0]) + str(35 + BASE_COORDS[1]): f'=SUM({f"{self.get_number_by_chars(35 + BASE_COORDS[0]) + str(5 + BASE_COORDS[1])}:{self.get_number_by_chars(35 + BASE_COORDS[0]) + str(34 + BASE_COORDS[1])}"})',
-            self.get_number_by_chars(36 + BASE_COORDS[0]) + str(35 + BASE_COORDS[1]): f'=SUM({f"{self.get_number_by_chars(36 + BASE_COORDS[0]) + str(5 + BASE_COORDS[1])}:{self.get_number_by_chars(36 + BASE_COORDS[0]) + str(34 + BASE_COORDS[1])}"})',
-            self.get_number_by_chars(34 + BASE_COORDS[0]) + str(4 + BASE_COORDS[1]): f'=SUM({f"{self.get_number_by_chars(3 + BASE_COORDS[0]) + str(3 + BASE_COORDS[1])}:{self.get_number_by_chars(33 + BASE_COORDS[0]) + str(3 + BASE_COORDS[1])}"})',
-            self.get_number_by_chars(7 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1]): f'=COUNTA({f"{self.get_number_by_chars(2 + BASE_COORDS[0]) + str(5 + BASE_COORDS[1])}:{self.get_number_by_chars(2 + BASE_COORDS[0]) + str(34 + BASE_COORDS[1])}"}) * {self.get_number_by_chars(34 + BASE_COORDS[0]) + str(4 + BASE_COORDS[1])}',
-            self.get_number_by_chars(7 + BASE_COORDS[0]) + str(38 + BASE_COORDS[1]): f'=(({self.get_number_by_chars(7 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1])}-{self.get_number_by_chars(36 + BASE_COORDS[0]) + str(35 + BASE_COORDS[1])})/{self.get_number_by_chars(7 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1])})',
-            self.get_number_by_chars(18 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1]): f'=(({self.get_number_by_chars(7 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1])}-{self.get_number_by_chars(34 + BASE_COORDS[0]) + str(35 + BASE_COORDS[1])})/{self.get_number_by_chars(7 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1])})',
-            self.get_number_by_chars(18 + BASE_COORDS[0]) + str(38 + BASE_COORDS[1]): f'={self.get_number_by_chars(34 + BASE_COORDS[0]) + str(35 + BASE_COORDS[1])}/COUNTA({f"{self.get_number_by_chars(2 + BASE_COORDS[0]) + str(5 + BASE_COORDS[1])}:{self.get_number_by_chars(2 + BASE_COORDS[0]) + str(34 + BASE_COORDS[1])}"})',
-
         }
         CELLS_MERGE = [
             f'{self.get_number_by_chars(3+BASE_COORDS[0])+str(2+BASE_COORDS[1])}:{self.get_number_by_chars(8+BASE_COORDS[0])+str(2+BASE_COORDS[1])}',
@@ -358,6 +354,17 @@ class ManagerStudents:
 
 
         }
+
+        statistics = self.get_statistics()
+        if statistics:
+            CELLS_INIT[self.get_number_by_chars(34 + BASE_COORDS[0]) + str(35 + BASE_COORDS[1])] = statistics.get('all_absence')
+            CELLS_INIT[self.get_number_by_chars(35 + BASE_COORDS[0]) + str(35 + BASE_COORDS[1])] = statistics.get('sack_days_hours')
+            CELLS_INIT[self.get_number_by_chars(36 + BASE_COORDS[0]) + str(35 + BASE_COORDS[1])] = statistics.get('absence_days_hours')
+            CELLS_INIT[self.get_number_by_chars(34 + BASE_COORDS[0]) + str(4 + BASE_COORDS[1])] = statistics.get('all_hours')
+            CELLS_INIT[self.get_number_by_chars(7 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1])] = statistics.get('man_hours')
+            CELLS_INIT[self.get_number_by_chars(7 + BASE_COORDS[0]) + str(38 + BASE_COORDS[1])] = statistics.get('total_attendance')
+            CELLS_INIT[self.get_number_by_chars(18 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1])] = statistics.get('quality_attendance')
+            CELLS_INIT[self.get_number_by_chars(18 + BASE_COORDS[0]) + str(38 + BASE_COORDS[1])] = statistics.get('absences_by_student')
 
 
         wb = Workbook()
@@ -426,15 +433,15 @@ class ManagerStudents:
             ws[self.get_number_by_chars(self.get_chars_by_number(column)-1)+row] = indx + 1
             for c in range(3, 34):
                 if c-2 in a_d[0]:
-                    ws[self.get_number_by_chars(c+BASE_COORDS[0]) + row] = a_d[0].get(c-2)
+                    ws[self.get_number_by_chars(c+BASE_COORDS[0]) + row] = a_d[0].get(c-2, '')
                     ws[self.get_number_by_chars(c+BASE_COORDS[0]) + row].font = font_absence_days
 
                 elif c-2 in s_d[0]:
-                    ws[self.get_number_by_chars(c+BASE_COORDS[0]) + row] = s_d[0].get(c - 2)
+                    ws[self.get_number_by_chars(c+BASE_COORDS[0]) + row] = s_d[0].get(c - 2, '')
                     ws[self.get_number_by_chars(c+BASE_COORDS[0]) + row].font = font_sick_days
 
-            ws[self.get_number_by_chars(35 + BASE_COORDS[0]) + row] = s_d[1]
-            ws[self.get_number_by_chars(36 + BASE_COORDS[0]) + row] = a_d[1]
+            ws[self.get_number_by_chars(35 + BASE_COORDS[0]) + row] = s_d[1] if s_d[1] else ''
+            ws[self.get_number_by_chars(36 + BASE_COORDS[0]) + row] = a_d[1] if a_d[1] else ''
 
         for i in range(1, 37):
             for j in range(3, 36):
@@ -466,6 +473,8 @@ class ManagerStudents:
             self.get_number_by_chars(2 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1]): 'Кол-во студ. им-х 5',
             self.get_number_by_chars(2 + BASE_COORDS[0]) + str(38 + BASE_COORDS[1]): 'Кол-во студ. им-х одну 3',
             self.get_number_by_chars(2 + BASE_COORDS[0]) + str(39 + BASE_COORDS[1]): 'Кол-во студ. им-х 4 и 5',
+            self.get_number_by_chars(5 + BASE_COORDS[0]) + str(36 + BASE_COORDS[1]): 'Успеваемость общая',
+            self.get_number_by_chars(5 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1]): 'Успеваемость качественная',
 
         }
         CELLS_MERGE = [
@@ -478,7 +487,14 @@ class ManagerStudents:
             self.get_number_by_chars(1+BASE_COORDS[0]): 3,
             self.get_number_by_chars(2+BASE_COORDS[0]): 30,
         }
-
+        statistics = self.get_statistics_marks()
+        if statistics:
+            CELLS_INIT[self.get_number_by_chars(3 + BASE_COORDS[0]) + str(36 + BASE_COORDS[1])] = statistics.get('heaving_2')
+            CELLS_INIT[self.get_number_by_chars(3 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1])] = statistics.get('heaving_5')
+            CELLS_INIT[self.get_number_by_chars(3 + BASE_COORDS[0]) + str(38 + BASE_COORDS[1])] = statistics.get('heaving_one_3')
+            CELLS_INIT[self.get_number_by_chars(3 + BASE_COORDS[0]) + str(39 + BASE_COORDS[1])] = statistics.get('heaving_4_and_5')
+            CELLS_INIT[self.get_number_by_chars(7 + BASE_COORDS[0]) + str(36 + BASE_COORDS[1])] = statistics.get('total_academic_performance')
+            CELLS_INIT[self.get_number_by_chars(7 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1])] = statistics.get('quality_academic_performance')
 
         wb = Workbook()
         ws = wb.active
@@ -491,10 +507,9 @@ class ManagerStudents:
 
         ws[self.get_number_by_chars(2+BASE_COORDS[0])+str(3+BASE_COORDS[1])].border = fill_border_style
         ws[self.get_number_by_chars(1+BASE_COORDS[0])+str(1+BASE_COORDS[1])].font = font
-        # ws[self.get_number_by_chars(7 + BASE_COORDS[0]) + str(38 + BASE_COORDS[1])].number_format = BUILTIN_FORMATS[10]
-        # ws[self.get_number_by_chars(18 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1])].number_format = BUILTIN_FORMATS[10]
-        # ws[self.get_number_by_chars(7 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1])].number_format = BUILTIN_FORMATS[1]
-        # ws[self.get_number_by_chars(18 + BASE_COORDS[0]) + str(38 + BASE_COORDS[1])].number_format = BUILTIN_FORMATS[1]
+        ws[self.get_number_by_chars(7 + BASE_COORDS[0]) + str(37 + BASE_COORDS[1])].number_format = BUILTIN_FORMATS[10]
+        ws[self.get_number_by_chars(7 + BASE_COORDS[0]) + str(36 + BASE_COORDS[1])].number_format = BUILTIN_FORMATS[10]
+
 
         for name_call in (
                 self.get_number_by_chars(12 + BASE_COORDS[0]) + str(36 + BASE_COORDS[1]),
@@ -513,12 +528,6 @@ class ManagerStudents:
             ws[name_cell] = i - 2
             ws.column_dimensions[self.get_number_by_chars(i+BASE_COORDS[0])].width = 15
 
-            # if i-2 in self.days:
-            #     ws[self.get_number_by_chars(i+BASE_COORDS[0])+str(3+BASE_COORDS[1])] = self.days.get(i-2)
-            #
-            # else:
-            #     ws[name_cell].fill = patternfull
-            #     ws[self.get_number_by_chars(i + BASE_COORDS[0]) + str(3 + BASE_COORDS[1])] = '✖'
 
         for name, value in CELLS_INIT.items():
             ws[name] = value
@@ -540,6 +549,10 @@ class ManagerStudents:
             ws[column+row] = self.CLASS_STUDENT.create_shorts_fio(fio)
             ws[self.get_number_by_chars(self.get_chars_by_number(column)-1)+row] = indx + 1
 
+            for i in student.marks:
+                ws[self.get_number_by_chars(i+2) + row] = student.marks.get(i, '')
+
+
 
         for i in range(1, 14):
             for j in range(3, 35):
@@ -553,7 +566,6 @@ class ManagerStudents:
     def __encode(self):
         data = self.__convert_students()
         table, psc, R = self.crate_encryption_table(data)
-
         result = ''
         for i in data:
             result += table.get(i, '')
@@ -569,12 +581,13 @@ class ManagerStudents:
     def __convert_students(self, sep='!'):
         result = ['#']
         for st in self.__students:
-            result.extend([st.fio, ''.join([str(i).rjust(2, '0') + str(st.sick_days[i]).rjust(2, '0') for i in st.sick_days]), ''.join([str(i).rjust(2, '0') + str(st.absence_days[i]).rjust(2, '0') for i in st.absence_days])])
+            result.extend([st.fio, ''.join([str(i).rjust(2, '0') + str(st.sick_days[i]).rjust(2, '0') for i in st.sick_days]), ''.join([str(i).rjust(2, '0') + str(st.absence_days[i]).rjust(2, '0') for i in st.absence_days]), ''.join([str(k).rjust(2, '0') + str(st.marks[k]).rjust(2, '0') for k in st.marks])])
         result.append('#')
         return f'{sep}'.join(result)
 
     @staticmethod
     def convert_str_to_list(date, sep='!'):
+
         def convert_data(data: str):
             result = {}
             for i in range(len(data) // 4):
@@ -586,18 +599,18 @@ class ManagerStudents:
 
         date = date[2:-2].split(sep)
         students = []
-        for i in range(len(date)//3):
-            fio = date[i*3]
-            s_d = date[i*3+1]
-            a_d = date[i*3+2]
-            # print(convert_data(s_d), convert_data(a_d))
+        for i in range(len(date)//4):
+            fio = date[i*4]
+            s_d = date[i*4+1]
+            a_d = date[i*4+2]
+            marks = date[i * 4 + 3]
             s = Student(fio, convert_data(s_d), convert_data(a_d))
-            # for k, v in convert_data(s_d):
-            #     s.add_day(k, v, type_day='S')
-            #
-            # for k, v in convert_data(a_d):
-            #     s.add_day(k, v, type_day='A')
 
+            result = {}
+            for i in range(0, len(marks), 4):
+                raw = marks[i:i + 4]
+                result[int(raw[0:2])] = int(raw[2:])
+            s.marks = result
             students.append(s)
 
         return students
@@ -610,10 +623,11 @@ class ManagerStudents:
                 data = json.load(f)
 
         new_obj = ManagerStudents(data['Period'], user, {int(k): int(v) for k, v in data['Days'].items()})
-        new_obj.couples = data.get('Сouples')
+
         students = new_obj.convert_str_to_list(new_obj.decode(data['Liststudents'], data['PSC']))
         for student in students:
             new_obj.add_student(student)
+
         new_obj.parametrs = data['Parametrs']
         new_obj.couples = data.get('Couples', {})
         return new_obj
@@ -665,6 +679,33 @@ class ManagerStudents:
 
         return statisitcs
 
+    def get_statistics_marks(self):
+        statisitcs = {
+            'heaving_2': 0,
+            "heaving_5": 0,
+            'heaving_one_3': 0,
+            "heaving_4_and_5": 0,
+            'is_ready': 0,
+            'no_att': 0,
+        }
+        for i in self.students:
+            statisitcs['is_ready'] = 1
+            marks = [st for st in i.marks.values()]
+            if len(marks) >= len(self.couples):
+                if 2 in marks:
+                    statisitcs['heaving_2'] += 1
+                elif all(map(lambda x: x == 5, marks)):
+                    statisitcs['heaving_5'] += 1
+                elif marks.count(3) == 1:
+                    statisitcs['heaving_one_3'] += 1
+                else:
+                    statisitcs['heaving_4_and_5'] += 1
+        count_student = len(self.students)
+        if count_student > 0:
+            statisitcs['total_academic_performance'] = ((count_student - statisitcs['heaving_2']) / count_student)
+            statisitcs['quality_academic_performance'] = (statisitcs['heaving_4_and_5'] / count_student)
+        return statisitcs
+
     def push_archive(self):
         if not os.path.exists(os.path.join(self.user.path, 'archive')):
             os.makedirs(os.path.join(self.user.path, "archive"))
@@ -682,9 +723,11 @@ class ManagerStudents:
             year = self.period[1] + 1
 
         self.set_period(month, year)
+        self.couples.clear()
         for s in self.students:
             s.sick_days.clear()
             s.absence_days.clear()
+            s.marks.clear()
         self.save_students()
 
     def replace_file(self, path1, path2):
@@ -693,10 +736,15 @@ class ManagerStudents:
     def rename_file(self, path1, path2):
         os.rename(path1, path2)
 
+    def init_archive(self):
+        path_archive = os.path.join(self.user.path, 'archive')
+        if not os.path.exists(os.path.join(path_archive)):
+            os.makedirs(os.path.join(path_archive))
+        print(os.walk(path_archive))
 
 
-
-
+    def load_archive(self):
+        pass
 
 
 
