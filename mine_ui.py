@@ -1130,10 +1130,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.del_work_day_link_button.clicked.connect(self.del_work_day)
         self.save_to_exel_marks_push.clicked.connect(self.save_to_exel_marks)
         self.del_file_push.clicked.connect(self.clicked_del_file_push)
+        self.load_file_push.clicked.connect(self.clicked_load_file_push)
 
-    def init_students_manager(self):
+    def init_students_manager(self, path=None):
+
         try:
-            self.manager_students = ManagerStudents.load_manager_students(USER_MANAGER.user)
+            self.manager_students = ManagerStudents.load_manager_students(USER_MANAGER.user, path)
         except BaseException as message:
             self.manager_students = ManagerStudents((datetime.date.today().month, datetime.date.today().year),
                                                     USER_MANAGER.user)
@@ -1229,7 +1231,15 @@ class MainWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.information(self, 'Успешное сохранение', f'Файл успешно сохранен в дириктории: {path}')
 
     def save_table(self):
-        self.manager_students.save_students()
+        try:
+            if not self.manager_students.is_archive:
+                self.manager_students.save_students()
+            else:
+                self.manager_students.save_students(file_name=self.current_file,
+                                                    path_file=self.path_archive)
+        except BaseException as f:
+            print(f)
+
 
     def save_student(self):
         self.message_students.setText('')
@@ -1467,6 +1477,23 @@ class MainWindow(QtWidgets.QMainWindow):
         self.path_archive = path
         self.files_archive = files
 
+    def clicked_load_file_push(self):
+        item = self.list_archive.currentItem()
+        if item:
+            try:
+                self.manager_students = self.manager_students.load_archive_file(item.text(), self.path_archive)
+                self.manager_students.is_archive = True
+                self.current_file = item.text()
+            except BaseException as f:
+                print(repr(f), '123')
+            else:
+                self.tableWidget.manager = self.manager_students
+                self.tableWidget_3.manager = self.manager_students
+                self.tableWidget.update_table_students()
+                self.tableWidget_3.update_table_students()
+                self.update_statistics()
+                self.update_statistics_2()
+
     def clicked_del_file_push(self):
         item = self.list_archive.currentItem()
         if item:
@@ -1480,6 +1507,9 @@ class MainWindow(QtWidgets.QMainWindow):
             if message == message.Yes:
                 os.remove(os.path.join(self.path_archive, file_name))
                 self.init_archive()
+
+
+
 
 
 class Push(QtWidgets.QPushButton):

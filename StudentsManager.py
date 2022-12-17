@@ -110,6 +110,7 @@ class ManagerStudents:
         self.date = datetime.datetime.now().timetuple()
         self.parametrs = {}
         self.couples = {}
+        self.is_archive = False
 
     def __getitem__(self, indx):
         return self.students[indx]
@@ -163,21 +164,24 @@ class ManagerStudents:
     def remove_student_obj(self, obj):
         self.__students.remove(obj)
 
-    def save_students(self, file_name='students.json'):
+    def save_students(self, file_name='students.json', path_file=None):
         """
         Сохраняет базу данных о студентах
         """
 
+        if path_file is None:
+            path_file = self.user.path
         date = self.serialization()
         if not os.path.isdir(self.user.path):
             os.mkdir(self.user.path)
-        with open(os.path.join(self.user.path, file_name), 'w') as f:
+        with open(os.path.join(path_file, file_name), 'w') as f:
             json.dump(date, f)
 
 
-    def load_students(self, file_name='students.json'):
+    def load_students(self, file_name='students.json', user_path=None):
         """Считывает данные из БД и возвращает из них словарь"""
-        user_path = self.user.path
+        if user_path is None:
+            user_path = self.user.path
         with open(os.path.join(user_path, file_name), 'r') as f:
             data = json.load(f)
         return data
@@ -745,9 +749,11 @@ class ManagerStudents:
         name_files = sorted([i for i in walk[0][-1] if i.endswith('.json') and len(i) >= 15], reverse=True)
         return path_archive_files, name_files
 
-
-    def load_archive(self):
-        pass
+    def load_archive_file(self, file_name, file_path):
+        path_archive_files, name_files = self.init_archive()
+        if file_name in name_files:
+            return self.load_manager_students(self.user, self.load_students(file_name=file_name, user_path=file_path), file_name)
+        return self
 
 
 
