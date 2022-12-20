@@ -2,6 +2,7 @@ import datetime
 import os
 import sys
 import random
+from inspect import getsourcefile
 
 
 from PyQt6.QtGui import QIcon
@@ -12,19 +13,25 @@ from UserManager import UserManager
 
 
 VERSION = '1.1.0'
-# QtCore.QCoreApplication.setLibraryPaths(['plugins'])
+QtCore.QCoreApplication.setLibraryPaths(['plugins'])
 is_work = True
 is_new_user = False
 dirname, filename = os.path.split(os.path.abspath(__file__))
 
 # print(QtCore.QCoreApplication.libraryPaths())
-BASE_PATH = dirname
+
+
+BASE_PATH = os.path.abspath(__file__).replace(os.path.basename(__file__), '')
 DOCUMENTS_PATH = os.path.expanduser("~/F6")
 PACH_SAVE_F6 = DOCUMENTS_PATH
 BD_PATH = os.path.join(DOCUMENTS_PATH, 'BD')
 if not os.path.exists(os.path.join(DOCUMENTS_PATH, 'BD')):
     os.makedirs(os.path.join(DOCUMENTS_PATH, "BD"))
-
+print(BASE_PATH, '<-------')
+print(os.getcwd(), '> getcwd')
+print(os.path.abspath(os.curdir))
+print(os.path.abspath(__file__).replace(os.path.basename(__file__), ''))
+print()
 USER_MANAGER = UserManager(BD_PATH)
 
 
@@ -36,12 +43,10 @@ class SplashScreen(QtWidgets.QSplashScreen):
         self.move((app.primaryScreen().size().width()-self.size().width())//2, (app.primaryScreen().size().height()-self.size().height())//2-40)
         self.logo = QtWidgets.QLabel(self)
         self.logo.setMinimumWidth(379)
-        logo = QtGui.QPixmap(os.path.join('media', 'logo.svg'))
+        logo = QtGui.QPixmap(os.path.join(BASE_PATH, 'media', 'logo.svg'))
+        print(os.path.join(BASE_PATH, 'media', 'logo.svg'), '> logo')
         self.logo.setPixmap(logo)
         self.logo.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        font = QtGui.QFont()
-        font.setPointSize(36)
-        self.logo.setFont(font)
         self.logo.setText("")
         self.logo.setObjectName("logo")
         self.progressBar = QtWidgets.QProgressBar(self)
@@ -1084,7 +1089,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
-        self.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        self.setWindowTitle(_translate("MainWindow", "F6"))
         self.label_2.setText(_translate("MainWindow", f"Добро пожаловать, Nouname!"))
         self.is_sick_rb.setText(_translate("MainWindow", "ПОУВ"))
         self.radioButton_2.setText(_translate("MainWindow", "НЕУВ"))
@@ -1148,11 +1153,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tableWidget.setStyleSheet("""QTableWidget {border: none;}""")
         self.tableWidget.setObjectName("tableView")
         self.verticalLayout.addWidget(self.tableWidget)
-        self.tableWidget.cellChanged.connect(lambda: self.check_value(self.tableWidget))
+
         self.tableWidget_3 = TableMarks(self.manager_students)
         self.tableWidget_3.setObjectName("tableWidget_3")
         self.verticalLayout_25.addWidget(self.tableWidget_3)
+
         self.tableWidget_3.cellChanged.connect(lambda: self.clicked_table_marks(self.tableWidget_3))
+        self.tableWidget.cellChanged.connect(lambda: self.check_value(self.tableWidget))
 
         self.init_archive()
 
@@ -1161,6 +1168,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tableWidget_3.update_table_students()
         self.update_user_info()
         self.update_statistics()
+
 
     def update_user_info(self):
         self.username_edit.setText(USER_MANAGER.user.username)
@@ -1231,14 +1239,7 @@ class MainWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.information(self, 'Успешное сохранение', f'Файл успешно сохранен в дириктории: {path}')
 
     def save_table(self):
-        try:
-            if not self.manager_students.is_archive:
-                self.manager_students.save_students()
-            else:
-                self.manager_students.save_students(file_name=self.current_file,
-                                                    path_file=self.path_archive)
-        except BaseException as f:
-            print(f)
+        self.manager_students.save_students()
 
 
     def save_student(self):
@@ -1295,6 +1296,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if len(self.manager_students.students) != 0:
             self.students.setEnabled(True)
             self.save_to_exel_push.setEnabled(True)
+
 
         item = tablewidget.currentItem()
         if not item is None:
@@ -1357,28 +1359,27 @@ class MainWindow(QtWidgets.QMainWindow):
                         try:
                             self.manager_students.CLASS_STUDENT.chech_fio(item.text())
                         except BaseException:
-                            item.setText('')
+                            item.setBackground(QtGui.QColor(255, 0, 0))
                         else:
-                            try:
-                                self.manager_students.add_student(self.manager_students.CLASS_STUDENT(item.text()))
-                                tablewidget.setRowCount(tablewidget.rowCount() + 1)
-                                tablewidget.manager = self.manager_students
-                                self.tableWidget_3.manager = self.manager_students
-                                for i in range(2, 32 + 1):
-                                    if not i - 1 in self.manager_students.days:
-                                        tablewidget.setItem(tablewidget.rowCount() - 2, i,
-                                                                 QTableWidgetItem(""))
-                                        tablewidget.item(tablewidget.rowCount() - 2, i).setBackground(
-                                            QtGui.QColor(220, 220, 220))
-                                        tablewidget.item(tablewidget.rowCount() - 2, i).setFlags(
-                                            QtCore.Qt.ItemFlag.ItemIsEnabled)
 
-                            except BaseException as f:
-                                print(f)
-                            else:
-                                self.tableWidget_3.update_table_students()
-                                tablewidget.update_table_students()
-                                self.update_list_students()
+                            self.manager_students.add_student(self.manager_students.CLASS_STUDENT(item.text()))
+                            tablewidget.setRowCount(tablewidget.rowCount() + 1)
+                            tablewidget.manager = self.manager_students
+                            # self.tableWidget_3.manager = self.manager_students
+                            # self.save_table()
+                            for i in range(2, 32 + 1):
+                                if not i - 1 in self.manager_students.days:
+                                    tablewidget.setItem(tablewidget.rowCount() - 2, i,
+                                                             QTableWidgetItem(""))
+                                    tablewidget.item(tablewidget.rowCount() - 2, i).setBackground(
+                                        QtGui.QColor(220, 220, 220))
+                                    tablewidget.item(tablewidget.rowCount() - 2, i).setFlags(
+                                        QtCore.Qt.ItemFlag.ItemIsEnabled)
+
+
+                            # self.tableWidget_3.update_table_students()
+                            tablewidget.update_table_students()
+                            self.update_list_students()
 
             except BaseException as f:
                 print(f)
