@@ -21,7 +21,7 @@ dirname, filename = os.path.split(os.path.abspath(__file__))
 # print(QtCore.QCoreApplication.libraryPaths())
 
 
-BASE_PATH = os.path.abspath(__file__).replace(os.path.basename(__file__), '')
+BASE_PATH = dirname
 DOCUMENTS_PATH = os.path.expanduser("~/F6")
 PACH_SAVE_F6 = DOCUMENTS_PATH
 BD_PATH = os.path.join(DOCUMENTS_PATH, 'BD')
@@ -183,7 +183,7 @@ class Regist(QtWidgets.QWidget):
         self.password_lable_2.setFont(font)
         self.password_lable_2.setObjectName("password_lable_2")
         self.teamleader_lable = QtWidgets.QLabel(self)
-        self.teamleader_lable.setGeometry(QtCore.QRect(230, 380, 311, 51))
+        self.teamleader_lable.setGeometry(QtCore.QRect(240, 380, 311, 51))
         font = QtGui.QFont()
         font.setPointSize(11)
         self.teamleader_lable.setFont(font)
@@ -193,30 +193,48 @@ class Regist(QtWidgets.QWidget):
         self.teamleader_edit.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
         self.teamleader_edit.setObjectName("teamleader_edit")
         self.office_name_edit = QtWidgets.QLineEdit(self)
-        self.office_name_edit.setGeometry(QtCore.QRect(40, 430, 161, 40))
+        self.office_name_edit.setGeometry(QtCore.QRect(40, 430, 160, 40))
         self.office_name_edit.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
         self.office_name_edit.setObjectName("office_name_edit")
         self.office_name_lable = QtWidgets.QLabel(self)
-        self.office_name_lable.setGeometry(QtCore.QRect(70, 380, 91, 51))
+        self.office_name_lable.setGeometry(QtCore.QRect(40, 380, 91, 51))
         font = QtGui.QFont()
         font.setPointSize(11)
         self.office_name_lable.setFont(font)
         self.office_name_lable.setObjectName("office_name_lable")
-        self.email_edit = QtWidgets.QLineEdit(self)
-        self.email_edit.setGeometry(QtCore.QRect(40, 520, 360, 40))
+        self.group_edit = QtWidgets.QLineEdit(self)
+        self.group_edit.setGeometry(QtCore.QRect(40, 520, 160, 40))
         font = QtGui.QFont()
         font.setPointSize(-1)
         font.setBold(False)
         font.setItalic(False)
         font.setWeight(50)
-        self.email_edit.setFont(font)
-        self.email_edit.setObjectName("email_edit")
-        self.email_lable = QtWidgets.QLabel(self)
-        self.email_lable.setGeometry(QtCore.QRect(30, 470, 311, 51))
+        self.group_edit.setFont(font)
+        self.group_edit.setObjectName("group_edit")
+
+        self.specialization_edit = QtWidgets.QLineEdit(self)
+        self.specialization_edit.setGeometry(QtCore.QRect(240, 520, 160, 40))
+        font = QtGui.QFont()
+        font.setPointSize(-1)
+        font.setBold(False)
+        font.setItalic(False)
+        font.setWeight(50)
+        self.specialization_edit.setFont(font)
+        self.specialization_edit.setObjectName("specialization_edit")
+
+        self.group_lable = QtWidgets.QLabel(self)
+        self.group_lable.setGeometry(QtCore.QRect(40, 470, 311, 51))
         font = QtGui.QFont()
         font.setPointSize(11)
-        self.email_lable.setFont(font)
-        self.email_lable.setObjectName("email_lable")
+        self.group_lable.setFont(font)
+        self.group_lable.setObjectName("group_lable")
+
+        self.specialization_lable = QtWidgets.QLabel(self)
+        self.specialization_lable.setGeometry(QtCore.QRect(240, 470, 311, 51))
+        font = QtGui.QFont()
+        font.setPointSize(11)
+        self.specialization_lable.setFont(font)
+        self.specialization_lable.setObjectName("specialization_lable")
 
         self.message_regist = QtWidgets.QTextBrowser(self)
         self.message_regist.setGeometry(40, 550 + 30, 351, 41)
@@ -241,29 +259,33 @@ class Regist(QtWidgets.QWidget):
         self.password_lable_2.setText(_translate("Regist", "*Повторите пароль"))
         self.teamleader_lable.setText(_translate("Regist", "ФИО Кл.руководителя"))
         self.office_name_lable.setText(_translate("Regist", "Своё ФИО"))
-        self.email_lable.setText(_translate("Regist", "Почтовый адрес для восстановления"))
+        self.group_lable.setText(_translate("Regist", "Группа"))
+        self.specialization_lable.setText('Специализация')
 
     def check_lables(self):
+        kwargs = {}
         USER_MANAGER.USER_CLASS.check_username(self.login_edit.text())
+        USER_MANAGER.USER_CLASS.check_password(self.password_edit.text())
         if self.login_edit.text() in USER_MANAGER.users_id.values():
             raise ValueError('Имя пользователя занято')
-        USER_MANAGER.USER_CLASS.check_password(self.password_edit.text())
         if not self.password_edit.text() == self.password_edit_2.text():
             raise ValueError('Не совподают пароли')
-        if self.office_name_edit.text() != '':
-            USER_MANAGER.USER_CLASS.check_fio(self.office_name_edit.text())
-        if self.teamleader_edit.text() != '':
-            USER_MANAGER.USER_CLASS.check_fio(self.teamleader_edit.text())
-
-        return self.login_edit.text(), self.password_edit.text(), {
-            'offical_name': None if not self.office_name_edit.text() else self.office_name_edit.text(),
-            'teamleader': None if not self.teamleader_edit.text() else self.teamleader_edit.text()}
+        if self.office_name_edit.text():
+            kwargs['offical_name'] = USER_MANAGER.USER_CLASS.check_fio(self.office_name_edit.text())
+        if self.teamleader_edit.text():
+            kwargs['teamleader'] = USER_MANAGER.USER_CLASS.check_fio(self.teamleader_edit.text())
+        if self.group_edit.text():
+            kwargs['group'] = self.group_edit.text()
+        if self.specialization_edit.text():
+            kwargs['specialization'] = self.specialization_edit.text()
+        return self.login_edit.text(), self.password_edit.text(), kwargs
 
     def click_create_push(self):
         self.message_regist.setText('')
         try:
             username, password, kwargs = self.check_lables()
-            USER_MANAGER.link_user_by_obj(USER_MANAGER.USER_CLASS(username, password, kwargs))
+            user = USER_MANAGER.USER_CLASS(username, password, kwargs)
+            USER_MANAGER.link_user_by_obj(user)
             USER_MANAGER.save_users()
 
 
@@ -272,7 +294,8 @@ class Regist(QtWidgets.QWidget):
         else:
             self.password_edit.clear()
             self.password_edit_2.clear()
-            self.email_edit.clear()
+            self.group_edit.clear()
+            self.specialization_edit.clear()
             self.login_edit.clear()
             self.teamleader_edit.clear()
             self.office_name_edit.clear()
@@ -376,8 +399,6 @@ class Auth(QtWidgets.QWidget):
         except BaseException as message:
             # self.message = QtWidgets.QMessageBox().critical(self, "Ошибка", str(message), QtWidgets.QMessageBox.StandardButton.Ok)
             self.message_auth.setText('*' + str(message))
-
-
         else:
             try:
                 USER_MANAGER.link_user_by_username(username, password)
@@ -986,17 +1007,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.fio_teamleader_edit.setMaximumSize(QtCore.QSize(400, 16777215))
         self.fio_teamleader_edit.setObjectName("fio_teamleader_edit")
         self.verticalLayout_8.addWidget(self.fio_teamleader_edit)
-        self.email_label = QtWidgets.QLabel(self.profile)
-        font = QtGui.QFont()
-        font.setPointSize(15)
-        self.email_label.setFont(font)
-        self.email_label.setObjectName("email_label")
-        self.verticalLayout_8.addWidget(self.email_label)
-        self.email_edit = QtWidgets.QLineEdit(self.profile)
-        self.email_edit.setMinimumSize(QtCore.QSize(0, 30))
-        self.email_edit.setMaximumSize(QtCore.QSize(400, 16777215))
-        self.email_edit.setObjectName("email_edit")
-        self.verticalLayout_8.addWidget(self.email_edit)
         self.group_label = QtWidgets.QLabel(self.profile)
         font = QtGui.QFont()
         font.setPointSize(15)
@@ -1111,7 +1121,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.username_label.setText(_translate("MainWindow", "Имя пользователя"))
         self.fio_user_label.setText(_translate("MainWindow", "ФИО Своё"))
         self.teamleader_label.setText(_translate("MainWindow", "ФИО Кл.руководителя"))
-        self.email_label.setText(_translate("MainWindow", "Почта"))
         self.group_label.setText(_translate('MainWindow', "Группа"))
         self.specialization_label.setText(_translate('MainWindow', "Специализация"))
         self.group.setTabText(self.group.indexOf(self.profile), _translate("MainWindow", "Профиль"))
@@ -1174,7 +1183,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.username_edit.setText(USER_MANAGER.user.username)
         self.fio_teamleader_edit.setText(USER_MANAGER.user.parametrs.get('teamleader', ''))
         self.fio_user_edit.setText(USER_MANAGER.user.parametrs.get('offical_name', ''))
-        self.email_edit.setText(USER_MANAGER.user.parametrs.get('email', ''))
         self.group_edit.setText(USER_MANAGER.user.parametrs.get('group', ''))
         self.specialization_edit.setText(USER_MANAGER.user.parametrs.get('specialization', ''))
 
@@ -1211,7 +1219,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 USER_MANAGER.user.parametrs['teamleader'] = USER_MANAGER.USER_CLASS.check_fio(
                     self.fio_teamleader_edit.text()).title()
                 self.fio_teamleader_edit.setText(USER_MANAGER.user.parametrs.get('teamleader'))
-            USER_MANAGER.user.parametrs['email'] = self.email_edit.text()
             USER_MANAGER.user.parametrs['group'] = self.group_edit.text()
             USER_MANAGER.user.parametrs['specialization'] = self.specialization_edit.text()
 
@@ -1287,17 +1294,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def logout(self):
         USER_MANAGER.user = None
-        self.status = 2
-        self.verticalLayout.removeWidget(self.tableWidget)
-        self.verticalLayout_25.removeWidget(self.tableWidget_3)
+        self.status = 4
         self.close()
 
     def check_value(self, tablewidget):
         if len(self.manager_students.students) != 0:
             self.students.setEnabled(True)
             self.save_to_exel_push.setEnabled(True)
-
-
         item = tablewidget.currentItem()
         if not item is None:
             try:
@@ -1365,7 +1368,7 @@ class MainWindow(QtWidgets.QMainWindow):
                             self.manager_students.add_student(self.manager_students.CLASS_STUDENT(item.text()))
                             tablewidget.setRowCount(tablewidget.rowCount() + 1)
                             tablewidget.manager = self.manager_students
-                            # self.tableWidget_3.manager = self.manager_students
+                            self.tableWidget_3.manager = self.manager_students
                             # self.save_table()
                             for i in range(2, 32 + 1):
                                 if not i - 1 in self.manager_students.days:
@@ -1377,8 +1380,9 @@ class MainWindow(QtWidgets.QMainWindow):
                                         QtCore.Qt.ItemFlag.ItemIsEnabled)
 
 
-                            # self.tableWidget_3.update_table_students()
+
                             tablewidget.update_table_students()
+                            self.tableWidget_3.update_table_students()
                             self.update_list_students()
 
             except BaseException as f:
@@ -1561,7 +1565,6 @@ class ControlerWindows:
         elif self.auth.status == 3:
             self.regist.show()
         else:
-
             self.auth.close()
         self.auth.status = 0
 
@@ -1569,8 +1572,11 @@ class ControlerWindows:
         if self.main.status == 2:
             self.auth.update_users()
             self.auth.show()
-        elif self.auth.status == 3:
+        elif self.main.status == 3:
             self.regist.show()
+        elif self.main.status == 4:
+            self.main = type(self.main)()
+            self.auth.show()
         else:
             self.main.close()
             message = QtWidgets.QMessageBox.question(windows.main, 'Сохранение изменений', "Сохронить изменения?",
@@ -1592,7 +1598,6 @@ class ControlerWindows:
         self.regist.status = 0
 
     def show(self):
-
         if USER_MANAGER.users_id:
             self.auth.show()
         else:

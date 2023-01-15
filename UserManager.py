@@ -175,3 +175,6 @@ class UserManager:
                 result[_id] = data['Users'][_id]
 
         return result
+
+    def update_user_id(self):
+        self.users_id = self.load_user_manager(self.base_file)

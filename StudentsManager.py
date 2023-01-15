@@ -186,15 +186,6 @@ class ManagerStudents:
             data = json.load(f)
         return data
 
-    @staticmethod
-    def convert_couples(couples):
-        result = ''
-        print(couples)
-        if couples:
-            for couple in couples:
-                print(couple)
-                result += (couple + '?' + couples.get(couple)[0] + '?' ) #+ '_'.join([f'{str(i[0])}_{str(i[1])}' for i in couples.get(couple)[1]]) + '?'
-        return result
 
     def serialization(self):
         """Преобразует данные для сохранения в Json"""
@@ -459,7 +450,8 @@ class ManagerStudents:
         return file_name
 
 
-    def save_f6_marks(self, file_name='f6.xlsx'):
+
+    def save_f6_marks(self, file_name='f6marks.xlsx'):
         BASE_COORDS = (0, 0)
 
         CELLS_INIT = {
@@ -527,10 +519,12 @@ class ManagerStudents:
 
 
         for i in range(3, 14):
-            name_cell = self.get_number_by_chars(i+BASE_COORDS[0])+str(4+BASE_COORDS[1])
-
-            ws[name_cell] = i - 2
+            name_call1 = self.get_number_by_chars(i+BASE_COORDS[0])+str(3+BASE_COORDS[1])
+            name_cell2 = self.get_number_by_chars(i+BASE_COORDS[0])+str(4+BASE_COORDS[1])
+            ws[name_call1] = self.couples.get(str(i-2))[0] if self.couples.get(str(i-2)) else ''
+            ws[name_cell2] = self.couples.get(str(i-2))[1] if self.couples.get(str(i-2)) else ''
             ws.column_dimensions[self.get_number_by_chars(i+BASE_COORDS[0])].width = 15
+            
 
 
         for name, value in CELLS_INIT.items():
