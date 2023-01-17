@@ -417,18 +417,17 @@ class Auth(QtWidgets.QWidget):
 class TableAbsence(QtWidgets.QTableWidget):
     def __init__(self, manager):
         super(TableAbsence, self).__init__()
-        self.setStyleSheet("""QTableWidget {border: none;}""")
+        self.setStyleSheet("""QTableWidget {border: ;}""")
         self.setObjectName("tableView")
         self.manager = manager
 
-    def generate_table(self):
+    def generate_table(self,  size=0):
+        self.mod_size = size
         self.setColumnCount(36)
+
+
         self.setRowCount(2 + len(self.manager.students) + 2)
-        self.setColumnWidth(0, 5)
-        self.setColumnWidth(33, 60)
-        self.setColumnWidth(1, 210)
-        self.setColumnWidth(34, 60)
-        self.setColumnWidth(35, 60)
+
 
         self.horizontalHeader().setVisible(False)
         self.verticalHeader().setVisible(False)
@@ -441,17 +440,21 @@ class TableAbsence(QtWidgets.QTableWidget):
             f"ВЕДОМОСТЬ УЧЁТА ЧАСОВ ПРОГУЛОВ за {str(ManagerStudents.MONTHS[self.manager.period[0] - 1]) + ' ' + str(self.manager.period[1])}"))
         title = self.item(0, 0)
         title.setBackground(QtGui.QColor(153, 153, 153))
-        title.setFont(QtGui.QFont('Calibri', 20))
+        title.setFont(QtGui.QFont('Calibri', 26+size))
         title.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
 
         self.setItem(1, 34, QTableWidgetItem("Из них"))
+        self.item(1, 34).setFont(QtGui.QFont('Calibri', 14+size))
         self.item(1, 34).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
         self.item(1, 34).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
 
         self.setItem(2, 34, QTableWidgetItem("УВ"))
+        self.item(2, 34).setFont(QtGui.QFont('Calibri', 14 + size))
         self.item(2, 34).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.item(2, 34).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
+
         self.setItem(2, 35, QTableWidgetItem("НЕУВ"))
+        self.item(2, 35).setFont(QtGui.QFont('Calibri', 14 + size))
         self.item(2, 35).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.item(2, 35).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
 
@@ -459,10 +462,12 @@ class TableAbsence(QtWidgets.QTableWidget):
 
         self.setItem(1, 1, QTableWidgetItem("ФИО"))
         fio = self.item(1, 1)
+        fio.setFont(QtGui.QFont('Calibri', 14 + size))
         fio.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         fio.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
         self.setItem(1, 33, QTableWidgetItem("Итог"))
         result_up = self.item(1, 33)
+        result_up.setFont(QtGui.QFont('Calibri', 14 + size))
         result_up.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
 
         for i in range(2, 32 + 1):
@@ -472,8 +477,10 @@ class TableAbsence(QtWidgets.QTableWidget):
             else:
                 self.setItem(1, i, QTableWidgetItem(str('✖')))
                 self.item(1, i).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+                self.item(1, i).setFont(QtGui.QFont('Calibri', 14 + size))
                 self.item(1, i).setBackground(QtGui.QColor(220, 220, 220))
                 self.item(1, i).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
+
                 try:
                     for j in range(2, self.rowCount()):
                         self.setItem(j, i, QTableWidgetItem(""))
@@ -484,6 +491,8 @@ class TableAbsence(QtWidgets.QTableWidget):
                     print(f)
             self.setItem(2, i, QTableWidgetItem(str(i - 1)))
             self.item(2, i).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
+            self.item(2, i).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+            self.item(2, i).setFont(QtGui.QFont('Calibri', 14 + size))
             if not i - 1 in self.manager.days:
                 self.item(2, i).setBackground(QtGui.QColor(220, 220, 220))
             self.setColumnWidth(i, 10)
@@ -492,20 +501,27 @@ class TableAbsence(QtWidgets.QTableWidget):
             i += 3
 
             self.setItem(i, 1, QTableWidgetItem(student.create_shorts_fio(student.fio)))
+            self.item(i, 1).setFont(QtGui.QFont('Calibri', 14+size))
             self.item(i, 1).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
             self.item(i, 1).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.setItem(i, 0, QTableWidgetItem(str(i - 2)))
+            self.item(i, 0).setFont(QtGui.QFont('Calibri', 14+size))
+
             self.setItem(i, 34, QTableWidgetItem(str(i - 2)))
             self.setItem(i, 35, QTableWidgetItem(str(i - 2)))
-            self.setRowHeight(i, 5)
+
             for s_d in student.sick_days:
                 self.setItem(i, s_d + 1, QTableWidgetItem(''))
+                self.item(i, s_d+1).setFont(QtGui.QFont('Calibri', 14 + size))
                 self.add_hours_in_table(i, s_d + 1, str(student.sick_days.get(s_d)), type_day='s')
 
             for a_d in student.absence_days:
                 self.setItem(i, a_d + 1, QTableWidgetItem(''))
+                self.item(i, a_d + 1).setFont(QtGui.QFont('Calibri', 14 + size))
                 self.add_hours_in_table(i, a_d + 1, str(student.absence_days.get(a_d)), type_day='a')
             self.update_statistics_student(i)
+            self.resizeColumnsToContents()
+            self.resizeRowsToContents()
 
     def add_hours_in_table(self, row, column, hours, type_day='s'):
         self.item(row, column).setText(str(hours))
@@ -515,10 +531,11 @@ class TableAbsence(QtWidgets.QTableWidget):
             self.item(row, column).setBackground(QtGui.QColor(255, 102, 51))
 
         self.item(row, column).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.item(row, column).setFont(QtGui.QFont('Calibri', 14+self.mod_size))
 
-    def update_table_students(self):
+    def update_table_students(self, *args, **kwargs):
         self.clear()
-        self.generate_table()
+        self.generate_table(*args, **kwargs)
 
     def update_hours_day(self):
         self.item(2, 33).setText(str(sum(self.manager.days.values())))
@@ -677,7 +694,6 @@ class SettingsWindows(QtWidgets.QDialog):
 
 
 class MainWindow(QtWidgets.QMainWindow):
-
     def __init__(self):
         self.status = 0
         super().__init__()
@@ -754,6 +770,19 @@ class MainWindow(QtWidgets.QMainWindow):
         self.radioButton_2.setObjectName("radioButton_2")
         self.radioButton_2.setChecked(True)
         self.horizontalLayout_4.addWidget(self.radioButton_2)
+
+        self.set_size_posetiv_font_push = QtWidgets.QPushButton(self.frame)
+        self.set_size_posetiv_font_push.setText('+')
+        self.horizontalLayout_2.addWidget(self.set_size_posetiv_font_push)
+
+        self.set_size_negativ_font_push = QtWidgets.QPushButton(self.frame)
+        self.set_size_negativ_font_push.setText('-')
+        self.horizontalLayout_2.addWidget(self.set_size_negativ_font_push)
+
+        self.set_size_negativ_font_push.clicked.connect(lambda : self.set_size_font(False))
+        self.set_size_posetiv_font_push.clicked.connect(lambda : self.set_size_font())
+
+
 
         self.horizontalLayout_2.addLayout(self.horizontalLayout_4)
         self.save_table_push = Push(self.frame, 40, 40, 5, tool_tip='Сохронить изменения', icon_path=os.path.join('media', 'buttons', 'save.svg'))
@@ -1161,8 +1190,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tableWidget = TableAbsence(self.manager_students)
         self.tableWidget.setStyleSheet("""QTableWidget {border: none;}""")
         self.tableWidget.setObjectName("tableView")
-        self.verticalLayout.addWidget(self.tableWidget)
 
+        self.verticalLayout.addWidget(self.tableWidget)
+        self.verticalLayout.addItem(
+            QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum))
         self.tableWidget_3 = TableMarks(self.manager_students)
         self.tableWidget_3.setObjectName("tableWidget_3")
         self.verticalLayout_25.addWidget(self.tableWidget_3)
@@ -1261,6 +1292,12 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.listWidget.row(self.listWidget.currentItem())].fio = self.fio_edit.text()
             self.update_list_students()
             self.tableWidget.update_table_students()
+
+    def set_size_font(self, is_posetiv=True):
+        if is_posetiv and self.tableWidget.mod_size < 100:
+            self.tableWidget.update_table_students(size=self.tableWidget.mod_size + 5)
+        elif self.tableWidget.mod_size > -12:
+            self.tableWidget.update_table_students(size=self.tableWidget.mod_size - 5)
 
     def click_list(self, listwidget):
         self.fio_edit.setText(' '.join(listwidget.currentItem().text().split()[1:]))
