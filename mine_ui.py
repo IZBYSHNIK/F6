@@ -12,7 +12,7 @@ from StudentsManager import ManagerStudents
 from UserManager import UserManager
 
 
-VERSION = '1.1.0'
+VERSION = '1.1.1'
 QtCore.QCoreApplication.setLibraryPaths(['plugins'])
 is_work = True
 is_new_user = False
@@ -33,6 +33,7 @@ if not os.path.exists(os.path.join(DOCUMENTS_PATH, 'BD')):
 # print(os.path.abspath(__file__).replace(os.path.basename(__file__), ''))
 # print()
 USER_MANAGER = UserManager(BD_PATH)
+MANAGER_STUDENTS = None
 
 
 class SplashScreen(QtWidgets.QSplashScreen):
@@ -803,7 +804,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # _________________________________________
 
-
         self.horizontalLayout_2.addLayout(self.horizontalLayout_4)
         self.logout_archive_push = Push(self.frame, 40, 40, 5, tool_tip='Выйти из архива', icon_path=os.path.join('media', 'undo.svg'))
         self.logout_archive_push.hide()
@@ -844,7 +844,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.wLayout2.addWidget(self.statustic3)
         self.wLayout2.addWidget(self.statustic4)
 
-
         self.horizontalLayout_17.addLayout(self.wLayout2)
 
         spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding,
@@ -862,7 +861,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.set_size_negativ_font_push2 = Push(self.frame, 40, 40, 5, tool_tip='Уменьшить размер текста', icon_path=os.path.join('media', 'negative.svg'))
         self.horizontalLayout_19.addWidget(self.set_size_negativ_font_push2)
-
 
         # ___________________________________________________________________
         self.horizontalLayout_19.addWidget(self.pushButton_9)
@@ -1158,6 +1156,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.group.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(self)
 
+        self.window_password = WindowSetPassword()
+        self.window_password.hide()
+
         self.add_function()
 
     def retranslateUi(self):
@@ -1200,6 +1201,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.del_push.clicked.connect(self.del_student)
         self.save_user_push.clicked.connect(self.save_user)
         self.save_table_push.clicked.connect(self.save_table)
+        self.pushButton_9.clicked.connect(self.save_table)
         self.del_user_push.clicked.connect(self.del_user)
         self.logout_push.clicked.connect(self.logout)
         self.game_over_push.clicked.connect(self.click_end_period)
@@ -1209,17 +1211,20 @@ class MainWindow(QtWidgets.QMainWindow):
         self.del_file_push.clicked.connect(self.clicked_del_file_push)
         self.load_file_push.clicked.connect(self.clicked_load_file_push)
         self.logout_archive_push.clicked.connect(self.logout_archive)
+        self.set_password_push.clicked.connect(self.set_password)
 
     def init_students_manager(self, path=None, only_show=False):
+        global MANAGER_STUDENTS
         try:
-            self.manager_students = ManagerStudents.load_manager_students(USER_MANAGER.user, file_name=path)
-
+            MANAGER_STUDENTS = ManagerStudents.load_manager_students(USER_MANAGER.user, file_name=path)
         except BaseException as message:
+            if 'archive' in path:
+                raise FileNotFoundError
             print(120, message)
-            self.manager_students = ManagerStudents((datetime.date.today().month, datetime.date.today().year),
+            MANAGER_STUDENTS = ManagerStudents((datetime.date.today().month, datetime.date.today().year),
                                                     USER_MANAGER.user)
-            self.manager_students.save_students()
-        if len(self.manager_students.students) == 0:
+            # MANAGER_STUDENTS.save_students()
+        if len(MANAGER_STUDENTS.students) == 0:
             self.group.removeTab(self.group.indexOf(self.students))
         self.label_2.setText(f"Добро пожаловать, {USER_MANAGER.user.username}!")
         if hasattr(self, 'tableWidget'):
@@ -1227,14 +1232,14 @@ class MainWindow(QtWidgets.QMainWindow):
         if hasattr(self, 'tableWidget_3'):
             self.verticalLayout_25.removeWidget(self.tableWidget_3)
 
-        self.tableWidget = TableAbsence(self.manager_students, only_show=only_show)
+        self.tableWidget = TableAbsence(MANAGER_STUDENTS, only_show=only_show)
         self.tableWidget.setStyleSheet("""QTableWidget {border: none;}""")
         self.tableWidget.setObjectName("tableView")
 
         self.verticalLayout.addWidget(self.tableWidget)
         self.verticalLayout.addItem(
             QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum))
-        self.tableWidget_3 = TableMarks(self.manager_students)
+        self.tableWidget_3 = TableMarks(MANAGER_STUDENTS)
         self.tableWidget_3.setObjectName("tableWidget_3")
         self.verticalLayout_25.addWidget(self.tableWidget_3)
 
@@ -1249,13 +1254,28 @@ class MainWindow(QtWidgets.QMainWindow):
         self.init_archive()
 
         self.update_list_students()
+
         self.tableWidget.update_table_students()
         self.tableWidget_3.update_table_students()
         if not only_show:
             self.tableWidget_3.cellChanged.connect(lambda: self.clicked_table_marks(self.tableWidget_3))
             self.tableWidget.cellChanged.connect(lambda: self.check_value(self.tableWidget))
+
         self.update_user_info()
         self.update_statistics()
+
+
+    def cellPressed1(self, row, colume):
+
+        try:
+            self.tableWidget.item(row, 0).setBackground(QtGui.QColor(102, 102, 102))
+            self.tableWidget.item(1, colume).setBackground(QtGui.QColor(102, 102, 102))
+        except AttributeError:
+            self.tableWidget.setItem(row, 0, QTableWidgetItem(''))
+            self.tableWidget.setItem(1, colume, QTableWidgetItem(''))
+        finally:
+            self.tableWidget.item(row, 0).setBackground(QtGui.QColor(102, 102, 102))
+            self.tableWidget.item(1, colume).setBackground(QtGui.QColor(102, 102, 102))
 
 
     def update_user_info(self):
@@ -1266,7 +1286,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.specialization_edit.setText(USER_MANAGER.user.parametrs.get('specialization', ''))
 
     def update_statistics(self):
-        statistics = self.manager_students.get_statistics()
+        statistics = MANAGER_STUDENTS.get_statistics()
         if statistics.get('man_hours') > 0:
             self.statustic1.setText(f'Чел.час = {str(statistics.get("man_hours"))} \t\t Посещ.Кач. = {str(round(statistics.get("quality_attendance")*100, 2))}%')
             self.statustic2.setText(f'Посещ.Общ. = {str(round(statistics.get("total_attendance")*100, 2))}% \t Прогул 1 студ. = {str(round(statistics.get("absences_by_student", 1)))}')
@@ -1275,7 +1295,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.statustic2.clear()
 
     def update_statistics_2(self):
-        statistics = self.manager_students.get_statistics_marks()
+        statistics = MANAGER_STUDENTS.get_statistics_marks()
         if statistics.get('is_ready') == 1:
             self.statustic3.setText(f'Кол-во студ. им-х 2 = {statistics.get("heaving_2")!r} | Кол-во студ. им-х одну 3 = {statistics.get("heaving_one_3")!r} \t| Успеваемость общая = {str(round(statistics.get("total_academic_performance", 0)*100, 2))}%')
             self.statustic4.setText(f'Кол-во студ. им-х 5 = {statistics.get("heaving_5")!r} | Кол-во студ. им-х 4 и 5 = {statistics.get("heaving_4_and_5")!r}\t| Успеваемость качественная = {round(statistics.get("quality_academic_performance", 0)*100, 2)!r}%')
@@ -1285,7 +1305,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def update_list_students(self):
         self.listWidget.clear()
-        for indx, student in enumerate(self.manager_students.students):
+        for indx, student in enumerate(MANAGER_STUDENTS.students):
             self.listWidget.addItem(QtWidgets.QListWidgetItem(f'{str(indx + 1)}. {student.fio}'))
 
     def save_user(self):
@@ -1310,7 +1330,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def save_to_exel(self):
         try:
-            path = self.manager_students.save_f6(os.path.join(DOCUMENTS_PATH, 'user_1.xlsx'))
+            path = MANAGER_STUDENTS.save_f6(os.path.join(DOCUMENTS_PATH, f'{"_".join(["П", str(MANAGER_STUDENTS.MONTHS[MANAGER_STUDENTS.period[0]-1]), str(MANAGER_STUDENTS.period[1]), str(USER_MANAGER.user.username)])}.xlsx'))
         except BaseException as f:
             QtWidgets.QMessageBox.critical(self, 'Ошибка сохранения', 'Файл не был сохранен. Повторите попытку')
         else:
@@ -1318,25 +1338,25 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def save_to_exel_marks(self):
         try:
-            path = self.manager_students.save_f6_marks(os.path.join(DOCUMENTS_PATH, 'marks.xlsx'))
+            path = MANAGER_STUDENTS.save_f6_marks(os.path.join(DOCUMENTS_PATH, f'{"_".join(["О", str(MANAGER_STUDENTS.MONTHS[MANAGER_STUDENTS.period[0]-1]), str(MANAGER_STUDENTS.period[1]), str(USER_MANAGER.user.username)])}.xlsx'))
         except BaseException as f:
             QtWidgets.QMessageBox.critical(self, 'Ошибка сохранения', 'Файл не был сохранен. Повторите попытку')
         else:
             QtWidgets.QMessageBox.information(self, 'Успешное сохранение', f'Файл успешно сохранен в дириктории: {path}')
 
     def save_table(self):
-        self.manager_students.save_students()
+        MANAGER_STUDENTS.save_students()
 
 
     def save_student(self):
         self.message_students.setText('')
         try:
-            self.manager_students.CLASS_STUDENT.chech_fio(self.fio_edit.text())
+            MANAGER_STUDENTS.CLASS_STUDENT.chech_fio(self.fio_edit.text())
         except BaseException as f:
             self.message_students.setText(str(f))
         else:
 
-            self.manager_students.students[
+            MANAGER_STUDENTS.students[
                 self.listWidget.row(self.listWidget.currentItem())].fio = self.fio_edit.text()
             self.update_list_students()
             self.tableWidget.update_table_students()
@@ -1346,6 +1366,11 @@ class MainWindow(QtWidgets.QMainWindow):
             table.update_table_students(size=table.mod_size + 1)
         elif table.mod_size > -12:
             table.update_table_students(size=table.mod_size - 1)
+
+    def set_password(self):
+        self.window_password.show()
+
+
 
 
     def click_list(self, listwidget):
@@ -1357,15 +1382,15 @@ class MainWindow(QtWidgets.QMainWindow):
                                                             str(f'Вы точно хотите навсегда удалить студента {" ".join(self.listWidget.currentItem().text().split()[1:])}?'),
                                                             QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
             if message_main == message_main.Yes:
-                self.manager_students.remove_student_id(self.listWidget.row(self.listWidget.currentItem()))
+                MANAGER_STUDENTS.remove_student_id(self.listWidget.row(self.listWidget.currentItem()))
                 self.listWidget.removeItemWidget(self.listWidget.currentItem())
                 self.update_list_students()
-                self.tableWidget_3.students = self.manager_students.students
-                self.tableWidget.students = self.manager_students.students
+                self.tableWidget_3.students = MANAGER_STUDENTS.students
+                self.tableWidget.students = MANAGER_STUDENTS.students
                 self.tableWidget_3.update_table_students()
                 self.tableWidget.update_table_students()
 
-        if len(self.manager_students.students) == 0:
+        if len(MANAGER_STUDENTS.students) == 0:
             self.group.removeTab(self.group.indexOf(self.students))
         self.update_statistics()
 
@@ -1383,50 +1408,48 @@ class MainWindow(QtWidgets.QMainWindow):
         self.close()
 
     def check_value(self, tablewidget):
-        if len(self.manager_students.students) != 0:
+        if len(MANAGER_STUDENTS.students) != 0:
             self.group.insertTab(2, self.students, 'Cтуденты')
-
 
         item = tablewidget.currentItem()
         if not item is None:
             try:
                 if item.row() == 1 and 2 <= item.column() <= 32:
                     if item.text() == '' or item.text() == ' ':
-                        if self.manager_students.days.get(item.column() - 1):
-                            self.manager_students.days[item.column() - 1] = 0
+                        if MANAGER_STUDENTS.days.get(item.column() - 1):
+                            MANAGER_STUDENTS.days[item.column() - 1] = 0
                         item.setText('')
                     elif item.text().isnumeric() and 0 <= int(item.text()) <= 8:
-                        self.manager_students.add_hours_by_day(item.column() - 1, int(item.text()))
+                        MANAGER_STUDENTS.add_hours_by_day(item.column() - 1, int(item.text()))
                     else:
-                        item.setText(str(self.manager_students.days.get(item.column() - 1, '')))
+                        item.setText(str(MANAGER_STUDENTS.days.get(item.column() - 1, '')))
                     item.setFont(QtGui.QFont('Calibri', 14+tablewidget.mod_size))
                     tablewidget.update_hours_day()
 
-
-                elif 32 >= item.column() >= 2 and len(self.manager_students.students) + 2 >= item.row() >= 2:
+                elif 32 >= item.column() >= 2 and len(MANAGER_STUDENTS.students) + 2 >= item.row() >= 2:
                     if item.text() == '' or item.text() == ' ':
-                        if item.column() - 1 in self.manager_students.students[item.row() - 3].absence_days:
-                            del self.manager_students.students[item.row() - 3].absence_days[item.column() - 1]
-                        if item.column() - 1 in self.manager_students.students[item.row() - 3].sick_days:
-                            del self.manager_students.students[item.row() - 3].sick_days[item.column() - 1]
+                        if item.column() - 1 in MANAGER_STUDENTS.students[item.row() - 3].absence_days:
+                            del MANAGER_STUDENTS.students[item.row() - 3].absence_days[item.column() - 1]
+                        if item.column() - 1 in MANAGER_STUDENTS.students[item.row() - 3].sick_days:
+                            del MANAGER_STUDENTS.students[item.row() - 3].sick_days[item.column() - 1]
                         item.setBackground(QtGui.QColor(255, 255, 255))
 
                     elif item.text().isnumeric() and 0 < int(item.text()) <= 8:
                         if self.is_sick_rb.isChecked():
-                            if item.column() - 1 in self.manager_students.students[item.row() - 3].absence_days:
-                                del self.manager_students.students[item.row() - 3].absence_days[item.column() - 1]
-                            self.manager_students.add_day(
-                                self.manager_students.students[item.row() - 3],
+                            if item.column() - 1 in MANAGER_STUDENTS.students[item.row() - 3].absence_days:
+                                del MANAGER_STUDENTS.students[item.row() - 3].absence_days[item.column() - 1]
+                            MANAGER_STUDENTS.add_day(
+                                MANAGER_STUDENTS.students[item.row() - 3],
                                 item.column() - 1,
                                 int(item.text()),
                                 type_day='S',
                             )
                             tablewidget.add_hours_in_table(item.row(), item.column(), item.text(), type_day='s')
                         else:
-                            if item.column() - 1 in self.manager_students.students[item.row() - 3].sick_days:
-                                del self.manager_students.students[item.row() - 3].sick_days[item.column() - 1]
-                            self.manager_students.add_day(
-                                self.manager_students.students[item.row() - 3],
+                            if item.column() - 1 in MANAGER_STUDENTS.students[item.row() - 3].sick_days:
+                                del MANAGER_STUDENTS.students[item.row() - 3].sick_days[item.column() - 1]
+                            MANAGER_STUDENTS.add_day(
+                                MANAGER_STUDENTS.students[item.row() - 3],
                                 item.column() - 1,
                                 int(item.text()),
                                 type_day='A',
@@ -1434,32 +1457,33 @@ class MainWindow(QtWidgets.QMainWindow):
 
                             tablewidget.add_hours_in_table(item.row(), item.column(), item.text(), type_day='a')
 
+
                     else:
-                        if self.manager_students.students[item.row() - 3].sick_days.get(item.column() - 1, ''):
+                        if MANAGER_STUDENTS.students[item.row() - 3].sick_days.get(item.column() - 1, ''):
                             item.setText(str(
-                                self.manager_students.students[item.row() - 3].sick_days.get(item.column() - 1, '')))
-                        elif self.manager_students.students[item.row() - 3].absence_days.get(item.column() - 1, ''):
+                                MANAGER_STUDENTS.students[item.row() - 3].sick_days.get(item.column() - 1, '')))
+                        elif MANAGER_STUDENTS.students[item.row() - 3].absence_days.get(item.column() - 1, ''):
                             item.setText(str(
-                                self.manager_students.students[item.row() - 3].absence_days.get(item.column() - 1, '')))
+                                MANAGER_STUDENTS.students[item.row() - 3].absence_days.get(item.column() - 1, '')))
                         else:
                             item.setText('')
                     tablewidget.update_statistics_student(item.row())
 
                 elif item.column() == 1:
-                    if item.row() == len(self.manager_students.students) + 3:
+                    if item.row() == len(MANAGER_STUDENTS.students) + 3:
                         try:
-                            self.manager_students.CLASS_STUDENT.chech_fio(item.text())
+                            MANAGER_STUDENTS.CLASS_STUDENT.chech_fio(item.text())
                         except BaseException:
                             item.setBackground(QtGui.QColor(255, 0, 0))
                         else:
 
-                            self.manager_students.add_student(self.manager_students.CLASS_STUDENT(item.text()))
+                            MANAGER_STUDENTS.add_student(MANAGER_STUDENTS.CLASS_STUDENT(item.text()))
                             tablewidget.setRowCount(tablewidget.rowCount() + 1)
-                            tablewidget.manager = self.manager_students
-                            self.tableWidget_3.manager = self.manager_students
+                            tablewidget.manager = MANAGER_STUDENTS
+                            self.tableWidget_3.manager = MANAGER_STUDENTS
 
                             for i in range(2, 32 + 1):
-                                if not i - 1 in self.manager_students.days:
+                                if not i - 1 in MANAGER_STUDENTS.days:
                                     tablewidget.setItem(tablewidget.rowCount() - 2, i,
                                                              QTableWidgetItem(""))
                                     tablewidget.item(tablewidget.rowCount() - 2, i).setBackground(
@@ -1481,17 +1505,17 @@ class MainWindow(QtWidgets.QMainWindow):
         item = table_widget.currentItem()
         if not item is None:
             if item.column() == 1:
-                if item.row() == len(self.manager_students.students) + 3:
+                if item.row() == len(MANAGER_STUDENTS.students) + 3:
                     try:
-                        self.manager_students.CLASS_STUDENT.chech_fio(item.text())
+                        MANAGER_STUDENTS.CLASS_STUDENT.chech_fio(item.text())
                     except BaseException:
                         print('ошибка')
                     else:
                         try:
-                            self.manager_students.add_student(self.manager_students.CLASS_STUDENT(item.text()))
+                            MANAGER_STUDENTS.add_student(MANAGER_STUDENTS.CLASS_STUDENT(item.text()))
                             table_widget.setRowCount(table_widget.rowCount() + 1)
-                            table_widget.manager = self.manager_students
-                            self.tableWidget.manager = self.manager_students
+                            table_widget.manager = MANAGER_STUDENTS
+                            self.tableWidget.manager = MANAGER_STUDENTS
 
                         except BaseException as f:
                             print(f)
@@ -1499,29 +1523,29 @@ class MainWindow(QtWidgets.QMainWindow):
                             table_widget.update_table_students()
                             self.tableWidget.update_table_students()
                             self.update_list_students()
-            elif 32 >= item.column() >= 2 and len(self.manager_students.students) + 2 >= item.row() >= 3:
+            elif 32 >= item.column() >= 2 and len(MANAGER_STUDENTS.students) + 2 >= item.row() >= 3:
                 if item.text().isnumeric() and 5 >= int(item.text()) >= 2:
                     table_widget.add_mark_table(item.row(), item.column(), item.text())
-                    self.manager_students.students[item.row()-3].marks[item.column()-1] = int(item.text())
+                    MANAGER_STUDENTS.students[item.row()-3].marks[item.column()-1] = int(item.text())
                 else:
                     item.setText('')
-                    if self.manager_students.students[item.row()-3].marks.get(item.column()-1):
-                        del self.manager_students.students[item.row()-3].marks[item.column()-1]
+                    if MANAGER_STUDENTS.students[item.row()-3].marks.get(item.column()-1):
+                        del MANAGER_STUDENTS.students[item.row()-3].marks[item.column()-1]
 
             elif item.row() == 1 and item.column() >= 2:
-                if self.manager_students.couples.get(str(item.column()-1)):
-                    row = self.manager_students.couples[str(item.column()-1)]
+                if MANAGER_STUDENTS.couples.get(str(item.column()-1)):
+                    row = MANAGER_STUDENTS.couples[str(item.column()-1)]
                     row[0] = item.text()
-                    self.manager_students.couples[str(item.column() - 1)] = row
+                    MANAGER_STUDENTS.couples[str(item.column() - 1)] = row
                 else:
-                    self.manager_students.couples[str(item.column() - 1)] = [item.text(), '']
+                    MANAGER_STUDENTS.couples[str(item.column() - 1)] = [item.text(), '']
             elif item.row() == 2 and item.column() >= 2:
-                if self.manager_students.couples.get(str(item.column()-1)):
-                    row = self.manager_students.couples[str(item.column()-1)]
+                if MANAGER_STUDENTS.couples.get(str(item.column()-1)):
+                    row = MANAGER_STUDENTS.couples[str(item.column()-1)]
                     row[1] = item.text()
-                    self.manager_students.couples[str(item.column() - 1)] = row
+                    MANAGER_STUDENTS.couples[str(item.column() - 1)] = row
                 else:
-                    self.manager_students.couples[str(item.column() - 1)] = ['', item.text()]
+                    MANAGER_STUDENTS.couples[str(item.column() - 1)] = ['', item.text()]
         self.update_statistics_2()
         table_widget.resizeColumnsToContents()
         table_widget.resizeRowsToContents()
@@ -1530,15 +1554,15 @@ class MainWindow(QtWidgets.QMainWindow):
         message = QtWidgets.QMessageBox.question(self, 'Завершение',
                                                  'Вы точно хотите завершить этот месяц? \n После этого форма шесть будет сохранена, перенесена и находится в архиве.', QtWidgets.QMessageBox.StandardButton.No|QtWidgets.QMessageBox.StandardButton.Yes)
         if message.Yes == message:
-            self.manager_students.save_students()
+            MANAGER_STUDENTS.save_students()
             try:
-                self.manager_students.push_archive()
+                MANAGER_STUDENTS.push_archive()
             except BaseException as f:
                 print(f)
             else:
-                self.manager_students.create_new_table()
-                self.tableWidget.manager = self.manager_students
-                self.tableWidget_3.manager = self.manager_students
+                MANAGER_STUDENTS.create_new_table()
+                self.tableWidget.manager = MANAGER_STUDENTS
+                self.tableWidget_3.manager = MANAGER_STUDENTS
                 self.update_statistics()
                 self.update_statistics_2()
                 self.tableWidget.update_table_students()
@@ -1550,8 +1574,8 @@ class MainWindow(QtWidgets.QMainWindow):
         deal.show()
         deal.exec()
         if not(deal.result is None):
-            self.manager_students.on_day(deal.result)
-            self.tableWidget.manager = self.manager_students
+            MANAGER_STUDENTS.on_day(deal.result)
+            self.tableWidget.manager = MANAGER_STUDENTS
             self.tableWidget.update_table_students()
             self.update_statistics()
 
@@ -1560,13 +1584,13 @@ class MainWindow(QtWidgets.QMainWindow):
         deal.show()
         deal.exec()
         if not(deal.result is None):
-            self.manager_students.off_day(deal.result)
-            self.tableWidget.manager = self.manager_students
+            MANAGER_STUDENTS.off_day(deal.result)
+            self.tableWidget.manager = MANAGER_STUDENTS
             self.tableWidget.update_table_students()
             self.update_statistics()
 
     def init_archive(self):
-        path, files = self.manager_students.init_archive()
+        path, files = MANAGER_STUDENTS.init_archive()
         self.list_archive.clear()
         for i in files:
             self.list_archive.addItem(QtWidgets.QListWidgetItem(i))
@@ -1579,17 +1603,25 @@ class MainWindow(QtWidgets.QMainWindow):
             try:
                 self.init_students_manager(path=os.path.join('archive', item.text()), only_show=True)
             except BaseException as f:
-                print(repr(f), '123')
+                QtWidgets.QMessageBox.critical(self, 'Просмотр архивного файла',
+                                               f'При попытки  загрузки файла {item.text()} произошла ошибка. Попробуйте загрузить его заного. Если проблема не исчезнет, то скорее всего файл поврежден или удален.',
+                                               QtWidgets.QMessageBox.StandardButton.Ok)
+
             else:
+
                 self.save_table_push.hide()
                 self.game_over_push.hide()
                 self.radioButton_2.hide()
+                self.pushButton_9.hide()
                 self.is_sick_rb.hide()
                 self.logout_archive_push.show()
                 self.update_statistics()
                 self.update_statistics_2()
                 self.group.removeTab(self.group.indexOf(self.students))
                 self.group.removeTab(self.group.indexOf(self.settings))
+                QtWidgets.QMessageBox.information(self, 'Просмотр архивного файла',
+                                                  'Файла успешно загружен. Вы можете перейти к просмотру.',
+                                                  QtWidgets.QMessageBox.StandardButton.Ok)
 
 
 
@@ -1604,14 +1636,20 @@ class MainWindow(QtWidgets.QMainWindow):
                                                      f'Вы точно хотите удалить файл: {file_name}? \n После этого он будет удален навсегда',
                                                     QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
             if message == message.Yes:
-                os.remove(os.path.join(self.path_archive, file_name))
-                self.init_archive()
+                try:
+                    os.remove(os.path.join(self.path_archive, file_name))
+                except BaseException:
+                    pass
+                finally:
+                    self.init_archive()
+
 
     def logout_archive(self):
         self.init_students_manager(path='students.json')
         self.logout_archive_push.hide()
         self.save_table_push.show()
         self.game_over_push.show()
+        self.pushButton_9.show()
         self.radioButton_2.show()
         self.is_sick_rb.show()
         self.group.insertTab(2, self.students, 'Cтуденты')
@@ -1641,6 +1679,104 @@ class Push(QtWidgets.QPushButton):
 
     def leaveEvent(self, e):
         self.setIconSize(QtCore.QSize(self.base_weight, self.base_height))
+
+
+class WindowSetPassword(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setObjectName("Form")
+        self.resize(500, 300)
+        self.setMaximumSize(QtCore.QSize(500, 300))
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.verticalLayout = QtWidgets.QVBoxLayout()
+        self.verticalLayout.setObjectName("verticalLayout")
+        self.label = QtWidgets.QLabel(self)
+        self.label.setObjectName("label")
+        self.verticalLayout.addWidget(self.label)
+        self.old_password_edit = QtWidgets.QLineEdit(self)
+        self.old_password_edit.setEnabled(True)
+        self.old_password_edit.setObjectName("old_password_edit")
+        self.verticalLayout.addWidget(self.old_password_edit)
+        self.label_2 = QtWidgets.QLabel(self)
+        self.label_2.setObjectName("label_2")
+        self.verticalLayout.addWidget(self.label_2)
+        self.new_password_edit1 = QtWidgets.QLineEdit(self)
+        self.new_password_edit1.setObjectName("new_password_edit1")
+        self.verticalLayout.addWidget(self.new_password_edit1)
+        self.label_3 = QtWidgets.QLabel(self)
+        self.label_3.setObjectName("label_3")
+        self.verticalLayout.addWidget(self.label_3)
+        self.new_password_edit2 = QtWidgets.QLineEdit(self)
+        self.new_password_edit2.setObjectName("new_password_edit2")
+        self.verticalLayout.addWidget(self.new_password_edit2)
+        self.fielderrors = QtWidgets.QTextBrowser(self)
+        self.fielderrors.setObjectName("fielderrors")
+        self.verticalLayout.addWidget(self.fielderrors)
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum,
+                                           QtWidgets.QSizePolicy.Policy.Expanding)
+        self.verticalLayout.addItem(spacerItem)
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.save_password_pushbutton = QtWidgets.QPushButton(self)
+        self.save_password_pushbutton.setObjectName("save_password_pushbutton")
+        self.horizontalLayout.addWidget(self.save_password_pushbutton)
+        self.line = QtWidgets.QFrame(self)
+        self.line.setFrameShape(QtWidgets.QFrame.Shape.VLine)
+        self.line.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
+        self.line.setObjectName("line")
+        self.horizontalLayout.addWidget(self.line)
+        self.cancel_pushbutton = QtWidgets.QPushButton(self)
+        self.cancel_pushbutton.setObjectName("cancel_pushbutton")
+        self.horizontalLayout.addWidget(self.cancel_pushbutton)
+        self.verticalLayout.addLayout(self.horizontalLayout)
+        self.verticalLayout_2.addLayout(self.verticalLayout)
+        self.retranslateUi()
+
+        self.add_function()
+
+    def retranslateUi(self, ):
+        _translate = QtCore.QCoreApplication.translate
+        self.setWindowTitle(_translate("Form", "Form"))
+        self.label.setText(_translate("Form", "Старый пароль"))
+        self.label_2.setText(_translate("Form", "Новый пороль"))
+        self.label_3.setText(_translate("Form", "Повторите новый пароль"))
+        self.save_password_pushbutton.setText(_translate("Form", "Сохронить"))
+        self.cancel_pushbutton.setText(_translate("Form", "Отмена"))
+
+    def add_function(self):
+        self.cancel_pushbutton.clicked.connect(self.click_cancel)
+        self.save_password_pushbutton.clicked.connect(self.click_save)
+
+    def click_cancel(self):
+        self.close()
+
+    def checking_parametrs(self):
+        if not self.old_password_edit.text() == USER_MANAGER.user.password:
+            raise ValueError('Введен неверный текущий пароль')
+        if not self.new_password_edit2.text() == self.new_password_edit1.text():
+            raise ValueError('Пароли не соответствуют')
+
+    def click_save(self):
+        self.fielderrors.clear()
+        try:
+            self.checking_parametrs()
+        except ValueError as m:
+            self.fielderrors.setText(str(m))
+
+        else:
+            try:
+                USER_MANAGER.user.password = self.new_password_edit1.text()
+            except ValueError as m:
+                self.fielderrors.setText(str(m))
+            else:
+                USER_MANAGER.user.save_user()
+                MANAGER_STUDENTS.user = USER_MANAGER.user
+
+                MANAGER_STUDENTS.save_students()
+                self.close()
+
+
 
 
 class ControlerWindows:

@@ -38,11 +38,16 @@ class User:
     def password(self):
         return self.__password
 
+    @password.setter
+    def password(self, new):
+        self.check_password(new)
+        self.__password = new
+
     @staticmethod
     def check_password(password):
         if isinstance(password, str) and 30 >= len(password) >= 4:
             return password
-        raise TypeError('Пороль должен быть строкой из 4-30 символов')
+        raise ValueError('Пороль должен быть строкой из 4-30 символов')
 
     @staticmethod
     def check_username(username):
