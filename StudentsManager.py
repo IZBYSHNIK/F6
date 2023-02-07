@@ -102,11 +102,11 @@ class ManagerStudents:
         12: [30, 31],
     }
 
-    def __init__(self, period,  user=None, days=None):
+    def __init__(self, period,  user=None, days=None, students=None):
         self.user = user
         self.period = period
         self.days = days if days else self.generate_work_days()
-        self.__students = []
+        self.__students = [] if not students else students
         self.date = datetime.datetime.now().timetuple()
         self.parametrs = {}
         self.couples = {}
