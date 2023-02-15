@@ -149,7 +149,7 @@ class ManagerStudents:
 
     @property
     def students(self):
-        self.__students = list(sorted(self.__students, key=lambda item: item.fio))
+
         return self.__students
 
     def add_student(self, student):
@@ -623,6 +623,7 @@ class ManagerStudents:
         new_obj = ManagerStudents(data['Period'], user, {int(k): int(v) for k, v in data['Days'].items()})
 
         students = new_obj.convert_str_to_list(new_obj.decode(data['Liststudents'], data['PSC']))
+        students = list(sorted(students, key=lambda item: item.fio))
         for student in students:
             new_obj.add_student(student)
 

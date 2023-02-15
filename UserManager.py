@@ -85,6 +85,14 @@ class User:
         new_obj.parametrs = data['parametrs']
         return new_obj
 
+    def add_achievement(self, coord: list):
+        if not self.parametrs.get('achievements'):
+            self.parametrs['achievements'] = []
+        self.parametrs['achievements'].append(coord)
+        self.save_user()
+
+
+
 
 class UserManager:
     USER_CLASS = User
@@ -183,3 +191,10 @@ class UserManager:
 
     def update_user_id(self):
         self.users_id = self.load_user_manager(self.base_file)
+
+
+class AchievementManager:
+
+
+    def __init__(self, user):
+        self.user = user
