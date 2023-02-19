@@ -751,6 +751,11 @@ class ManagerStudents:
             return self.load_manager_students(self.user, self.load_students(file_name=file_name, user_path=file_path), file_name)
         return self
 
+    def clear_marks(self):
+        for i in self.students:
+            i.marks.clear()
+
+
 
 
 

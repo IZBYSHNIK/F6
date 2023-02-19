@@ -469,9 +469,7 @@ class AbsenceTab(QtWidgets.QWidget):
         self.radioButton_2.setObjectName("radioButton_2")
         self.radioButton_2.setChecked(True)
         self.horizontalLayout_4.addWidget(self.radioButton_2)
-        self.add_table_marks = QtWidgets.QRadioButton(self.frame)
-        self.add_table_marks.setObjectName("add_table_marks")
-        self.horizontalLayout_2.addWidget(self.add_table_marks)
+
         # ________________________________________
         self.set_size_posetiv_font_push = Push(self.frame, 40, 40, 5, tool_tip='Увеличить размер текста',
                                                icon_path=os.path.join('media', 'posetive.svg'))
@@ -503,6 +501,9 @@ class AbsenceTab(QtWidgets.QWidget):
 
         self.retranslateUi()
         self.add_function()
+
+
+        self.is_click_end_period = 0
     def add_function(self):
         self.save_to_exel_push.clicked.connect(self.save_to_exel)
         self.save_table_push.clicked.connect(self.save_table)
@@ -621,6 +622,11 @@ class AbsenceTab(QtWidgets.QWidget):
 
 
     def click_end_period(self):
+        self.is_click_end_period = 1
+        try:
+            self.parent.profile.cod = [0, 1]
+        except BaseException as f:
+            print(f)
         message = QtWidgets.QMessageBox.question(self, 'Завершение',
                                                  'Вы точно хотите завершить этот месяц? \n После этого форма шесть будет сохранена, перенесена и находится в архиве.',
                                                  QtWidgets.QMessageBox.StandardButton.No | QtWidgets.QMessageBox.StandardButton.Yes)
@@ -1100,6 +1106,26 @@ class SettingsTab(QtWidgets.QWidget):
         self.line_2.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
         self.line_2.setObjectName("line_2")
         self.verticalLayout_9.addWidget(self.line_2)
+
+        self.table_label = QtWidgets.QLabel(self.scrollAreaWidgetContents)
+        font = QtGui.QFont()
+        font.setPointSize(14)
+        font.setBold(False)
+        font.setItalic(False)
+        font.setUnderline(False)
+        font.setWeight(50)
+        self.table_label.setFont(font)
+        self.table_label.setObjectName("setings2_label")
+        self.verticalLayout_9.addWidget(self.table_label)
+        self.create_table_marks_link_button = QtWidgets.QCommandLinkButton(self.scrollAreaWidgetContents)
+        self.create_table_marks_link_button.setTabletTracking(True)
+        self.create_table_marks_link_button.setObjectName("create_table_marks_link_button")
+        self.verticalLayout_9.addWidget(self.create_table_marks_link_button)
+        self.del_table_marks_link_button = QtWidgets.QCommandLinkButton(self.scrollAreaWidgetContents)
+        self.del_table_marks_link_button.setCheckable(False)
+        self.del_table_marks_link_button.setObjectName("del_table_marks_link_button")
+        self.verticalLayout_9.addWidget(self.del_table_marks_link_button)
+
         self.setings2_label = QtWidgets.QLabel(self.scrollAreaWidgetContents)
         font = QtGui.QFont()
         font.setPointSize(14)
@@ -1118,6 +1144,10 @@ class SettingsTab(QtWidgets.QWidget):
         self.set_path_save_exel_link_button.setCheckable(False)
         self.set_path_save_exel_link_button.setObjectName("set_path_save_exel_link_button")
         self.verticalLayout_9.addWidget(self.set_path_save_exel_link_button)
+
+
+
+
         self.line_3 = QtWidgets.QFrame(self.scrollAreaWidgetContents)
         self.line_3.setFrameShape(QtWidgets.QFrame.Shape.HLine)
         self.line_3.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
@@ -1146,11 +1176,15 @@ class SettingsTab(QtWidgets.QWidget):
         self.set_path_save_bd_link_button.setText(_translate("MainWindow", "Изменить путь сохранения базы данных"))
         self.set_path_save_exel_link_button.setText(
             _translate("MainWindow", "Изменить путь сохранения файлов exel"))
+        self.table_label.setText(_translate("MainWindow", "Таблицы"))
+        self.create_table_marks_link_button.setText(_translate("MainWindow", "Создать таблицу для оценок"))
+        self.del_table_marks_link_button.setText(_translate("MainWindow", "Удалить таблицу для оценок"))
 
     def add_function(self):
         self.add_work_day_link_button.clicked.connect(self.add_work_day)
         self.del_work_day_link_button.clicked.connect(self.del_work_day)
         self.set_data_table_link_button.clicked.connect(self.set_data_table)
+        self.create_table_marks_link_button.clicked.connect(self.create_table_marks)
 
     def add_work_day(self):
         deal = SettingsWindows(self)
@@ -1180,8 +1214,41 @@ class SettingsTab(QtWidgets.QWidget):
         else:
             self.parent.init_students_manager(period=tuple(map(lambda x: int(x), s.dateEdit.text().split('.'))))
 
+    def create_table_marks(self):
+        if not hasattr(self.parent, 'marks'):
+            pass
+            # message_main = QtWidgets.QMessageBox().question(self, "Удаление студента",
+            #                                                 str(f'Вы точно хотите навсегда удалить студента {" ".join(self.listWidget.currentItem().text().split()[1:])}?'),
+            #                                                 QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
+
+    def del_table_marks(self):
+        MANAGER_STUDENTS.clear_marks()
+
 
 class ProfileTab(QtWidgets.QWidget):
+    ACHIEVEMENT = {
+        (0, 0): ('Поехали!', os.path.join('media', 'achievements', '10.svg')),
+        (0, 1): ('Fullstack', os.path.join('media', 'achievements', '1.svg')),
+        (0, 2): ('Игра окончена', os.path.join('media', 'achievements', '2.svg')),
+        (0, 3): ('Учат в школе ...', os.path.join('media', 'achievements', '4.svg')),
+        (0, 4): ('Исследователь', os.path.join('media', 'achievements', '5.svg')),
+        (1, 0): ('Делу время....', os.path.join('media', 'achievements', '7.svg')),
+        (1, 1): ('..потехе час', os.path.join('media', 'achievements', '8.svg')),
+        (1, 2): ('Частичка истории', os.path.join('media', 'achievements', '14.svg')),
+        (1, 3): ('Это что? Микробы!', os.path.join('media', 'achievements', '12.svg')),
+        (1, 4): ('Я видел темную сторону Луны', os.path.join('media', 'achievements', '13.svg')),
+        (2, 0): ('Моя прелесть', os.path.join('media', 'achievements', '16.svg')),
+        (2, 1): ('Сова', os.path.join('media', 'achievements', '17.svg')),
+        (2, 2): ('Классику сер?', os.path.join('media', 'achievements', '15.svg')),
+        (2, 3): ('1', os.path.join('media', 'achievements', '3.svg')),
+        (2, 4): ('2', os.path.join('media', 'achievements', '9.svg')),
+        (3, 0): ('Ушел по-английски', os.path.join('media', 'achievements', '11.svg')),
+        (3, 1): ('Назад в будущее', os.path.join('media', 'achievements', '18.svg')),
+        (3, 2): ('Коллекционер', os.path.join('media', 'achievements', '6.svg')),
+        (3, 3): ('С НГ!', os.path.join('media', 'achievements', '19.svg')),
+        (3, 4): ('Звезда', os.path.join('media', 'achievements', '20.svg')),
+
+    }
     def __init__(self, parent):
         super(ProfileTab, self).__init__(parent=parent)
         self.parent = parent
@@ -1305,8 +1372,6 @@ class ProfileTab(QtWidgets.QWidget):
         self.add_function()
         self.retranslateUi()
 
-
-
     def add_function(self):
         self.save_user_push.clicked.connect(self.save_user)
         self.set_password_push.clicked.connect(self.set_password)
@@ -1323,47 +1388,44 @@ class ProfileTab(QtWidgets.QWidget):
         self.specialization_label.setText(_translate('MainWindow', "Специализация"))
 
     def init_atchivments(self):
-        ACHIEVEMENT = {
-            (0, 0): ('Поехали!', os.path.join('media', 'achievements', '10.svg')),
-            (0, 1): ('Fullstack', os.path.join('media', 'achievements', '1.svg')),
-            (0, 2): ('Игра окончена', os.path.join('media', 'achievements', '2.svg')),
-            (0, 3): ('Учат в школе ...', os.path.join('media', 'achievements', '4.svg')),
-            (0, 4): ('Исследователь', os.path.join('media', 'achievements', '5.svg')),
-            (1, 0): ('Делу время....', os.path.join('media', 'achievements', '7.svg')),
-            (1, 1): ('..потехе час', os.path.join('media', 'achievements', '8.svg')),
-            (1, 2): ('Частичка истории', os.path.join('media', 'achievements', '14.svg')),
-            (1, 3): ('Это что? Микробы!', os.path.join('media', 'achievements', '12.svg')),
-            (1, 4): ('Я видел темную сторону Луны', os.path.join('media', 'achievements', '13.svg')),
-            (2, 0): ('Моя прелесть', os.path.join('media', 'achievements', '16.svg')),
-            (2, 1): ('Сова', os.path.join('media', 'achievements', '17.svg')),
-            (2, 2): ('Классику сер?', os.path.join('media', 'achievements', '15.svg')),
-            (2, 3): ('1', os.path.join('media', 'achievements', '3.svg')),
-            (2, 4): ('2', os.path.join('media', 'achievements', '9.svg')),
-            (3, 0): ('Ушел по-английски', os.path.join('media', 'achievements', '11.svg')),
-            (3, 1): ('Назад в будущее', os.path.join('media', 'achievements', '18.svg')),
-            (3, 2): ('Коллекционер', os.path.join('media', 'achievements', '6.svg')),
-            (3, 3): ('С НГ!', os.path.join('media', 'achievements', '19.svg')),
-            (3, 4): ('Звезда', os.path.join('media', 'achievements', '20.svg')),
+        if hasattr(self, 'atchivmenys_layout'):
+            self.atchivmenys_layout.clear()
 
-        }
         if not USER_MANAGER.user.parametrs.get('achievements'):
             achievements = []
         else:
             achievements = USER_MANAGER.user.parametrs.get('achievements')
 
         for i in range(4):
-            self.verticalLayout_14 = QtWidgets.QHBoxLayout()
+
+            self.atchivmenys_layout = QtWidgets.QHBoxLayout()
             for j in range(5):
                 qlable = QtWidgets.QLabel()
                 qlable.setFixedSize(80, 80)
                 print(achievements, [i, j])
                 if [i, j] in achievements:
-                    qlable.setToolTip(str(ACHIEVEMENT[(i, j)][0]))
-                    qlable.setPixmap(QtGui.QPixmap(ACHIEVEMENT[(i, j)][1]))
+                    qlable.setToolTip(str(self.ACHIEVEMENT[(i, j)][0]))
+                    qlable.setPixmap(QtGui.QPixmap(self.ACHIEVEMENT[(i, j)][1]))
                 else:
                     qlable.setStyleSheet('background: black;')
-                self.verticalLayout_14.addWidget(qlable)
-            self.verticalLayout_13.addLayout(self.verticalLayout_14)
+                self.atchivmenys_layout.addWidget(qlable)
+            self.verticalLayout_13.addLayout(self.atchivmenys_layout)
+
+    def __setattr__(self, key, value):
+        if key == 'cod':
+            if tuple(value) in self.ACHIEVEMENT:
+                if self.checking_condition(tuple(value)):
+                    if USER_MANAGER.user.parametrs.get('achievements'):
+                        if not tuple(value) in USER_MANAGER.user.parametrs.get('achievements'):
+                            USER_MANAGER.user.parametrs['achievements'].append(list(value))
+                    else:
+                        USER_MANAGER.user.parametrs['achievements'] = [list(value)]
+                    USER_MANAGER.user.save_user()
+                    self.init_atchivments()
+            else:
+                raise KeyError
+        else:
+            object.__setattr__(self, key, value)
 
     def save_user(self):
         try:
@@ -1411,6 +1473,15 @@ class ProfileTab(QtWidgets.QWidget):
             self.group_edit.setText(USER_MANAGER.user.parametrs.get('group', ''))
             self.specialization_edit.setText(USER_MANAGER.user.parametrs.get('specialization', ''))
 
+    def checking_condition(self, key):
+        CONDITION = {
+            (0, 0): '',
+            (0, 1): 'len(MANAGER_STUDENTS.students) >= 25',
+            (0, 2): 'self.parent.F6.is_click_end_period',
+            (0, 3): '',
+        }
+        return eval(CONDITION[key])
+
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -1447,8 +1518,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.F6 = AbsenceTab(self)
         self.group.addTab(self.F6, "")
 
+
         self.marks = MarksTab(self)
         self.group.addTab(self.marks, "")
+
 
         self.students = StudentsTab(self)
         self.group.addTab(self.students, "")
@@ -1478,8 +1551,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
-
-        self.group.setTabText(self.group.indexOf(self.marks), _translate("MainWindow", "Оценки"))
+        if hasattr(self, 'marks'):
+            self.group.setTabText(self.group.indexOf(self.marks), _translate("MainWindow", "Оценки"))
         self.setWindowTitle(_translate("MainWindow", "F6"))
         self.group.setTabText(self.group.indexOf(self.F6), _translate("MainWindow", "Прогулы"))
         self.group.setTabText(self.group.indexOf(self.students), _translate("MainWindow", "Студенты"))
@@ -1520,8 +1593,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.group.removeTab(self.group.indexOf(self.students))
         try:
             self.F6.init_table_absence(only_show)
-
-            self.marks.init_table_marks(only_show)
+            if hasattr(self, 'marks'):
+                self.marks.init_table_marks(only_show)
         except:
             print(144)
 
@@ -1529,6 +1602,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.F6.label_2.setText(f"Добро пожаловать, {USER_MANAGER.user.username}!")
         self.profile.update_user_info()
         self.archive.init_archive()
+
+        self.profile.init_atchivments()
+
+
+
+
+
 
     def cellPressed(self, row, column):
         if self.F6.tableWidget.hasFocus():
