@@ -78,10 +78,10 @@ class Student:
             "Absence_days": (self.absence_days, sum(self.absence_days.values())),
         }
 
-    def add_day(self, number_day, hours, type_day='A'):
-        if type_day == 'S':
+    def add_day(self, number_day, hours, type_day='a'):
+        if type_day == 's':
             self.add_sick_day(number_day, hours)
-        elif type_day == 'A':
+        elif type_day == 'a':
             self.add_absence_day(number_day, hours)
         else:
             raise ValueError("Неверно указан тип дня")
@@ -631,10 +631,11 @@ class ManagerStudents:
         new_obj.couples = data.get('Couples', {})
         return new_obj
 
-    def add_day(self, student, number_day, hours, type_day='A'):
-        if type_day == 'S':
+    def add_day(self, student, number_day, hours, type_day='a'):
+        type_day = type_day.lower()
+        if type_day == 's':
             student.add_day(number_day, hours, type_day)
-        elif type_day == 'A':
+        elif type_day == 'a':
             student.add_day(number_day, hours, type_day)
         else:
             raise ValueError("Неверно указан тип дня")

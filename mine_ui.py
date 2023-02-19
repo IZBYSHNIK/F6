@@ -1,16 +1,14 @@
 import datetime
 import os
-import sys
 import random
-from inspect import getsourcefile
+import sys
 
-
-from PyQt6.QtGui import QIcon
 from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QTableWidgetItem
+
 from StudentsManager import ManagerStudents
 from UserManager import UserManager
-
 
 VERSION = '1.1.2'
 QtCore.QCoreApplication.setLibraryPaths(['plugins'])
@@ -41,7 +39,8 @@ class SplashScreen(QtWidgets.QSplashScreen):
         super().__init__()
         self.setObjectName("splash_screen")
         self.setFixedSize(379, 443)
-        self.move((app.primaryScreen().size().width()-self.size().width())//2, (app.primaryScreen().size().height()-self.size().height())//2-40)
+        self.move((app.primaryScreen().size().width() - self.size().width()) // 2,
+                  (app.primaryScreen().size().height() - self.size().height()) // 2 - 40)
         self.logo = QtWidgets.QLabel(self)
         self.logo.setMinimumWidth(379)
         logo = QtGui.QPixmap(os.path.join(BASE_PATH, 'media', 'logo.svg'))
@@ -245,7 +244,6 @@ class Regist(QtWidgets.QWidget):
         self.retranslateUi()
         QtCore.QMetaObject.connectSlotsByName(self)
 
-
         self.create_push.clicked.connect(self.click_create_push)
         self.cancel_push.clicked.connect(self.click_cancel_push)
 
@@ -390,7 +388,6 @@ class Auth(QtWidgets.QWidget):
         if k == 16777220:
             self.click_auth_push()
 
-
     def update_users(self):
         self.spin_box.clear()
         for i in USER_MANAGER.users_id:
@@ -422,46 +419,17 @@ class Auth(QtWidgets.QWidget):
         self.close()
 
 
-
-
-class MainWindow(QtWidgets.QMainWindow):
-    def __init__(self):
-        self.status = 0
-        super().__init__()
-        self.setStyleSheet(
-            """
-            #game_over_push, #save_to_exel_push, #save_table_push {border: none;}
-            #QButton {margin: auto;}
-            QTableWidget {margin-left: auto; margin-right: auto;}
-            QListWidget {margin-left: auto; margin-top: 20%; margin-right: auto; border: none;}
-            #profile QPushButton {background-color: rgba(249, 248, 244, 0);}
-            QScrollArea {border: none}
-
-            """)
-        self.setWindowIcon(QtGui.QIcon('media\\logo.svg'))
-        self.setObjectName("MainWindow")
-        self.resize(1024, 768)
-        self.setMinimumSize(800, 450)
-        self.centralwidget = QtWidgets.QWidget(self)
-        self.centralwidget.setObjectName("centralwidget")
-        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.centralwidget)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.group = QtWidgets.QTabWidget(self.centralwidget)
-        self.group.setTabPosition(QtWidgets.QTabWidget.TabPosition.North)
-        self.group.setTabShape(QtWidgets.QTabWidget.TabShape.Rounded)
-        self.group.setDocumentMode(False)
-        self.group.setTabsClosable(False)
-        self.group.setMovable(False)
-        self.group.setTabBarAutoHide(False)
-        self.group.setObjectName("group")
-        self.F6 = QtWidgets.QWidget()
-        self.F6.setObjectName("F6")
-        self.verticalLayout = QtWidgets.QVBoxLayout(self.F6)
+class AbsenceTab(QtWidgets.QWidget):
+    def __init__(self, parent):
+        super(AbsenceTab, self).__init__(parent=parent)
+        self.parent = parent
+        self.setObjectName("F6")
+        self.verticalLayout = QtWidgets.QVBoxLayout(self)
         self.verticalLayout.setObjectName("verticalLayout")
 
         self.verticalLayout_3 = QtWidgets.QVBoxLayout()
         self.verticalLayout_3.setObjectName("verticalLayout_3")
-        self.frame = QtWidgets.QFrame(self.F6)
+        self.frame = QtWidgets.QFrame(self)
         self.frame.setMinimumSize(QtCore.QSize(0, 80))
         self.frame.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
         self.frame.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
@@ -501,6 +469,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.radioButton_2.setObjectName("radioButton_2")
         self.radioButton_2.setChecked(True)
         self.horizontalLayout_4.addWidget(self.radioButton_2)
+        self.add_table_marks = QtWidgets.QRadioButton(self.frame)
+        self.add_table_marks.setObjectName("add_table_marks")
+        self.horizontalLayout_2.addWidget(self.add_table_marks)
         # ________________________________________
         self.set_size_posetiv_font_push = Push(self.frame, 40, 40, 5, tool_tip='Увеличить размер текста',
                                                icon_path=os.path.join('media', 'posetive.svg'))
@@ -513,12 +484,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # _________________________________________
 
         self.horizontalLayout_2.addLayout(self.horizontalLayout_4)
-        self.logout_archive_push = Push(self.frame, 40, 40, 5, tool_tip='Выйти из архива',
-                                        icon_path=os.path.join('media', 'undo.svg'))
-        self.logout_archive_push.hide()
-        self.logout_archive_push.setObjectName("logout_archive_push")
 
-        self.horizontalLayout_2.addWidget(self.logout_archive_push)
         self.save_table_push = Push(self.frame, 40, 40, 5, tool_tip='Сохронить изменения',
                                     icon_path=os.path.join('media', 'buttons', 'save.svg'))
         self.save_table_push.setObjectName("save_table_push")
@@ -534,15 +500,198 @@ class MainWindow(QtWidgets.QMainWindow):
         self.horizontalLayout_3.addLayout(self.horizontalLayout_2)
         self.verticalLayout_3.addWidget(self.frame)
         self.verticalLayout.addLayout(self.verticalLayout_3)
-        self.group.addTab(self.F6, "")
 
-        self.marks = QtWidgets.QWidget()
-        self.marks.setObjectName("marks")
-        self.verticalLayout_25 = QtWidgets.QVBoxLayout(self.marks)
+        self.retranslateUi()
+        self.add_function()
+    def add_function(self):
+        self.save_to_exel_push.clicked.connect(self.save_to_exel)
+        self.save_table_push.clicked.connect(self.save_table)
+        self.game_over_push.clicked.connect(self.click_end_period)
+
+    def retranslateUi(self):
+        _translate = QtCore.QCoreApplication.translate
+        self.label_2.setText(_translate("MainWindow", f"Добро пожаловать, Nouname!"))
+        self.is_sick_rb.setText(_translate("MainWindow", "ПОУВ"))
+        self.radioButton_2.setText(_translate("MainWindow", "НЕУВ"))
+
+    def update_statistics(self):
+        statistics = MANAGER_STUDENTS.get_statistics()
+        if statistics.get('man_hours') > 0:
+            self.statustic1.setText(
+                f'Чел.час = {str(statistics.get("man_hours"))} \t\t Посещ.Кач. = {str(round(statistics.get("quality_attendance") * 100, 2))}%')
+            self.statustic2.setText(
+                f'Посещ.Общ. = {str(round(statistics.get("total_attendance") * 100, 2))}% \t Прогул 1 студ. = {str(round(statistics.get("absences_by_student", 1)))}')
+        else:
+            self.statustic1.clear()
+            self.statustic2.clear()
+
+
+
+    def save_to_exel(self):
+        try:
+            path = MANAGER_STUDENTS.save_f6(os.path.join(DOCUMENTS_PATH,
+                                                         f'{"_".join(["П", str(MANAGER_STUDENTS.MONTHS[MANAGER_STUDENTS.period[0] - 1]), str(MANAGER_STUDENTS.period[1]), str(USER_MANAGER.user.username)])}.xlsx'))
+        except BaseException as f:
+            QtWidgets.QMessageBox.critical(self, 'Ошибка сохранения', 'Файл не был сохранен. Повторите попытку')
+        else:
+            QtWidgets.QMessageBox.information(self, 'Успешное сохранение',
+                                              f'Файл успешно сохранен в дириктории: {path}')
+
+
+
+    def save_table(self):
+        MANAGER_STUDENTS.save_students()
+
+    def set_size_font(self, table, is_posetiv=True):
+        if is_posetiv and table.mod_size < 100:
+            table.update_table_students(size=table.mod_size + 1)
+        elif table.mod_size > -12:
+            table.update_table_students(size=table.mod_size - 1)
+
+    def check_value(self, tablewidget):
+        if len(MANAGER_STUDENTS.students) != 0:
+            self.parent.group.insertTab(2, self.parent.students, 'Cтуденты')
+
+        item = tablewidget.currentItem()
+        if not item is None:
+            try:
+                if item.row() == 1 and 2 <= item.column() <= 32:
+                    if item.text() == '' or item.text() == ' ':
+                        if MANAGER_STUDENTS.days.get(item.column() - 1):
+                            MANAGER_STUDENTS.days[item.column() - 1] = 0
+                        item.setText('')
+                    elif item.text().isnumeric() and 0 <= int(item.text()) <= 8:
+                        MANAGER_STUDENTS.add_hours_by_day(item.column() - 1, int(item.text()))
+                    else:
+                        item.setText(str(MANAGER_STUDENTS.days.get(item.column() - 1, '')))
+                    item.setFont(QtGui.QFont('Calibri', 14 + tablewidget.mod_size))
+                    tablewidget.update_hours_day()
+
+                elif 32 >= item.column() >= 2 and len(MANAGER_STUDENTS.students) + 2 >= item.row() >= 2:
+                    if item.text() == '' or item.text() == ' ':
+                        if item.column() - 1 in MANAGER_STUDENTS.students[item.row() - 3].absence_days:
+                            del MANAGER_STUDENTS.students[item.row() - 3].absence_days[item.column() - 1]
+                        if item.column() - 1 in MANAGER_STUDENTS.students[item.row() - 3].sick_days:
+                            del MANAGER_STUDENTS.students[item.row() - 3].sick_days[item.column() - 1]
+                        item.setBackground(QtGui.QColor(255, 255, 255))
+
+                    elif item.text().isnumeric() and 0 < int(item.text()) <= 8:
+                        if self.is_sick_rb.isChecked():
+                            tablewidget.add_hours_in_table(item.row(), item.column(), int(item.text()), type_day='s')
+                        else:
+                            tablewidget.add_hours_in_table(item.row(), item.column(), int(item.text()), type_day='a')
+
+
+                    else:
+                        if MANAGER_STUDENTS.students[item.row() - 3].sick_days.get(item.column() - 1, ''):
+                            item.setText(str(
+                                MANAGER_STUDENTS.students[item.row() - 3].sick_days.get(item.column() - 1, '')))
+                        elif MANAGER_STUDENTS.students[item.row() - 3].absence_days.get(item.column() - 1, ''):
+                            item.setText(str(
+                                MANAGER_STUDENTS.students[item.row() - 3].absence_days.get(item.column() - 1, '')))
+                        else:
+                            item.setText('')
+                    tablewidget.update_statistics_student(item.row())
+
+                elif item.column() == 1:
+                    if item.row() == len(MANAGER_STUDENTS.students) + 3:
+                        try:
+                            MANAGER_STUDENTS.CLASS_STUDENT.chech_fio(item.text())
+                        except BaseException:
+                            item.setBackground(QtGui.QColor(255, 0, 0))
+                        else:
+                            if len(MANAGER_STUDENTS.students) < 30:
+                                MANAGER_STUDENTS.add_student(MANAGER_STUDENTS.CLASS_STUDENT(item.text()))
+                                for i in range(2, 32 + 1):
+                                    if not i - 1 in MANAGER_STUDENTS.days:
+                                        tablewidget.setItem(tablewidget.rowCount() - 2, i,
+                                                            QTableWidgetItem(""))
+                                        tablewidget.item(tablewidget.rowCount() - 2, i).setBackground(
+                                            QtGui.QColor(220, 220, 220))
+                                        tablewidget.item(tablewidget.rowCount() - 2, i).setFlags(
+                                            QtCore.Qt.ItemFlag.ItemIsEnabled)
+                            tablewidget.update_table_students()
+                            # self.tableWidget_3.update_table_students()
+                            self.parent.students.update_list_students()
+
+            except BaseException as f:
+                print(f)
+            self.update_statistics()
+
+
+
+    def click_end_period(self):
+        message = QtWidgets.QMessageBox.question(self, 'Завершение',
+                                                 'Вы точно хотите завершить этот месяц? \n После этого форма шесть будет сохранена, перенесена и находится в архиве.',
+                                                 QtWidgets.QMessageBox.StandardButton.No | QtWidgets.QMessageBox.StandardButton.Yes)
+        if message.Yes == message:
+            MANAGER_STUDENTS.save_students()
+            try:
+                MANAGER_STUDENTS.push_archive()
+            except BaseException as f:
+                print(f, 3743)
+            else:
+
+                MANAGER_STUDENTS.create_new_table()
+                self.update_statistics()
+                self.parent.marks.update_statistics_2()
+                self.tableWidget.update_table_students()
+                self.parent.marks.tableWidget_3.update_table_students()
+                self.parent.archive.init_archive()
+
+
+    def init_table_absence(self, only_show=False):
+        if hasattr(self, 'tableWidget'):
+            self.verticalLayout.removeWidget(self.tableWidget)
+
+        self.tableWidget = TableAbsence()
+        self.tableWidget.setStyleSheet("""QTableWidget {border: none;}""")
+        self.tableWidget.setObjectName("tableView")
+
+        self.verticalLayout.addWidget(self.tableWidget)
+        self.verticalLayout.addItem(
+            QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum))
+
+        self.set_size_negativ_font_push.clicked.connect(lambda: self.set_size_font(self.tableWidget, False))
+        self.set_size_posetiv_font_push.clicked.connect(lambda: self.set_size_font(self.tableWidget))
+        self.tableWidget.update_table_students()
+        self.update_statistics()
+        self.tableWidget.cellPressed.connect(self.cellPressed)
+
+        if not only_show:
+            self.tableWidget.cellChanged.connect(lambda: self.check_value(self.tableWidget))
+    def cellPressed(self, row, column):
+        if self.tableWidget.hasFocus():
+            print(1)
+            if 32 >= column >= 2 and len(
+                    MANAGER_STUDENTS.students) + 2 >= row >= 3 and column - 1 in MANAGER_STUDENTS.days:
+                try:
+                    if hasattr(self.tableWidget, 'old_item1'):
+                        self.tableWidget.item(self.tableWidget.old_item1[0], 0).setBackground(
+                            QtGui.QColor(255, 255, 255))
+                        self.tableWidget.item(2, self.tableWidget.old_item1[1]).setBackground(
+                            QtGui.QColor(255, 255, 255))
+                        self.tableWidget.old_item1 = (row, column)
+                        self.tableWidget.item(self.tableWidget.old_item1[0], 0)
+                    else:
+                        self.tableWidget.old_item1 = (row, column)
+                    self.tableWidget.item(row, 0).setBackground(QtGui.QColor(102, 102, 102))
+                    self.tableWidget.item(2, column).setBackground(QtGui.QColor(102, 102, 102))
+
+                except BaseException as f:
+                    print(repr(f))
+
+
+class MarksTab(QtWidgets.QWidget):
+    def __init__(self, parent):
+        super(MarksTab, self).__init__(parent=parent)
+        self.parent = parent
+        self.setObjectName("marks")
+        self.verticalLayout_25 = QtWidgets.QVBoxLayout(self)
         self.verticalLayout_25.setObjectName("verticalLayout_25")
         self.verticalLayout_24 = QtWidgets.QVBoxLayout()
         self.verticalLayout_24.setObjectName("verticalLayout_24")
-        self.frame_3 = QtWidgets.QFrame(self.marks)
+        self.frame_3 = QtWidgets.QFrame(self)
         self.frame_3.setMinimumSize(QtCore.QSize(0, 80))
         self.frame_3.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
         self.frame_3.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
@@ -564,42 +713,143 @@ class MainWindow(QtWidgets.QMainWindow):
         self.horizontalLayout_19 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_19.setContentsMargins(7, -1, -1, -1)
         self.horizontalLayout_19.setObjectName("horizontalLayout_19")
-        self.pushButton_9 = Push(self.frame_3, 40, 40, 5, tool_tip='Сохронить изменения', icon_path=os.path.join('media', 'buttons', 'save.svg'))
+        self.pushButton_9 = Push(self.frame_3, 40, 40, 5, tool_tip='Сохронить изменения',
+                                 icon_path=os.path.join('media', 'buttons', 'save.svg'))
         self.pushButton_9.setObjectName("pushButton_9")
 
         # ___________________________________________________________________
-        self.set_size_posetiv_font_push2 = Push(self.frame, 40, 40, 5, tool_tip='Увеличить размер текста', icon_path=os.path.join('media', 'posetive.svg'))
+        self.set_size_posetiv_font_push2 = Push(self.frame_3, 40, 40, 5, tool_tip='Увеличить размер текста',
+                                                icon_path=os.path.join('media', 'posetive.svg'))
         self.horizontalLayout_19.addWidget(self.set_size_posetiv_font_push2)
 
-        self.set_size_negativ_font_push2 = Push(self.frame, 40, 40, 5, tool_tip='Уменьшить размер текста', icon_path=os.path.join('media', 'negative.svg'))
+        self.set_size_negativ_font_push2 = Push(self.frame_3, 40, 40, 5, tool_tip='Уменьшить размер текста',
+                                                icon_path=os.path.join('media', 'negative.svg'))
         self.horizontalLayout_19.addWidget(self.set_size_negativ_font_push2)
 
         # ___________________________________________________________________
         self.horizontalLayout_19.addWidget(self.pushButton_9)
-        self.save_to_exel_marks_push = Push(self.frame, 55, 55, 5, tool_tip='Сохронить в EXEL', icon_path=os.path.join('media', 'save_exel.svg'))
+        self.save_to_exel_marks_push = Push(self.frame_3, 55, 55, 5, tool_tip='Сохронить в EXEL',
+                                            icon_path=os.path.join('media', 'save_exel.svg'))
         self.save_to_exel_marks_push.setObjectName("pushButton_10")
         self.horizontalLayout_19.addWidget(self.save_to_exel_marks_push)
         self.horizontalLayout_17.addLayout(self.horizontalLayout_19)
         self.verticalLayout_24.addWidget(self.frame_3)
         self.verticalLayout_25.addLayout(self.verticalLayout_24)
 
-        self.group.addTab(self.marks, "")
+        self.add_function()
+
+    def add_function(self):
+        self.pushButton_9.clicked.connect(self.save_table)
+        self.save_to_exel_marks_push.clicked.connect(self.save_to_exel_marks)
+
+    def update_statistics_2(self):
+        statistics = MANAGER_STUDENTS.get_statistics_marks()
+        if statistics.get('is_ready') == 1:
+            self.statustic3.setText(
+                f'Кол-во студ. им-х 2 = {statistics.get("heaving_2")!r} | Кол-во студ. им-х одну 3 = {statistics.get("heaving_one_3")!r} \t| Успеваемость общая = {str(round(statistics.get("total_academic_performance", 0) * 100, 2))}%')
+            self.statustic4.setText(
+                f'Кол-во студ. им-х 5 = {statistics.get("heaving_5")!r} | Кол-во студ. им-х 4 и 5 = {statistics.get("heaving_4_and_5")!r}\t| Успеваемость качественная = {round(statistics.get("quality_academic_performance", 0) * 100, 2)!r}%')
+        else:
+            self.statustic3.clear()
+            self.statustic4.clear()
+
+    def save_table(self):
+        MANAGER_STUDENTS.save_students()
+
+    def init_table_marks(self, only_show=False):
+        if hasattr(self, 'tableWidget_3'):
+            self.verticalLayout_25.removeWidget(self.tableWidget_3)
+
+        self.tableWidget_3 = TableMarks(only_show=only_show)
+        self.tableWidget_3.setObjectName("tableWidget_3")
+        self.verticalLayout_25.addWidget(self.tableWidget_3)
+        self.verticalLayout_25.addItem(
+            QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum))
+
+        self.set_size_negativ_font_push2.clicked.connect(lambda: self.set_size_font(self.tableWidget_3, False))
+        self.set_size_posetiv_font_push2.clicked.connect(lambda: self.set_size_font(self.tableWidget_3))
+        self.tableWidget_3.update_table_students()
+        self.tableWidget_3.cellPressed.connect(self.parent.cellPressed)
+        if not only_show:
+            self.tableWidget_3.cellChanged.connect(lambda: self.clicked_table_marks(self.tableWidget_3))
+
+    def clicked_table_marks(self, table_widget):
+        item = table_widget.currentItem()
+        if not item is None:
+            if item.column() == 1:
+                if item.row() == len(MANAGER_STUDENTS.students) + 3:
+                    try:
+                        MANAGER_STUDENTS.CLASS_STUDENT.chech_fio(item.text())
+                    except BaseException:
+                        print('ошибка')
+                    else:
+                        try:
+                            MANAGER_STUDENTS.add_student(MANAGER_STUDENTS.CLASS_STUDENT(item.text()))
+                        except BaseException as f:
+                            print(f)
+                        else:
+                            table_widget.update_table_students()
+                            # self.tableWidget.update_table_students()
+                            # self.students.update_list_students()
+            elif 32 >= item.column() >= 2 and len(MANAGER_STUDENTS.students) + 2 >= item.row() >= 3:
+                if item.text().isnumeric() and 5 >= int(item.text()) >= 2:
+                    table_widget.add_mark_table(item.row(), item.column(), item.text())
+                else:
+                    item.setText('')
+                    table_widget.del_mark_table(item.row(), item.column())
+
+            elif item.row() == 1 and item.column() >= 2:
+                if MANAGER_STUDENTS.couples.get(str(item.column() - 1)):
+                    row = MANAGER_STUDENTS.couples[str(item.column() - 1)]
+                    row[0] = item.text()
+                    MANAGER_STUDENTS.couples[str(item.column() - 1)] = row
+                else:
+                    MANAGER_STUDENTS.couples[str(item.column() - 1)] = [item.text(), '']
+            elif item.row() == 2 and item.column() >= 2:
+                if MANAGER_STUDENTS.couples.get(str(item.column() - 1)):
+                    row = MANAGER_STUDENTS.couples[str(item.column() - 1)]
+                    row[1] = item.text()
+                    MANAGER_STUDENTS.couples[str(item.column() - 1)] = row
+                else:
+                    MANAGER_STUDENTS.couples[str(item.column() - 1)] = ['', item.text()]
+        self.update_statistics_2()
+        table_widget.resizeColumnsToContents()
+        table_widget.resizeRowsToContents()
+
+    def set_size_font(self, table, is_posetiv=True):
+        if is_posetiv and table.mod_size < 100:
+            table.update_table_students(size=table.mod_size + 1)
+        elif table.mod_size > -12:
+            table.update_table_students(size=table.mod_size - 1)
+
+    def save_to_exel_marks(self):
+        try:
+            path = MANAGER_STUDENTS.save_f6_marks(os.path.join(DOCUMENTS_PATH,
+                                                               f'{"_".join(["О", str(MANAGER_STUDENTS.MONTHS[MANAGER_STUDENTS.period[0] - 1]), str(MANAGER_STUDENTS.period[1]), str(USER_MANAGER.user.username)])}.xlsx'))
+        except BaseException as f:
+            QtWidgets.QMessageBox.critical(self.parent, 'Ошибка сохранения', 'Файл не был сохранен. Повторите попытку')
+        else:
+            QtWidgets.QMessageBox.information(self.parent, 'Успешное сохранение',
+                                              f'Файл успешно сохранен в дириктории: {path}')
 
 
-        self.students = QtWidgets.QWidget()
-        self.students.setObjectName("students")
-        self.horizontalLayout_6 = QtWidgets.QHBoxLayout(self.students)
+class StudentsTab(QtWidgets.QWidget):
+    def __init__(self, parent):
+        super(StudentsTab, self).__init__(parent=parent)
+        self.parent = parent
+        self.setObjectName("students")
+        self.horizontalLayout_6 = QtWidgets.QHBoxLayout(self)
         self.horizontalLayout_6.setObjectName("horizontalLayout_6")
         self.verticalLayout_6 = QtWidgets.QVBoxLayout()
         self.verticalLayout_6.setContentsMargins(-1, -1, 0, -1)
         self.verticalLayout_6.setObjectName("verticalLayout_6")
-        self.label = QtWidgets.QLabel(self.students)
+        self.label = QtWidgets.QLabel(self)
         font = QtGui.QFont()
         font.setPointSize(15)
         self.label.setFont(font)
         self.label.setObjectName("label")
         self.verticalLayout_6.addWidget(self.label)
-        self.listWidget = QtWidgets.QListWidget(self.students)
+        self.listWidget = QtWidgets.QListWidget(self)
         self.listWidget.setObjectName("listWidget")
         self.listWidget.setStyleSheet('''#listWidget {margin: auto; border: none;} ''')
         self.verticalLayout_6.addWidget(self.listWidget)
@@ -608,13 +858,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.verticalLayout_4.setObjectName("verticalLayout_4")
         self.verticalLayout_5 = QtWidgets.QVBoxLayout()
         self.verticalLayout_5.setObjectName("verticalLayout_5")
-        self.fio_label = QtWidgets.QLabel(self.students)
+        self.fio_label = QtWidgets.QLabel(self)
         font = QtGui.QFont()
         font.setPointSize(15)
         self.fio_label.setFont(font)
         self.fio_label.setObjectName("fio_label")
         self.verticalLayout_5.addWidget(self.fio_label)
-        self.fio_edit = QtWidgets.QLineEdit(self.students)
+        self.fio_edit = QtWidgets.QLineEdit(self)
         self.fio_edit.setMinimumSize(QtCore.QSize(0, 30))
         self.fio_edit.setMaximumSize(QtCore.QSize(468, 16777215))
         self.fio_edit.setObjectName("fio_edit")
@@ -630,28 +880,85 @@ class MainWindow(QtWidgets.QMainWindow):
         self.verticalLayout_5.addItem(spacerItem1)
         self.horizontalLayout_5 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
-        self.del_push = QtWidgets.QPushButton(self.students)
+        self.del_push = QtWidgets.QPushButton(self)
         self.del_push.setObjectName("del_push")
         self.horizontalLayout_5.addWidget(self.del_push)
-        self.save_push = QtWidgets.QPushButton(self.students)
+        self.save_push = QtWidgets.QPushButton(self)
         self.save_push.setObjectName("save_push")
         self.horizontalLayout_5.addWidget(self.save_push)
         self.verticalLayout_5.addLayout(self.horizontalLayout_5)
         self.verticalLayout_4.addLayout(self.verticalLayout_5)
         self.horizontalLayout_6.addLayout(self.verticalLayout_4)
-        self.group.addTab(self.students, "")
 
-        self.archive = QtWidgets.QWidget()
-        self.archive.setObjectName("archive")
-        self.verticalLayout_11 = QtWidgets.QVBoxLayout(self.archive)
+        self.add_function()
+        self.retranslateUi()
+
+    def retranslateUi(self):
+        _translate = QtCore.QCoreApplication.translate
+        self.fio_label.setText(_translate("MainWindow", "ФИО"))
+        self.del_push.setText(_translate("MainWindow", "Удалить"))
+        self.save_push.setText(_translate("MainWindow", "Сохранить"))
+        self.label.setText(_translate("MainWindow", "Список студентов"))
+
+    def add_function(self):
+        self.save_push.clicked.connect(self.save_student)
+        self.del_push.clicked.connect(self.del_student)
+
+        self.listWidget.itemClicked.connect(lambda: self.click_list(self.listWidget))
+
+    def update_list_students(self):
+        self.listWidget.clear()
+        for indx, student in enumerate(MANAGER_STUDENTS.students):
+            self.listWidget.addItem(QtWidgets.QListWidgetItem(f'{str(indx + 1)}. {student.fio}'))
+
+    def save_student(self):
+        self.message_students.setText('')
+        try:
+            MANAGER_STUDENTS.CLASS_STUDENT.chech_fio(self.fio_edit.text())
+        except BaseException as f:
+            self.message_students.setText(str(f))
+        else:
+
+            MANAGER_STUDENTS.students[
+                self.listWidget.row(self.listWidget.currentItem())].fio = self.fio_edit.text()
+            self.update_list_students()
+            self.parent.F6.tableWidget.update_table_students()
+            self.parent.marks.tableWidget_3.update_table_students()
+
+    def del_student(self):
+        if self.listWidget.currentItem():
+            message_main = QtWidgets.QMessageBox().question(self, "Удаление студента",
+                                                            str(f'Вы точно хотите навсегда удалить студента {" ".join(self.listWidget.currentItem().text().split()[1:])}?'),
+                                                            QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
+            if message_main == message_main.Yes:
+                MANAGER_STUDENTS.remove_student_id(self.listWidget.row(self.listWidget.currentItem()))
+                self.listWidget.removeItemWidget(self.listWidget.currentItem())
+                self.update_list_students()
+                self.parent.F6.tableWidget_3.update_table_students()
+                self.parent.marks.tableWidget.update_table_students()
+
+        if len(MANAGER_STUDENTS.students) == 0:
+            self.parent.group.removeTab(self.parent.group.indexOf(self))
+        self.parent.F6.update_statistics()
+
+    def click_list(self, listwidget):
+        self.fio_edit.setText(' '.join(listwidget.currentItem().text().split()[1:]))
+
+
+class ArchiveTab(QtWidgets.QWidget):
+    def __init__(self, parent):
+        super(ArchiveTab, self).__init__(parent=parent)
+        self.parent = parent
+        self.setObjectName("archive")
+        self.verticalLayout_11 = QtWidgets.QVBoxLayout(self)
         self.verticalLayout_11.setObjectName("verticalLayout_11")
-        self.label_4 = QtWidgets.QLabel(self.archive)
+        self.label_4 = QtWidgets.QLabel(self)
         font = QtGui.QFont()
         font.setPointSize(12)
         self.label_4.setFont(font)
         self.label_4.setObjectName("label_4")
         self.verticalLayout_11.addWidget(self.label_4)
-        self.list_archive = QtWidgets.QListWidget(self.archive)
+        self.list_archive = QtWidgets.QListWidget(self)
         self.list_archive.setObjectName("list_archive")
         self.verticalLayout_11.addWidget(self.list_archive)
         self.horizontalLayout_9 = QtWidgets.QHBoxLayout()
@@ -660,20 +967,109 @@ class MainWindow(QtWidgets.QMainWindow):
         spacerItem3 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding,
                                             QtWidgets.QSizePolicy.Policy.Minimum)
         self.horizontalLayout_9.addItem(spacerItem3)
-        self.del_file_push = QtWidgets.QPushButton(self.archive)
+        self.del_file_push = QtWidgets.QPushButton(self)
         self.del_file_push.setObjectName("del_file_push")
         self.horizontalLayout_9.addWidget(self.del_file_push)
-        self.load_file_push = QtWidgets.QPushButton(self.archive)
+        self.load_file_push = QtWidgets.QPushButton(self)
         self.load_file_push.setObjectName("load_file_push")
         self.horizontalLayout_9.addWidget(self.load_file_push)
         self.verticalLayout_11.addLayout(self.horizontalLayout_9)
-        self.group.addTab(self.archive, "")
+        self.logout_archive_push = Push(self.parent.F6.frame, 40, 40, 5, tool_tip='Выйти из архива',
+                                        icon_path=os.path.join('media', 'undo.svg'))
+        self.logout_archive_push.hide()
+        self.logout_archive_push.setObjectName("logout_archive_push")
 
-        self.settings = QtWidgets.QWidget()
-        self.settings.setObjectName("settings")
-        self.verticalLayout_10 = QtWidgets.QVBoxLayout(self.settings)
+        self.parent.F6.horizontalLayout_2.addWidget(self.logout_archive_push)
+        self.add_function()
+        self.retranslateUi()
+
+    def retranslateUi(self):
+        _translate = QtCore.QCoreApplication.translate
+        self.label_4.setText(_translate("MainWindow", "Доступные файлы"))
+        self.del_file_push.setText(_translate("MainWindow", "Удалить"))
+        self.load_file_push.setText(_translate("MainWindow", "Активировать"))
+
+    def add_function(self):
+        self.del_file_push.clicked.connect(self.clicked_del_file_push)
+        self.load_file_push.clicked.connect(self.clicked_load_file_push)
+
+        self.logout_archive_push.clicked.connect(self.logout_archive)
+
+    def init_archive(self):
+        path, files = MANAGER_STUDENTS.init_archive()
+        self.list_archive.clear()
+        for i in files:
+            self.list_archive.addItem(QtWidgets.QListWidgetItem(i))
+        self.path_archive = path
+        self.files_archive = files
+
+    def clicked_load_file_push(self):
+        item = self.list_archive.currentItem()
+        if item:
+            try:
+                self.parent.init_students_manager(path=os.path.join('archive', item.text()), only_show=True)
+            except BaseException as f:
+                QtWidgets.QMessageBox.critical(self, 'Просмотр архивного файла',
+                                               f'При попытки  загрузки файла {item.text()} произошла ошибка. Попробуйте загрузить его заного. Если проблема не исчезнет, то скорее всего файл поврежден или удален.',
+                                               QtWidgets.QMessageBox.StandardButton.Ok)
+
+            else:
+                self.logout_archive_push.show()
+
+                self.parent.F6.save_table_push.hide()
+                self.parent.F6.game_over_push.hide()
+                self.parent.F6.radioButton_2.hide()
+                self.parent.marks.pushButton_9.hide()
+                self.parent.F6.is_sick_rb.hide()
+
+                self.parent.group.removeTab(self.parent.group.indexOf(self.parent.students))
+                self.parent.group.removeTab(self.parent.group.indexOf(self.parent.settings))
+
+                QtWidgets.QMessageBox.information(self, 'Просмотр архивного файла',
+                                                  'Файла успешно загружен. Вы можете перейти к просмотру.',
+                                                  QtWidgets.QMessageBox.StandardButton.Ok)
+
+    def clicked_del_file_push(self):
+        item = self.list_archive.currentItem()
+        if item:
+            self.del_file_archive(item.text())
+
+    def del_file_archive(self, file_name):
+        if file_name in self.files_archive:
+            message = QtWidgets.QMessageBox.question(self.parent, 'Удаление архивного файла',
+                                                     f'Вы точно хотите удалить файл: {file_name}? \n После этого он будет удален навсегда',
+                                                     QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
+            if message == message.Yes:
+                try:
+                    os.remove(os.path.join(self.path_archive, file_name))
+                except BaseException:
+                    pass
+                finally:
+                    self.init_archive()
+
+    def logout_archive(self):
+        self.parent.init_students_manager(path='students.json')
+        self.logout_archive_push.hide()
+
+        self.parent.F6.save_table_push.show()
+        self.parent.F6.game_over_push.show()
+        self.parent.marks.pushButton_9.show()
+        self.parent.F6.radioButton_2.show()
+        self.parent.F6.is_sick_rb.show()
+
+        self.parent.group.insertTab(2, self.parent.students, 'Cтуденты')
+        self.parent.group.insertTab(4, self.parent.settings, 'Настройки')
+
+
+class SettingsTab(QtWidgets.QWidget):
+    def __init__(self, parent):
+        super(SettingsTab, self).__init__(parent=parent)
+        self.parent = parent
+        QtWidgets.QWidget()
+        self.setObjectName("settings")
+        self.verticalLayout_10 = QtWidgets.QVBoxLayout(self)
         self.verticalLayout_10.setObjectName("verticalLayout_10")
-        self.scrollArea = QtWidgets.QScrollArea(self.settings)
+        self.scrollArea = QtWidgets.QScrollArea(self)
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
@@ -736,72 +1132,122 @@ class MainWindow(QtWidgets.QMainWindow):
         self.verticalLayout_9.addItem(spacerItem2)
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.verticalLayout_10.addWidget(self.scrollArea)
-        self.group.addTab(self.settings, "")
+
+        self.add_function()
+        self.retranslateUi()
+
+    def retranslateUi(self):
+        _translate = QtCore.QCoreApplication.translate
+        self.setings1_label.setText(_translate("MainWindow", "Рабочие/нерабочие дни"))
+        self.add_work_day_link_button.setText(_translate("MainWindow", "Добавить рабочий день"))
+        self.set_data_table_link_button.setText(_translate("MainWindow", "Изменить месяц и год"))
+        self.del_work_day_link_button.setText(_translate("MainWindow", "Удалить рабочий день"))
+        self.setings2_label.setText(_translate("MainWindow", "Пути сохранения"))
+        self.set_path_save_bd_link_button.setText(_translate("MainWindow", "Изменить путь сохранения базы данных"))
+        self.set_path_save_exel_link_button.setText(
+            _translate("MainWindow", "Изменить путь сохранения файлов exel"))
+
+    def add_function(self):
+        self.add_work_day_link_button.clicked.connect(self.add_work_day)
+        self.del_work_day_link_button.clicked.connect(self.del_work_day)
+        self.set_data_table_link_button.clicked.connect(self.set_data_table)
+
+    def add_work_day(self):
+        deal = SettingsWindows(self)
+        deal.show()
+        deal.exec()
+        if not (deal.result is None):
+            MANAGER_STUDENTS.on_day(deal.result)
+            self.parent.F6.tableWidget.update_table_students()
+            self.parent.F6.update_statistics()
+
+    def del_work_day(self):
+        deal = SettingsWindows(self)
+        deal.show()
+        deal.exec()
+        if not (deal.result is None):
+            MANAGER_STUDENTS.off_day(deal.result)
+            self.parent.F6.tableWidget.update_table_students()
+            self.parent.F6.update_statistics()
+
+    def set_data_table(self):
+        try:
+            s = SettingsData(self)
+            s.show()
+            s.exec()
+        except BaseException as f:
+            print(repr(f))
+        else:
+            self.parent.init_students_manager(period=tuple(map(lambda x: int(x), s.dateEdit.text().split('.'))))
 
 
-        self.profile = QtWidgets.QWidget()
-        self.profile.setObjectName("profile")
-        self.horizontalLayout_8 = QtWidgets.QHBoxLayout(self.profile)
+class ProfileTab(QtWidgets.QWidget):
+    def __init__(self, parent):
+        super(ProfileTab, self).__init__(parent=parent)
+        self.parent = parent
+        QtWidgets.QWidget()
+        self.setObjectName("profile")
+        self.horizontalLayout_8 = QtWidgets.QHBoxLayout(self)
         self.horizontalLayout_8.setObjectName("horizontalLayout_8")
         self.verticalLayout_8 = QtWidgets.QVBoxLayout()
         self.verticalLayout_8.setObjectName("verticalLayout_8")
-        self.accaunt_label = QtWidgets.QLabel(self.profile)
+        self.accaunt_label = QtWidgets.QLabel(self)
         font = QtGui.QFont()
         font.setPointSize(16)
         self.accaunt_label.setFont(font)
         self.accaunt_label.setObjectName("accaunt_label")
         self.verticalLayout_8.addWidget(self.accaunt_label)
-        self.username_label = QtWidgets.QLabel(self.profile)
+        self.username_label = QtWidgets.QLabel(self)
         font = QtGui.QFont()
         font.setPointSize(15)
         self.username_label.setFont(font)
         self.username_label.setObjectName("username_label")
         self.verticalLayout_8.addWidget(self.username_label)
-        self.username_edit = QtWidgets.QLineEdit(self.profile)
+        self.username_edit = QtWidgets.QLineEdit(self)
         self.username_edit.setMinimumSize(QtCore.QSize(0, 30))
         self.username_edit.setMaximumSize(QtCore.QSize(400, 16777215))
         self.username_edit.setObjectName("username_edit")
         self.verticalLayout_8.addWidget(self.username_edit)
-        self.fio_user_label = QtWidgets.QLabel(self.profile)
+        self.fio_user_label = QtWidgets.QLabel(self)
         font = QtGui.QFont()
         font.setPointSize(15)
         self.fio_user_label.setFont(font)
         self.fio_user_label.setObjectName("fio_user_label")
         self.verticalLayout_8.addWidget(self.fio_user_label)
-        self.fio_user_edit = QtWidgets.QLineEdit(self.profile)
+        self.fio_user_edit = QtWidgets.QLineEdit(self)
         self.fio_user_edit.setMinimumSize(QtCore.QSize(0, 30))
         self.fio_user_edit.setMaximumSize(QtCore.QSize(400, 16777215))
         self.fio_user_edit.setObjectName("fio_user_edit")
         self.verticalLayout_8.addWidget(self.fio_user_edit)
-        self.teamleader_label = QtWidgets.QLabel(self.profile)
+        self.teamleader_label = QtWidgets.QLabel(self)
         font = QtGui.QFont()
         font.setPointSize(15)
         self.teamleader_label.setFont(font)
         self.teamleader_label.setObjectName("teamleader_label")
         self.verticalLayout_8.addWidget(self.teamleader_label)
-        self.fio_teamleader_edit = QtWidgets.QLineEdit(self.profile)
+        self.fio_teamleader_edit = QtWidgets.QLineEdit(self)
         self.fio_teamleader_edit.setMinimumSize(QtCore.QSize(0, 30))
         self.fio_teamleader_edit.setMaximumSize(QtCore.QSize(400, 16777215))
         self.fio_teamleader_edit.setObjectName("fio_teamleader_edit")
         self.verticalLayout_8.addWidget(self.fio_teamleader_edit)
-        self.group_label = QtWidgets.QLabel(self.profile)
+        self.group_label = QtWidgets.QLabel(self)
         font = QtGui.QFont()
         font.setPointSize(15)
         self.group_label.setFont(font)
         self.group_label.setObjectName("group_label")
         self.verticalLayout_8.addWidget(self.group_label)
-        self.group_edit = QtWidgets.QLineEdit(self.profile)
+        self.group_edit = QtWidgets.QLineEdit(self)
         self.group_edit.setMinimumSize(QtCore.QSize(0, 30))
         self.group_edit.setMaximumSize(QtCore.QSize(400, 16777215))
         self.group_edit.setObjectName("group_edit")
         self.verticalLayout_8.addWidget(self.group_edit)
-        self.specialization_label = QtWidgets.QLabel(self.profile)
+        self.specialization_label = QtWidgets.QLabel(self)
         font = QtGui.QFont()
         font.setPointSize(15)
         self.specialization_label.setFont(font)
         self.specialization_label.setObjectName("specialization_label")
         self.verticalLayout_8.addWidget(self.specialization_label)
-        self.specialization_edit = QtWidgets.QLineEdit(self.profile)
+        self.specialization_edit = QtWidgets.QLineEdit(self)
         self.specialization_edit.setMinimumSize(QtCore.QSize(0, 30))
         self.specialization_edit.setMaximumSize(QtCore.QSize(400, 16777215))
         self.specialization_edit.setObjectName("specialization_edit")
@@ -816,16 +1262,20 @@ class MainWindow(QtWidgets.QMainWindow):
         self.verticalLayout_8.addItem(spacerItem2)
         self.horizontalLayout_7 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_7.setObjectName("horizontalLayout_7")
-        self.save_user_push = Push(self.profile, 35, 35, 5, tool_tip='Сохронить изменения', icon_path=os.path.join('media', 'buttons', 'save.svg'))
+        self.save_user_push = Push(self, 35, 35, 5, tool_tip='Сохронить изменения',
+                                   icon_path=os.path.join('media', 'buttons', 'save.svg'))
         self.save_user_push.setObjectName("save_user_push")
         self.horizontalLayout_7.addWidget(self.save_user_push)
-        self.set_password_push = Push(self.profile, 35, 35, 5, tool_tip='Изменить пароль', icon_path=os.path.join('media', 'buttons', 'set_password.svg'))
+        self.set_password_push = Push(self, 35, 35, 5, tool_tip='Изменить пароль',
+                                      icon_path=os.path.join('media', 'buttons', 'set_password.svg'))
         self.set_password_push.setObjectName("set_password_push")
         self.horizontalLayout_7.addWidget(self.set_password_push)
-        self.del_user_push = Push(self.profile, 35, 35, 5, tool_tip='Удалить пользователя', icon_path=os.path.join('media', 'buttons', 'del_user.svg'))
+        self.del_user_push = Push(self, 35, 35, 5, tool_tip='Удалить пользователя',
+                                  icon_path=os.path.join('media', 'buttons', 'del_user.svg'))
         self.del_user_push.setObjectName("del_user_push")
         self.horizontalLayout_7.addWidget(self.del_user_push)
-        self.logout_push = Push(self.profile, 35, 35, 5, tool_tip='Выйти из аккаунта', icon_path=os.path.join('media', 'buttons', 'logout.svg'))
+        self.logout_push = Push(self, 35, 35, 5, tool_tip='Выйти из аккаунта',
+                                icon_path=os.path.join('media', 'buttons', 'logout.svg'))
         self.logout_push.setObjectName("logout_push")
         self.horizontalLayout_7.addWidget(self.logout_push)
         self.verticalLayout_8.addLayout(self.horizontalLayout_7)
@@ -834,7 +1284,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.verticalLayout_7.setObjectName("verticalLayout_7")
         self.verticalLayout_12 = QtWidgets.QVBoxLayout()
         self.verticalLayout_12.setObjectName("verticalLayout_12")
-        self.photo = QtWidgets.QLabel(self.profile)
+        self.photo = QtWidgets.QLabel(self)
         photo = QtGui.QPixmap(os.path.join('media', 'profile', f'{str(random.randint(1, 9))}.svg'))
         photo = photo.scaled(200, 200)
         self.photo.setPixmap(photo)
@@ -850,141 +1300,27 @@ class MainWindow(QtWidgets.QMainWindow):
         self.verticalLayout_7.addLayout(self.verticalLayout_13)
         self.horizontalLayout_8.addLayout(self.verticalLayout_7)
 
-
-        self.profile.setObjectName("profile")
-        self.group.addTab(self.profile, "")
-        self.verticalLayout_2.addWidget(self.group)
-        self.setCentralWidget(self.centralwidget)
-        self.action_2 = QtGui.QAction(self)
-        self.action_2.setObjectName("action_2")
-        self.verticalLayout_2.addWidget(self.group)
-        self.setCentralWidget(self.centralwidget)
-        self.action_2 = QtGui.QAction(self)
-        self.action_2.setObjectName("action_2")
-        self.retranslateUi()
-        self.group.setCurrentIndex(0)
-        QtCore.QMetaObject.connectSlotsByName(self)
+        self.setObjectName("profile")
 
         self.add_function()
+        self.retranslateUi()
+
+
+
+    def add_function(self):
+        self.save_user_push.clicked.connect(self.save_user)
+        self.set_password_push.clicked.connect(self.set_password)
+        self.del_user_push.clicked.connect(self.del_user)
+        self.logout_push.clicked.connect(self.logout)
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
-        self.setWindowTitle(_translate("MainWindow", "F6"))
-        self.label_2.setText(_translate("MainWindow", f"Добро пожаловать, Nouname!"))
-        self.is_sick_rb.setText(_translate("MainWindow", "ПОУВ"))
-        self.radioButton_2.setText(_translate("MainWindow", "НЕУВ"))
-        self.group.setTabText(self.group.indexOf(self.F6), _translate("MainWindow", "Прогулы"))
-        self.group.setTabText(self.group.indexOf(self.marks), _translate("MainWindow", "Оценки"))
-        self.fio_label.setText(_translate("MainWindow", "ФИО"))
-        self.del_push.setText(_translate("MainWindow", "Удалить"))
-        self.save_push.setText(_translate("MainWindow", "Сохранить"))
-        self.group.setTabText(self.group.indexOf(self.students), _translate("MainWindow", "Студенты"))
-        self.label.setText(_translate("MainWindow", "Список студентов"))
-        self.setings1_label.setText(_translate("MainWindow", "Рабочие/нерабочие дни"))
-        self.add_work_day_link_button.setText(_translate("MainWindow", "Добавить рабочий день"))
-        self.set_data_table_link_button.setText(_translate("MainWindow", "Изменить месяц и год"))
-        self.del_work_day_link_button.setText(_translate("MainWindow", "Удалить рабочий день"))
-        self.setings2_label.setText(_translate("MainWindow", "Пути сохранения"))
-        self.set_path_save_bd_link_button.setText(_translate("MainWindow", "Изменить путь сохранения базы данных"))
-        self.set_path_save_exel_link_button.setText(_translate("MainWindow", "Изменить путь сохранения файлов exel"))
-        self.group.setTabText(self.group.indexOf(self.settings), _translate("MainWindow", "Настройки"))
         self.accaunt_label.setText(_translate("MainWindow", "Аккаунт"))
         self.username_label.setText(_translate("MainWindow", "Имя пользователя"))
         self.fio_user_label.setText(_translate("MainWindow", "ФИО Своё"))
         self.teamleader_label.setText(_translate("MainWindow", "ФИО Кл.руководителя"))
         self.group_label.setText(_translate('MainWindow', "Группа"))
         self.specialization_label.setText(_translate('MainWindow', "Специализация"))
-        self.group.setTabText(self.group.indexOf(self.profile), _translate("MainWindow", "Профиль"))
-        self.action_2.setText(_translate("MainWindow", "ншнге"))
-        self.label_4.setText(_translate("MainWindow", "Доступные файлы"))
-        self.del_file_push.setText(_translate("MainWindow", "Удалить"))
-        self.load_file_push.setText(_translate("MainWindow", "Активировать"))
-        self.group.setTabText(self.group.indexOf(self.archive), _translate("MainWindow", "Архив"))
-
-    def add_function(self):
-        self.save_to_exel_push.clicked.connect(self.save_to_exel)
-        self.listWidget.itemClicked.connect(lambda: self.click_list(self.listWidget))
-        self.save_push.clicked.connect(self.save_student)
-        self.del_push.clicked.connect(self.del_student)
-        self.save_user_push.clicked.connect(self.save_user)
-        self.save_table_push.clicked.connect(self.save_table)
-        self.pushButton_9.clicked.connect(self.save_table)
-        self.del_user_push.clicked.connect(self.del_user)
-        self.logout_push.clicked.connect(self.logout)
-        self.game_over_push.clicked.connect(self.click_end_period)
-        self.add_work_day_link_button.clicked.connect(self.add_work_day)
-        self.del_work_day_link_button.clicked.connect(self.del_work_day)
-        self.set_data_table_link_button.clicked.connect(self.set_data_table)
-        self.del_file_push.clicked.connect(self.clicked_del_file_push)
-        self.load_file_push.clicked.connect(self.clicked_load_file_push)
-        self.logout_archive_push.clicked.connect(self.logout_archive)
-        self.set_password_push.clicked.connect(self.set_password)
-
-    def init_students_manager(self, path=None, only_show=False, period=None):
-        global MANAGER_STUDENTS
-        if not [0, 0] in USER_MANAGER.user.parametrs.get('achievements', []):
-            USER_MANAGER.user.add_achievement([0, 0])
-        if not period:
-            try:
-                MANAGER_STUDENTS = ManagerStudents.load_manager_students(USER_MANAGER.user, file_name=path)
-            except BaseException as message:
-                if 'archive' in path:
-                    raise FileNotFoundError
-                print(120, message)
-                MANAGER_STUDENTS = ManagerStudents((datetime.date.today().month, datetime.date.today().year),
-                                                        USER_MANAGER.user)
-        else:
-            students = []
-            if not MANAGER_STUDENTS is None:
-                students = MANAGER_STUDENTS.students
-                for i in range(len(students)):
-                    students[i].sick_days.clear()
-                    students[i].absence_days.clear()
-                    students[i].marks.clear()
-            MANAGER_STUDENTS = ManagerStudents(period,
-                                               USER_MANAGER.user, students=students)
-        if len(MANAGER_STUDENTS.students) == 0:
-            self.group.removeTab(self.group.indexOf(self.students))
-        self.label_2.setText(f"Добро пожаловать, {USER_MANAGER.user.username}!")
-        if hasattr(self, 'tableWidget'):
-            self.verticalLayout.removeWidget(self.tableWidget)
-        if hasattr(self, 'tableWidget_3'):
-            self.verticalLayout_25.removeWidget(self.tableWidget_3)
-
-        self.tableWidget = TableAbsence(MANAGER_STUDENTS, only_show=only_show)
-        self.tableWidget.setStyleSheet("""QTableWidget {border: none;}""")
-        self.tableWidget.setObjectName("tableView")
-
-        self.verticalLayout.addWidget(self.tableWidget)
-        self.verticalLayout.addItem(
-            QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum))
-        self.tableWidget_3 = TableMarks(MANAGER_STUDENTS)
-        self.tableWidget_3.setObjectName("tableWidget_3")
-        self.verticalLayout_25.addWidget(self.tableWidget_3)
-
-
-
-        self.set_size_negativ_font_push.clicked.connect(lambda: self.set_size_font(self.tableWidget, False))
-        self.set_size_posetiv_font_push.clicked.connect(lambda: self.set_size_font(self.tableWidget))
-
-        self.set_size_negativ_font_push2.clicked.connect(lambda: self.set_size_font(self.tableWidget_3, False))
-        self.set_size_posetiv_font_push2.clicked.connect(lambda: self.set_size_font(self.tableWidget_3))
-
-        self.init_archive()
-
-        self.update_list_students()
-
-        self.tableWidget.update_table_students()
-        self.tableWidget_3.update_table_students()
-        if not only_show:
-            self.tableWidget_3.cellChanged.connect(lambda: self.clicked_table_marks(self.tableWidget_3))
-            self.tableWidget.cellChanged.connect(lambda: self.check_value(self.tableWidget))
-        self.tableWidget.cellPressed.connect(self.cellPressed)
-        self.tableWidget_3.cellPressed.connect(self.cellPressed)
-        self.update_user_info()
-        self.update_statistics()
-
-        self.init_atchivments()
 
     def init_atchivments(self):
         ACHIEVEMENT = {
@@ -1015,7 +1351,6 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             achievements = USER_MANAGER.user.parametrs.get('achievements')
 
-
         for i in range(4):
             self.verticalLayout_14 = QtWidgets.QHBoxLayout()
             for j in range(5):
@@ -1029,67 +1364,6 @@ class MainWindow(QtWidgets.QMainWindow):
                     qlable.setStyleSheet('background: black;')
                 self.verticalLayout_14.addWidget(qlable)
             self.verticalLayout_13.addLayout(self.verticalLayout_14)
-
-    def cellPressed(self, row, column):
-        if self.tableWidget.hasFocus():
-            print(1)
-            if 32 >= column >= 2 and len(MANAGER_STUDENTS.students) + 2 >= row >= 3 and column-1 in MANAGER_STUDENTS.days:
-                try:
-                    if hasattr(self.tableWidget, 'old_item1'):
-                        self.tableWidget.item(self.tableWidget.old_item1[0], 0).setBackground(QtGui.QColor(255, 255, 255))
-                        self.tableWidget.item(2, self.tableWidget.old_item1[1]).setBackground(QtGui.QColor(255, 255, 255))
-                        self.tableWidget.old_item1 = (row, column)
-                        self.tableWidget.item(self.tableWidget.old_item1[0], 0)
-                    else:
-                        self.tableWidget.old_item1 = (row, column)
-                    self.tableWidget.item(row, 0).setBackground(QtGui.QColor(102, 102, 102))
-                    self.tableWidget.item(2, column).setBackground(QtGui.QColor(102, 102, 102))
-
-                except BaseException as f:
-                    print(repr(f))
-        elif self.tableWidget_3.hasFocus():
-            if column >= 2 and len(MANAGER_STUDENTS.students) + 2 >= row >= 3:
-                if hasattr(self.tableWidget_3, 'old_item2'):
-                    self.tableWidget_3.item(self.tableWidget_3.old_item2[0], 0).setBackground(QtGui.QColor(255, 255, 255))
-                    self.tableWidget_3.item(2, self.tableWidget_3.old_item2[1]).setBackground(QtGui.QColor(255, 255, 255))
-                    self.tableWidget_3.old_item2 = (row, column)
-                    self.tableWidget_3.item(self.tableWidget_3.old_item2[0], 0)
-                else:
-                    self.tableWidget_3.old_item2 = (row, column)
-                self.tableWidget_3.item(row, 0).setBackground(QtGui.QColor(102, 102, 102))
-                self.tableWidget_3.item(2, column).setBackground(QtGui.QColor(102, 102, 102))
-
-
-
-    def update_user_info(self):
-        self.username_edit.setText(USER_MANAGER.user.username)
-        self.fio_teamleader_edit.setText(USER_MANAGER.user.parametrs.get('teamleader', ''))
-        self.fio_user_edit.setText(USER_MANAGER.user.parametrs.get('offical_name', ''))
-        self.group_edit.setText(USER_MANAGER.user.parametrs.get('group', ''))
-        self.specialization_edit.setText(USER_MANAGER.user.parametrs.get('specialization', ''))
-
-    def update_statistics(self):
-        statistics = MANAGER_STUDENTS.get_statistics()
-        if statistics.get('man_hours') > 0:
-            self.statustic1.setText(f'Чел.час = {str(statistics.get("man_hours"))} \t\t Посещ.Кач. = {str(round(statistics.get("quality_attendance")*100, 2))}%')
-            self.statustic2.setText(f'Посещ.Общ. = {str(round(statistics.get("total_attendance")*100, 2))}% \t Прогул 1 студ. = {str(round(statistics.get("absences_by_student", 1)))}')
-        else:
-            self.statustic1.clear()
-            self.statustic2.clear()
-
-    def update_statistics_2(self):
-        statistics = MANAGER_STUDENTS.get_statistics_marks()
-        if statistics.get('is_ready') == 1:
-            self.statustic3.setText(f'Кол-во студ. им-х 2 = {statistics.get("heaving_2")!r} | Кол-во студ. им-х одну 3 = {statistics.get("heaving_one_3")!r} \t| Успеваемость общая = {str(round(statistics.get("total_academic_performance", 0)*100, 2))}%')
-            self.statustic4.setText(f'Кол-во студ. им-х 5 = {statistics.get("heaving_5")!r} | Кол-во студ. им-х 4 и 5 = {statistics.get("heaving_4_and_5")!r}\t| Успеваемость качественная = {round(statistics.get("quality_academic_performance", 0)*100, 2)!r}%')
-        else:
-            self.statustic3.clear()
-            self.statustic4.clear()
-
-    def update_list_students(self):
-        self.listWidget.clear()
-        for indx, student in enumerate(MANAGER_STUDENTS.students):
-            self.listWidget.addItem(QtWidgets.QListWidgetItem(f'{str(indx + 1)}. {student.fio}'))
 
     def save_user(self):
         try:
@@ -1111,363 +1385,209 @@ class MainWindow(QtWidgets.QMainWindow):
             self.message_profile.setText('')
             USER_MANAGER.user.save_user()
 
-    def save_to_exel(self):
-        try:
-            path = MANAGER_STUDENTS.save_f6(os.path.join(DOCUMENTS_PATH, f'{"_".join(["П", str(MANAGER_STUDENTS.MONTHS[MANAGER_STUDENTS.period[0]-1]), str(MANAGER_STUDENTS.period[1]), str(USER_MANAGER.user.username)])}.xlsx'))
-        except BaseException as f:
-            QtWidgets.QMessageBox.critical(self, 'Ошибка сохранения', 'Файл не был сохранен. Повторите попытку')
-        else:
-            QtWidgets.QMessageBox.information(self, 'Успешное сохранение', f'Файл успешно сохранен в дириктории: {path}')
-
-    def save_to_exel_marks(self):
-        try:
-            path = MANAGER_STUDENTS.save_f6_marks(os.path.join(DOCUMENTS_PATH, f'{"_".join(["О", str(MANAGER_STUDENTS.MONTHS[MANAGER_STUDENTS.period[0]-1]), str(MANAGER_STUDENTS.period[1]), str(USER_MANAGER.user.username)])}.xlsx'))
-        except BaseException as f:
-            QtWidgets.QMessageBox.critical(self, 'Ошибка сохранения', 'Файл не был сохранен. Повторите попытку')
-        else:
-            QtWidgets.QMessageBox.information(self, 'Успешное сохранение', f'Файл успешно сохранен в дириктории: {path}')
-
-    def save_table(self):
-        MANAGER_STUDENTS.save_students()
-
-
-    def save_student(self):
-        self.message_students.setText('')
-        try:
-            MANAGER_STUDENTS.CLASS_STUDENT.chech_fio(self.fio_edit.text())
-        except BaseException as f:
-            self.message_students.setText(str(f))
-        else:
-
-            MANAGER_STUDENTS.students[
-                self.listWidget.row(self.listWidget.currentItem())].fio = self.fio_edit.text()
-            self.update_list_students()
-            self.tableWidget.update_table_students()
-
-    def set_size_font(self, table, is_posetiv=True):
-        if is_posetiv and table.mod_size < 100:
-            table.update_table_students(size=table.mod_size + 1)
-        elif table.mod_size > -12:
-            table.update_table_students(size=table.mod_size - 1)
-
-    def set_password(self):
-        window_password = WindowSetPassword(self)
-        window_password.show()
-
-
-
-
-    def click_list(self, listwidget):
-        self.fio_edit.setText(' '.join(listwidget.currentItem().text().split()[1:]))
-
-    def del_student(self):
-        if self.listWidget.currentItem():
-            message_main = QtWidgets.QMessageBox().question(self, "Удаление студента",
-                                                            str(f'Вы точно хотите навсегда удалить студента {" ".join(self.listWidget.currentItem().text().split()[1:])}?'),
-                                                            QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
-            if message_main == message_main.Yes:
-                MANAGER_STUDENTS.remove_student_id(self.listWidget.row(self.listWidget.currentItem()))
-                self.listWidget.removeItemWidget(self.listWidget.currentItem())
-                self.update_list_students()
-                self.tableWidget_3.students = MANAGER_STUDENTS.students
-                self.tableWidget.students = MANAGER_STUDENTS.students
-                self.tableWidget_3.update_table_students()
-                self.tableWidget.update_table_students()
-
-        if len(MANAGER_STUDENTS.students) == 0:
-            self.group.removeTab(self.group.indexOf(self.students))
-        self.update_statistics()
-
     def del_user(self):
-        message = QtWidgets.QMessageBox.question(self, 'Удаление пользователя', "Вы точно хотите удалить свой аккаунт?",
+        message = QtWidgets.QMessageBox.question(self.parent, 'Удаление пользователя',
+                                                 "Вы точно хотите удалить свой аккаунт?",
                                                  QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
         if message == message.Yes:
             USER_MANAGER.del_user()
-            self.status = 2
-            self.close()
+            self.parent.status = 2
+            self.parent.close()
 
     def logout(self):
         USER_MANAGER.user = None
-        self.status = 4
-        self.close()
+        self.parent.status = 4
+        self.parent.close()
 
-    def check_value(self, tablewidget):
-        if len(MANAGER_STUDENTS.students) != 0:
-            self.group.insertTab(2, self.students, 'Cтуденты')
+    def set_password(self):
+        window_password = WindowSetPassword(self.parent)
+        window_password.show()
 
-        item = tablewidget.currentItem()
-        if not item is None:
+    def update_user_info(self):
+        if not USER_MANAGER.user is None:
+            self.username_edit.setText(USER_MANAGER.user.username)
+            self.fio_teamleader_edit.setText(USER_MANAGER.user.parametrs.get('teamleader', ''))
+            self.fio_user_edit.setText(USER_MANAGER.user.parametrs.get('offical_name', ''))
+            self.group_edit.setText(USER_MANAGER.user.parametrs.get('group', ''))
+            self.specialization_edit.setText(USER_MANAGER.user.parametrs.get('specialization', ''))
+
+
+class MainWindow(QtWidgets.QMainWindow):
+    def __init__(self):
+        self.status = 0
+        super().__init__()
+        self.setStyleSheet(
+            """
+            #game_over_push, #save_to_exel_push, #save_table_push {border: none;}
+            #QButton {margin: auto;}
+            QTableWidget {margin-left: auto; margin-right: auto;}
+            QListWidget {margin-left: auto; margin-top: 20%; margin-right: auto; border: none;}
+            #profile QPushButton {background-color: rgba(249, 248, 244, 0);}
+            QScrollArea {border: none}
+
+            """)
+        self.setWindowIcon(QtGui.QIcon('media\\logo.svg'))
+        self.setObjectName("MainWindow")
+        self.resize(1024, 768)
+        self.setMinimumSize(800, 450)
+        self.centralwidget = QtWidgets.QWidget(self)
+        self.centralwidget.setObjectName("centralwidget")
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.centralwidget)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.group = QtWidgets.QTabWidget(self.centralwidget)
+        self.group.setTabPosition(QtWidgets.QTabWidget.TabPosition.North)
+        self.group.setTabShape(QtWidgets.QTabWidget.TabShape.Rounded)
+        self.group.setDocumentMode(False)
+        self.group.setTabsClosable(False)
+        self.group.setMovable(False)
+        self.group.setTabBarAutoHide(False)
+        self.group.setObjectName("group")
+
+
+        self.F6 = AbsenceTab(self)
+        self.group.addTab(self.F6, "")
+
+        self.marks = MarksTab(self)
+        self.group.addTab(self.marks, "")
+
+        self.students = StudentsTab(self)
+        self.group.addTab(self.students, "")
+
+        self.archive = ArchiveTab(self)
+        self.group.addTab(self.archive, "")
+
+        self.settings = SettingsTab(self)
+        self.group.addTab(self.settings, "")
+
+        self.profile = ProfileTab(self)
+        self.group.addTab(self.profile, "")
+
+        self.verticalLayout_2.addWidget(self.group)
+        self.setCentralWidget(self.centralwidget)
+        self.action_2 = QtGui.QAction(self)
+        self.action_2.setObjectName("action_2")
+        self.verticalLayout_2.addWidget(self.group)
+        self.setCentralWidget(self.centralwidget)
+        self.action_2 = QtGui.QAction(self)
+        self.action_2.setObjectName("action_2")
+        self.retranslateUi()
+        self.group.setCurrentIndex(0)
+        QtCore.QMetaObject.connectSlotsByName(self)
+
+        self.add_function()
+
+    def retranslateUi(self):
+        _translate = QtCore.QCoreApplication.translate
+
+        self.group.setTabText(self.group.indexOf(self.marks), _translate("MainWindow", "Оценки"))
+        self.setWindowTitle(_translate("MainWindow", "F6"))
+        self.group.setTabText(self.group.indexOf(self.F6), _translate("MainWindow", "Прогулы"))
+        self.group.setTabText(self.group.indexOf(self.students), _translate("MainWindow", "Студенты"))
+        self.group.setTabText(self.group.indexOf(self.settings), _translate("MainWindow", "Настройки"))
+        self.group.setTabText(self.group.indexOf(self.profile), _translate("MainWindow", "Профиль"))
+        self.action_2.setText(_translate("MainWindow", "ншнге"))
+        self.group.setTabText(self.group.indexOf(self.archive), _translate("MainWindow", "Архив"))
+
+
+    def add_function(self):
+        pass
+
+    def init_students_manager(self, path=None, only_show=False, period=None):
+
+        global MANAGER_STUDENTS
+        if not [0, 0] in USER_MANAGER.user.parametrs.get('achievements', []):
+            USER_MANAGER.user.add_achievement([0, 0])
+        if not period:
             try:
-                if item.row() == 1 and 2 <= item.column() <= 32:
-                    if item.text() == '' or item.text() == ' ':
-                        if MANAGER_STUDENTS.days.get(item.column() - 1):
-                            MANAGER_STUDENTS.days[item.column() - 1] = 0
-                        item.setText('')
-                    elif item.text().isnumeric() and 0 <= int(item.text()) <= 8:
-                        MANAGER_STUDENTS.add_hours_by_day(item.column() - 1, int(item.text()))
-                    else:
-                        item.setText(str(MANAGER_STUDENTS.days.get(item.column() - 1, '')))
-                    item.setFont(QtGui.QFont('Calibri', 14+tablewidget.mod_size))
-                    tablewidget.update_hours_day()
-
-                elif 32 >= item.column() >= 2 and len(MANAGER_STUDENTS.students) + 2 >= item.row() >= 2:
-                    if item.text() == '' or item.text() == ' ':
-                        if item.column() - 1 in MANAGER_STUDENTS.students[item.row() - 3].absence_days:
-                            del MANAGER_STUDENTS.students[item.row() - 3].absence_days[item.column() - 1]
-                        if item.column() - 1 in MANAGER_STUDENTS.students[item.row() - 3].sick_days:
-                            del MANAGER_STUDENTS.students[item.row() - 3].sick_days[item.column() - 1]
-                        item.setBackground(QtGui.QColor(255, 255, 255))
-
-                    elif item.text().isnumeric() and 0 < int(item.text()) <= 8:
-                        if self.is_sick_rb.isChecked():
-                            if item.column() - 1 in MANAGER_STUDENTS.students[item.row() - 3].absence_days:
-                                del MANAGER_STUDENTS.students[item.row() - 3].absence_days[item.column() - 1]
-                            MANAGER_STUDENTS.add_day(
-                                MANAGER_STUDENTS.students[item.row() - 3],
-                                item.column() - 1,
-                                int(item.text()),
-                                type_day='S',
-                            )
-                            tablewidget.add_hours_in_table(item.row(), item.column(), item.text(), type_day='s')
-                        else:
-                            if item.column() - 1 in MANAGER_STUDENTS.students[item.row() - 3].sick_days:
-                                del MANAGER_STUDENTS.students[item.row() - 3].sick_days[item.column() - 1]
-                            MANAGER_STUDENTS.add_day(
-                                MANAGER_STUDENTS.students[item.row() - 3],
-                                item.column() - 1,
-                                int(item.text()),
-                                type_day='A',
-                            )
-
-                            tablewidget.add_hours_in_table(item.row(), item.column(), item.text(), type_day='a')
-
-
-                    else:
-                        if MANAGER_STUDENTS.students[item.row() - 3].sick_days.get(item.column() - 1, ''):
-                            item.setText(str(
-                                MANAGER_STUDENTS.students[item.row() - 3].sick_days.get(item.column() - 1, '')))
-                        elif MANAGER_STUDENTS.students[item.row() - 3].absence_days.get(item.column() - 1, ''):
-                            item.setText(str(
-                                MANAGER_STUDENTS.students[item.row() - 3].absence_days.get(item.column() - 1, '')))
-                        else:
-                            item.setText('')
-                    tablewidget.update_statistics_student(item.row())
-
-                elif item.column() == 1:
-                    if item.row() == len(MANAGER_STUDENTS.students) + 3:
-                        try:
-                            MANAGER_STUDENTS.CLASS_STUDENT.chech_fio(item.text())
-                        except BaseException:
-                            item.setBackground(QtGui.QColor(255, 0, 0))
-                        else:
-                            if len(MANAGER_STUDENTS.students) < 30:
-                                MANAGER_STUDENTS.add_student(MANAGER_STUDENTS.CLASS_STUDENT(item.text()))
-                            # tablewidget.setRowCount(tablewidget.rowCount() + 1)
-                            # tablewidget.manager = MANAGER_STUDENTS
-                            # self.tableWidget_3.manager = MANAGER_STUDENTS
-
-                                for i in range(2, 32 + 1):
-                                    if not i - 1 in MANAGER_STUDENTS.days:
-                                        tablewidget.setItem(tablewidget.rowCount() - 2, i,
-                                                                 QTableWidgetItem(""))
-                                        tablewidget.item(tablewidget.rowCount() - 2, i).setBackground(
-                                            QtGui.QColor(220, 220, 220))
-                                        tablewidget.item(tablewidget.rowCount() - 2, i).setFlags(
-                                            QtCore.Qt.ItemFlag.ItemIsEnabled)
-
-
-
-                            tablewidget.update_table_students()
-                            self.tableWidget_3.update_table_students()
-                            self.update_list_students()
-
-            except BaseException as f:
-                print(f)
-            self.update_statistics()
-
-    def clicked_table_marks(self, table_widget):
-        item = table_widget.currentItem()
-        if not item is None:
-            if item.column() == 1:
-                if item.row() == len(MANAGER_STUDENTS.students) + 3:
-                    try:
-                        MANAGER_STUDENTS.CLASS_STUDENT.chech_fio(item.text())
-                    except BaseException:
-                        print('ошибка')
-                    else:
-                        try:
-                            MANAGER_STUDENTS.add_student(MANAGER_STUDENTS.CLASS_STUDENT(item.text()))
-                            table_widget.setRowCount(table_widget.rowCount() + 1)
-                            table_widget.manager = MANAGER_STUDENTS
-                            self.tableWidget.manager = MANAGER_STUDENTS
-
-                        except BaseException as f:
-                            print(f)
-                        else:
-                            table_widget.update_table_students()
-                            self.tableWidget.update_table_students()
-                            self.update_list_students()
-            elif 32 >= item.column() >= 2 and len(MANAGER_STUDENTS.students) + 2 >= item.row() >= 3:
-                if item.text().isnumeric() and 5 >= int(item.text()) >= 2:
-                    table_widget.add_mark_table(item.row(), item.column(), item.text())
-                    MANAGER_STUDENTS.students[item.row()-3].marks[item.column()-1] = int(item.text())
-                else:
-                    item.setText('')
-                    if MANAGER_STUDENTS.students[item.row()-3].marks.get(item.column()-1):
-                        del MANAGER_STUDENTS.students[item.row()-3].marks[item.column()-1]
-
-            elif item.row() == 1 and item.column() >= 2:
-                if MANAGER_STUDENTS.couples.get(str(item.column()-1)):
-                    row = MANAGER_STUDENTS.couples[str(item.column()-1)]
-                    row[0] = item.text()
-                    MANAGER_STUDENTS.couples[str(item.column() - 1)] = row
-                else:
-                    MANAGER_STUDENTS.couples[str(item.column() - 1)] = [item.text(), '']
-            elif item.row() == 2 and item.column() >= 2:
-                if MANAGER_STUDENTS.couples.get(str(item.column()-1)):
-                    row = MANAGER_STUDENTS.couples[str(item.column()-1)]
-                    row[1] = item.text()
-                    MANAGER_STUDENTS.couples[str(item.column() - 1)] = row
-                else:
-                    MANAGER_STUDENTS.couples[str(item.column() - 1)] = ['', item.text()]
-        self.update_statistics_2()
-        table_widget.resizeColumnsToContents()
-        table_widget.resizeRowsToContents()
-
-    def click_end_period(self):
-        message = QtWidgets.QMessageBox.question(self, 'Завершение',
-                                                 'Вы точно хотите завершить этот месяц? \n После этого форма шесть будет сохранена, перенесена и находится в архиве.', QtWidgets.QMessageBox.StandardButton.No|QtWidgets.QMessageBox.StandardButton.Yes)
-        if message.Yes == message:
-            MANAGER_STUDENTS.save_students()
-            try:
-                MANAGER_STUDENTS.push_archive()
-            except BaseException as f:
-                print(f)
-            else:
-                MANAGER_STUDENTS.create_new_table()
-                self.tableWidget.manager = MANAGER_STUDENTS
-                self.tableWidget_3.manager = MANAGER_STUDENTS
-                self.update_statistics()
-                self.update_statistics_2()
-                self.tableWidget.update_table_students()
-                self.tableWidget_3.update_table_students()
-                self.init_archive()
-
-    def add_work_day(self):
-        deal = SettingsWindows(self)
-        deal.show()
-        deal.exec()
-        if not(deal.result is None):
-            MANAGER_STUDENTS.on_day(deal.result)
-            self.tableWidget.manager = MANAGER_STUDENTS
-            self.tableWidget.update_table_students()
-            self.update_statistics()
-
-    def del_work_day(self):
-        deal = SettingsWindows(self)
-        deal.show()
-        deal.exec()
-        if not(deal.result is None):
-            MANAGER_STUDENTS.off_day(deal.result)
-            self.tableWidget.manager = MANAGER_STUDENTS
-            self.tableWidget.update_table_students()
-            self.update_statistics()
-
-    def init_archive(self):
-        path, files = MANAGER_STUDENTS.init_archive()
-        self.list_archive.clear()
-        for i in files:
-            self.list_archive.addItem(QtWidgets.QListWidgetItem(i))
-        self.path_archive = path
-        self.files_archive = files
-
-    def clicked_load_file_push(self):
-        item = self.list_archive.currentItem()
-        if item:
-            try:
-                self.init_students_manager(path=os.path.join('archive', item.text()), only_show=True)
-            except BaseException as f:
-                QtWidgets.QMessageBox.critical(self, 'Просмотр архивного файла',
-                                               f'При попытки  загрузки файла {item.text()} произошла ошибка. Попробуйте загрузить его заного. Если проблема не исчезнет, то скорее всего файл поврежден или удален.',
-                                               QtWidgets.QMessageBox.StandardButton.Ok)
-
-            else:
-
-                self.save_table_push.hide()
-                self.game_over_push.hide()
-                self.radioButton_2.hide()
-                self.pushButton_9.hide()
-                self.is_sick_rb.hide()
-                self.logout_archive_push.show()
-                self.update_statistics()
-                self.update_statistics_2()
-                self.group.removeTab(self.group.indexOf(self.students))
-                self.group.removeTab(self.group.indexOf(self.settings))
-                QtWidgets.QMessageBox.information(self, 'Просмотр архивного файла',
-                                                  'Файла успешно загружен. Вы можете перейти к просмотру.',
-                                                  QtWidgets.QMessageBox.StandardButton.Ok)
-
-
-
-    def clicked_del_file_push(self):
-        item = self.list_archive.currentItem()
-        if item:
-            self.del_file_archive(item.text())
-
-    def del_file_archive(self, file_name):
-        if file_name in self.files_archive:
-            message = QtWidgets.QMessageBox.question(self, 'Удаление архивного файла',
-                                                     f'Вы точно хотите удалить файл: {file_name}? \n После этого он будет удален навсегда',
-                                                    QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
-            if message == message.Yes:
-                try:
-                    os.remove(os.path.join(self.path_archive, file_name))
-                except BaseException:
-                    pass
-                finally:
-                    self.init_archive()
-
-
-    def logout_archive(self):
-        self.init_students_manager(path='students.json')
-        self.logout_archive_push.hide()
-        self.save_table_push.show()
-        self.game_over_push.show()
-        self.pushButton_9.show()
-        self.radioButton_2.show()
-        self.is_sick_rb.show()
-        self.group.insertTab(2, self.students, 'Cтуденты')
-        self.group.insertTab(4, self.settings, 'Настройки')
-
-
-    def set_data_table(self):
-        try:
-            s = SettingsData(self)
-            s.show()
-            s.exec()
-        except BaseException as f:
-            print(repr(f))
+                MANAGER_STUDENTS = ManagerStudents.load_manager_students(USER_MANAGER.user, file_name=path)
+            except BaseException as message:
+                if 'archive' in path:
+                    raise FileNotFoundError
+                print(120, message)
+                MANAGER_STUDENTS = ManagerStudents((datetime.date.today().month, datetime.date.today().year),
+                                                   USER_MANAGER.user)
         else:
-            self.init_students_manager(period=tuple(map(lambda x: int(x), s.dateEdit.text().split('.'))))
+            students = []
+            if not MANAGER_STUDENTS is None:
+                students = MANAGER_STUDENTS.students
+                for i in range(len(students)):
+                    students[i].sick_days.clear()
+                    students[i].absence_days.clear()
+                    students[i].marks.clear()
+            MANAGER_STUDENTS = ManagerStudents(period,
+                                               USER_MANAGER.user, students=students)
+        if len(MANAGER_STUDENTS.students) == 0:
+            self.group.removeTab(self.group.indexOf(self.students))
+        try:
+            self.F6.init_table_absence(only_show)
+
+            self.marks.init_table_marks(only_show)
+        except:
+            print(144)
+
+        self.students.update_list_students()
+        self.F6.label_2.setText(f"Добро пожаловать, {USER_MANAGER.user.username}!")
+        self.profile.update_user_info()
+        self.archive.init_archive()
+
+    def cellPressed(self, row, column):
+        if self.F6.tableWidget.hasFocus():
+            print(1)
+            if 32 >= column >= 2 and len(
+                    MANAGER_STUDENTS.students) + 2 >= row >= 3 and column - 1 in MANAGER_STUDENTS.days:
+                try:
+                    if hasattr(self.F6.tableWidget, 'old_item1'):
+                        self.F6.tableWidget.item(self.F6.tableWidget.old_item1[0], 0).setBackground(
+                            QtGui.QColor(255, 255, 255))
+                        self.F6.tableWidget.item(2, self.F6.tableWidget.old_item1[1]).setBackground(
+                            QtGui.QColor(255, 255, 255))
+                        self.F6.tableWidget.old_item1 = (row, column)
+                        self.F6.tableWidget.item(self.F6.tableWidget.old_item1[0], 0)
+                    else:
+                        self.F6.tableWidget.old_item1 = (row, column)
+                    self.F6.tableWidget.item(row, 0).setBackground(QtGui.QColor(102, 102, 102))
+                    self.F6.tableWidget.item(2, column).setBackground(QtGui.QColor(102, 102, 102))
+
+                except BaseException as f:
+                    print(repr(f))
+        elif self.marks.tableWidget_3.hasFocus():
+            if column >= 2 and len(MANAGER_STUDENTS.students) + 2 >= row >= 3:
+                if hasattr(self.marks.tableWidget_3, 'old_item2'):
+                    self.marks.tableWidget_3.item(self.marks.tableWidget_3.old_item2[0], 0).setBackground(
+                        QtGui.QColor(255, 255, 255))
+                    self.marks.tableWidget_3.item(2, self.marks.tableWidget_3.old_item2[1]).setBackground(
+                        QtGui.QColor(255, 255, 255))
+                    self.marks.tableWidget_3.old_item2 = (row, column)
+                    self.marks.tableWidget_3.item(self.marks.tableWidget_3.old_item2[0], 0)
+                else:
+                    self.marks.tableWidget_3.old_item2 = (row, column)
+                self.marks.tableWidget_3.item(row, 0).setBackground(QtGui.QColor(102, 102, 102))
+                self.marks.tableWidget_3.item(2, column).setBackground(QtGui.QColor(102, 102, 102))
+
+
+
+class BaseTable():
+    pass
 
 
 class TableAbsence(QtWidgets.QTableWidget):
-    def __init__(self, manager, only_show=False):
+    """Модуль TableAbsence отвечает за создание и обновление таблицы прогулов принимает на вход режим отображения:
+    атрибут only_show, который может быть логическим(True/False)"""
+
+    def __init__(self, only_show=False):
         super(TableAbsence, self).__init__()
         self.setStyleSheet("""QTableWidget {border:red;}""")
         self.setObjectName("tableView")
-        self.manager = manager
         self.only_show = only_show
 
-    def generate_table(self,  size=0):
+    def generate_table(self, size=0):
         self.mod_size = size
         self.setColumnCount(36)
 
-        if not self.only_show and len(self.manager.students) < 30:
-            self.setRowCount(2 + len(self.manager.students) + 2)
+        if not self.only_show and len(MANAGER_STUDENTS.students) < 30:
+            self.setRowCount(2 + len(MANAGER_STUDENTS.students) + 2)
         else:
-            self.setRowCount(2 + len(self.manager.students) + 1)
-
+            self.setRowCount(2 + len(MANAGER_STUDENTS.students) + 1)
 
         self.horizontalHeader().setVisible(False)
         self.verticalHeader().setVisible(False)
@@ -1477,14 +1597,14 @@ class TableAbsence(QtWidgets.QTableWidget):
         self.setSpan(1, 0, 2, 1)
 
         self.setItem(0, 0, QTableWidgetItem(
-            f"ВЕДОМОСТЬ УЧЁТА ЧАСОВ ПРОГУЛОВ за {str(ManagerStudents.MONTHS[self.manager.period[0] - 1]) + ' ' + str(self.manager.period[1])}"))
+            f"ВЕДОМОСТЬ УЧЁТА ЧАСОВ ПРОГУЛОВ за {str(ManagerStudents.MONTHS[MANAGER_STUDENTS.period[0] - 1]) + ' ' + str(MANAGER_STUDENTS.period[1])}"))
         title = self.item(0, 0)
         title.setBackground(QtGui.QColor(153, 153, 153))
-        title.setFont(QtGui.QFont('Calibri', 26+size))
+        title.setFont(QtGui.QFont('Calibri', 26 + size))
         title.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
 
         self.setItem(1, 34, QTableWidgetItem("Из них"))
-        self.item(1, 34).setFont(QtGui.QFont('Calibri', 14+size))
+        self.item(1, 34).setFont(QtGui.QFont('Calibri', 14 + size))
         self.item(1, 34).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
         self.item(1, 34).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
 
@@ -1498,7 +1618,7 @@ class TableAbsence(QtWidgets.QTableWidget):
         self.item(2, 35).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.item(2, 35).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
 
-        self.setItem(2, 33, QTableWidgetItem(str(sum(self.manager.days.values()))))
+        self.setItem(2, 33, QTableWidgetItem(str(sum(MANAGER_STUDENTS.days.values()))))
 
         self.setItem(1, 1, QTableWidgetItem("ФИО"))
         fio = self.item(1, 1)
@@ -1511,9 +1631,9 @@ class TableAbsence(QtWidgets.QTableWidget):
         result_up.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
 
         for i in range(2, 32 + 1):
-            if i - 1 in self.manager.days:
+            if i - 1 in MANAGER_STUDENTS.days:
                 self.setItem(1, i, QTableWidgetItem(
-                    str(self.manager.days[i - 1] if self.manager.days[i - 1] else '')))
+                    str(MANAGER_STUDENTS.days[i - 1] if MANAGER_STUDENTS.days[i - 1] else '')))
                 self.item(1, i).setFont(QtGui.QFont('Calibri', 14 + size))
             else:
                 self.setItem(1, i, QTableWidgetItem(str('✖')))
@@ -1535,39 +1655,54 @@ class TableAbsence(QtWidgets.QTableWidget):
             self.item(2, i).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.item(2, i).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
             self.item(2, i).setFont(QtGui.QFont('Calibri', 14 + size))
-            if not i - 1 in self.manager.days:
+            if not i - 1 in MANAGER_STUDENTS.days:
                 self.item(2, i).setBackground(QtGui.QColor(220, 220, 220))
             self.setColumnWidth(i, 10)
 
-
-        for i, student in enumerate(self.manager.students):
+        for i, student in enumerate(MANAGER_STUDENTS.students):
             i += 3
 
             self.setItem(i, 1, QTableWidgetItem(student.create_shorts_fio(student.fio)))
-            self.item(i, 1).setFont(QtGui.QFont('Calibri', 14+size))
+            self.item(i, 1).setFont(QtGui.QFont('Calibri', 14 + size))
             self.item(i, 1).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
             self.item(i, 1).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.setItem(i, 0, QTableWidgetItem(str(i - 2)))
-            self.item(i, 0).setFont(QtGui.QFont('Calibri', 14+size))
+            self.item(i, 0).setFont(QtGui.QFont('Calibri', 14 + size))
 
             self.setItem(i, 34, QTableWidgetItem(str(i - 2)))
             self.setItem(i, 35, QTableWidgetItem(str(i - 2)))
 
             for s_d in student.sick_days:
                 self.setItem(i, s_d + 1, QTableWidgetItem(''))
-                self.item(i, s_d+1).setFont(QtGui.QFont('Calibri', 14 + size))
-                self.add_hours_in_table(i, s_d + 1, str(student.sick_days.get(s_d)), type_day='s')
+                self.item(i, s_d + 1).setFont(QtGui.QFont('Calibri', 14 + size))
+                self.add_hours_in_table(i, s_d + 1, student.sick_days.get(s_d), type_day='s')
 
             for a_d in student.absence_days:
                 self.setItem(i, a_d + 1, QTableWidgetItem(''))
                 self.item(i, a_d + 1).setFont(QtGui.QFont('Calibri', 14 + size))
-                self.add_hours_in_table(i, a_d + 1, str(student.absence_days.get(a_d)), type_day='a')
+                self.add_hours_in_table(i, a_d + 1, student.absence_days.get(a_d), type_day='a')
             self.update_statistics_student(i)
             self.update_hours_day()
             self.resizeColumnsToContents()
             self.resizeRowsToContents()
 
-    def add_hours_in_table(self, row, column, hours, type_day='s'):
+    def add_hours_in_table(self, row: int, column: int, hours: int, type_day: str = 's'):
+        """Функция принимает координаты ячейки и число прогулов(часы) и
+        тип дня(бывает a – прогулы по неуважительной причине и s – прогулы по болезни).
+        Функция добавляет прогулы к объекту студент и в таблицу для отображения в приложении"""
+
+        if type_day.lower() == 's':
+            if column - 1 in MANAGER_STUDENTS.students[row - 3].absence_days:
+                del MANAGER_STUDENTS.students[row - 3].absence_days[column - 1]
+        elif type_day.lower() == 'a':
+            if column - 1 in MANAGER_STUDENTS.students[row - 3].sick_days:
+                del MANAGER_STUDENTS.students[row - 3].sick_days[column - 1]
+        MANAGER_STUDENTS.add_day(
+            MANAGER_STUDENTS.students[row - 3],
+            column - 1,
+            int(hours),
+            type_day=type_day,
+        )
         self.item(row, column).setText(str(hours))
         if type_day.lower() == 's':
             self.item(row, column).setBackground(QtGui.QColor(51, 204, 0))
@@ -1575,23 +1710,16 @@ class TableAbsence(QtWidgets.QTableWidget):
             self.item(row, column).setBackground(QtGui.QColor(255, 102, 51))
 
         self.item(row, column).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.item(row, column).setFont(QtGui.QFont('Calibri', 14+self.mod_size))
-
-    def update_table_students(self, *args, **kwargs):
-        self.clear()
-        self.generate_table(*args, **kwargs)
-        self.resizeColumnsToContents()
-        self.resizeRowsToContents()
-        if len(MANAGER_STUDENTS.students) >= 25:
-            if not [0, 1] in USER_MANAGER.user.parametrs.get('achievements', []):
-                USER_MANAGER.user.add_achievement([0, 1])
+        self.item(row, column).setFont(QtGui.QFont('Calibri', 14 + self.mod_size))
 
     def update_hours_day(self):
-        self.item(2, 33).setText(str(sum(self.manager.days.values())))
-        self.item(2, 33).setFont(QtGui.QFont('Calibri', 14+self.mod_size))
+        """Обновляет значения часов для всех рабочих дней"""
+        self.item(2, 33).setText(str(sum(MANAGER_STUDENTS.days.values())))
+        self.item(2, 33).setFont(QtGui.QFont('Calibri', 14 + self.mod_size))
 
     def update_statistics_student(self, row):
-        statistics = self.manager.students[row - 3].get_statistic_for_student()
+        """Обновляет значения прогулов для всех студентов"""
+        statistics = MANAGER_STUDENTS.students[row - 3].get_statistic_for_student()
         self.item(row, 34).setText(
             str(statistics['Sick_days'][1] if statistics['Sick_days'][1] > 0 else ''))
         self.item(row, 35).setText(
@@ -1601,70 +1729,11 @@ class TableAbsence(QtWidgets.QTableWidget):
     Прогулы по неув. причине: {str(statistics["Absence_days"][1])};
     Прогулы по ув. причине: {str(statistics["Sick_days"][1])}
                         """)
-        self.item(row, 34).setFont(QtGui.QFont('Calibri', 14+self.mod_size))
+        self.item(row, 34).setFont(QtGui.QFont('Calibri', 14 + self.mod_size))
         self.item(row, 35).setFont(QtGui.QFont('Calibri', 14 + self.mod_size))
 
-
-class TableMarks(QtWidgets.QTableWidget):
-    def __init__(self, manager_student):
-        super().__init__()
-        self.setStyleSheet("""QTableWidget {border: none;}""")
-        self.manager = manager_student
-
-    def generate_table(self, size=0):
-        self.mod_size = size
-        self.setColumnCount(13)
-        self.setRowCount(2 + len(self.manager.students) + 2)
-
-        self.horizontalHeader().setVisible(False)
-        self.verticalHeader().setVisible(False)
-        self.setSpan(0, 0, 1, 36)
-        self.setSpan(1, 1, 2, 1)
-        self.setSpan(1, 34, 1, 2)
-        self.setSpan(1, 0, 2, 1)
-
-        self.setItem(0, 0, QTableWidgetItem(
-            f"ВЕДОМОСТЬ УЧЁТА УСПЕВАЕМОСТИ за {str(ManagerStudents.MONTHS[self.manager.period[0] - 1]) + ' ' + str(self.manager.period[1])}"))
-        title = self.item(0, 0)
-        title.setBackground(QtGui.QColor(153, 153, 153))
-        title.setFont(QtGui.QFont('Calibri', 26+size))
-        title.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
-
-        self.setItem(1, 1, QTableWidgetItem("ФИО"))
-        fio = self.item(1, 1)
-        fio.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        fio.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
-        fio.setFont(QtGui.QFont('Calibri', 14+size))
-        for i in range(2, 13):
-            self.setItem(1, i, QTableWidgetItem(self.manager.couples.get(str(i - 1), '  ')[0]))
-            self.setItem(2, i, QTableWidgetItem(self.manager.couples.get(str(i - 1), '  ')[1]))
-            self.item(1, i).setFont(QtGui.QFont('Calibri', 14+size))
-            self.item(2, i).setFont(QtGui.QFont('Calibri', 14+size))
-
-        for i, student in enumerate(self.manager.students):
-            i += 3
-            self.setItem(i, 0, QTableWidgetItem(str(i-2)))
-            self.item(i, 0).setFont(QtGui.QFont('Calibri', 14+size))
-            self.setItem(i, 1, QTableWidgetItem(student.create_shorts_fio(student.fio)))
-            self.item(i, 1).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-            self.item(i, 1).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
-            self.item(i, 1).setFont(QtGui.QFont('Calibri', 14+size))
-            self.update_statistics_student(i)
-            for j in self.manager.students[i-3].marks:
-                self.setItem(i, j+1, QTableWidgetItem(str(self.manager.students[i-3].marks[j])))
-                self.item(i, j+1).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-                self.item(i, j+1).setFont(QtGui.QFont('Calibri', 14 + size))
-        self.resizeColumnsToContents()
-        self.resizeRowsToContents()
-
-
-    def add_mark_table(self, row, column, mark):
-        self.item(row, column).setText(str(mark))
-        self.item(row, column).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.resizeColumnsToContents()
-        self.resizeRowsToContents()
-
     def update_table_students(self, *args, **kwargs):
+        """Отчищает полностью таблицу и создает ее заново"""
         self.clear()
         self.generate_table(*args, **kwargs)
         self.resizeColumnsToContents()
@@ -1674,14 +1743,91 @@ class TableMarks(QtWidgets.QTableWidget):
                 USER_MANAGER.user.add_achievement([0, 1])
 
 
+class TableMarks(QtWidgets.QTableWidget):
+    """Модуль TableMarks отвечает за создание и обновление таблицы оценок, принимает на вход режим отображения:
+        атрибут only_show, который может быть логическим(True/False)"""
+
+    def __init__(self, only_show):
+        super().__init__()
+        self.setStyleSheet("""QTableWidget {border: none;}""")
+        self.only_show = only_show
+
+    def generate_table(self, size=0):
+        self.mod_size = size
+        self.setColumnCount(13)
+        if not self.only_show and len(MANAGER_STUDENTS.students) < 30:
+            self.setRowCount(2 + len(MANAGER_STUDENTS.students) + 2)
+        else:
+            self.setRowCount(2 + len(MANAGER_STUDENTS.students) + 1)
+        self.horizontalHeader().setVisible(False)
+        self.verticalHeader().setVisible(False)
+        self.setSpan(0, 0, 1, 36)
+        self.setSpan(1, 1, 2, 1)
+        self.setSpan(1, 34, 1, 2)
+        self.setSpan(1, 0, 2, 1)
+
+        self.setItem(0, 0, QTableWidgetItem(
+            f"ВЕДОМОСТЬ УЧЁТА УСПЕВАЕМОСТИ за {str(ManagerStudents.MONTHS[MANAGER_STUDENTS.period[0] - 1]) + ' ' + str(MANAGER_STUDENTS.period[1])}"))
+        title = self.item(0, 0)
+        title.setBackground(QtGui.QColor(153, 153, 153))
+        title.setFont(QtGui.QFont('Calibri', 26 + size))
+        title.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
+
+        self.setItem(1, 1, QTableWidgetItem("ФИО"))
+        fio = self.item(1, 1)
+        fio.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        fio.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
+        fio.setFont(QtGui.QFont('Calibri', 14 + size))
+        for i in range(2, 13):
+            self.setItem(1, i, QTableWidgetItem(MANAGER_STUDENTS.couples.get(str(i - 1), '  ')[0]))
+            self.setItem(2, i, QTableWidgetItem(MANAGER_STUDENTS.couples.get(str(i - 1), '  ')[1]))
+            self.item(1, i).setFont(QtGui.QFont('Calibri', 14 + size))
+            self.item(2, i).setFont(QtGui.QFont('Calibri', 14 + size))
+
+        for i, student in enumerate(MANAGER_STUDENTS.students):
+            i += 3
+            self.setItem(i, 0, QTableWidgetItem(str(i - 2)))
+            self.item(i, 0).setFont(QtGui.QFont('Calibri', 14 + size))
+            self.setItem(i, 1, QTableWidgetItem(student.create_shorts_fio(student.fio)))
+            self.item(i, 1).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+            self.item(i, 1).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
+            self.item(i, 1).setFont(QtGui.QFont('Calibri', 14 + size))
+            self.update_statistics_student(i)
+            for j in MANAGER_STUDENTS.students[i - 3].marks:
+                self.setItem(i, j + 1, QTableWidgetItem(str(MANAGER_STUDENTS.students[i - 3].marks[j])))
+                self.item(i, j + 1).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+                self.item(i, j + 1).setFont(QtGui.QFont('Calibri', 14 + size))
+        self.resizeColumnsToContents()
+        self.resizeRowsToContents()
+
+    def add_mark_table(self, row, column, mark):
+        MANAGER_STUDENTS.students[row - 3].marks[column - 1] = int(mark)
+        self.item(row, column).setText(str(mark))
+        self.item(row, column).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.resizeColumnsToContents()
+        self.resizeRowsToContents()
+
+    def del_mark_table(self, row, column):
+        if MANAGER_STUDENTS.students[row - 3].marks.get(column - 1):
+            del MANAGER_STUDENTS.students[row - 3].marks[column - 1]
+
     def update_hours_day(self):
-        self.item(2, 33).setText(str(sum(self.manager.days.values())))
+        self.item(2, 33).setText(str(sum(MANAGER_STUDENTS.days.values())))
 
     def update_statistics_student(self, row):
-        statistics = self.manager.students[row - 3].get_statistic_for_student()
+        statistics = MANAGER_STUDENTS.students[row - 3].get_statistic_for_student()
         self.item(row, 1).setToolTip(f"""
     ФИО: {statistics['FIO']};
                         """)
+
+    def update_table_students(self, *args, **kwargs):
+        self.clear()
+        self.generate_table(*args, **kwargs)
+        self.resizeColumnsToContents()
+        self.resizeRowsToContents()
+        if len(MANAGER_STUDENTS.students) >= 25:
+            if not [0, 1] in USER_MANAGER.user.parametrs.get('achievements', []):
+                USER_MANAGER.user.add_achievement([0, 1])
 
 
 class SettingsWindows(QtWidgets.QDialog):
@@ -1710,14 +1856,16 @@ class SettingsWindows(QtWidgets.QDialog):
         self.messages_error.setStyleSheet("color: red; background: none; border: none;")
         self.messages_error.setFixedHeight(50)
         self.verticalLayout_2.addWidget(self.messages_error)
-        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum,
+                                           QtWidgets.QSizePolicy.Policy.Expanding)
         self.verticalLayout_2.addItem(spacerItem)
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.verticalLayout.addWidget(self.scrollArea)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setContentsMargins(-1, 20, -1, -1)
         self.horizontalLayout.setObjectName("horizontalLayout")
-        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+        spacerItem1 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding,
+                                            QtWidgets.QSizePolicy.Policy.Minimum)
         self.horizontalLayout.addItem(spacerItem1)
         self.save_button = QtWidgets.QPushButton(self)
         self.save_button.setObjectName("save_button")
@@ -1735,6 +1883,7 @@ class SettingsWindows(QtWidgets.QDialog):
 
         self.cancel_button.clicked.connect(self.clicked_cancel)
         self.save_button.clicked.connect(self.clicked_save)
+
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
         self.setWindowTitle(_translate("Form", "Form"))
@@ -1775,7 +1924,8 @@ class SettingsData(QtWidgets.QDialog):
         self.dateEdit.setObjectName("dateEdit")
         self.dateEdit.setDisplayFormat("MM.yyyy")
         self.verticalLayout.addWidget(self.dateEdit)
-        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
+        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum,
+                                           QtWidgets.QSizePolicy.Policy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
@@ -1795,7 +1945,6 @@ class SettingsData(QtWidgets.QDialog):
 
         self.create_new_table_pushButton.clicked.connect(self.clicked_create_table)
         self.cancel_pushButton.clicked.connect(self.clicked_cancel)
-
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
@@ -1926,8 +2075,6 @@ class WindowSetPassword(QtWidgets.QDialog):
                 self.close()
 
 
-
-
 class ControlerWindows:
     def __init__(self, splash_screen, auth, regist, main):
         self.splash_screen = splash_screen()
@@ -1999,13 +2146,10 @@ class ControlerWindows:
 
 app = QtWidgets.QApplication(sys.argv)
 
-
 windows = ControlerWindows(SplashScreen, Auth, Regist, MainWindow)
 windows.show()
 
 status = app.exec()
-
-
 
 print(status, '-')
 sys.exit(status)
