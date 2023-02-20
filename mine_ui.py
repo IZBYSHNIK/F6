@@ -545,9 +545,9 @@ class AbsenceTab(QtWidgets.QWidget):
 
     def set_size_font(self, table, is_posetiv=True):
         if is_posetiv and table.mod_size < 100:
-            table.update_table_students(size=table.mod_size + 1)
+            table.update_table_students(size=table.mod_size + 2)
         elif table.mod_size > -12:
-            table.update_table_students(size=table.mod_size - 1)
+            table.update_table_students(size=table.mod_size - 2)
 
     def check_value(self, tablewidget):
         if len(MANAGER_STUDENTS.students) != 0:
@@ -612,8 +612,10 @@ class AbsenceTab(QtWidgets.QWidget):
                                         tablewidget.item(tablewidget.rowCount() - 2, i).setFlags(
                                             QtCore.Qt.ItemFlag.ItemIsEnabled)
                             tablewidget.update_table_students()
-                            # self.tableWidget_3.update_table_students()
-                            self.parent.students.update_list_students()
+                            if hasattr(self.parent, 'marks'):
+                                self.parent.marks.tableWidget_3.update_table_students()
+                            if hasattr(self.parent, 'students'):
+                                self.parent.students.update_list_students()
 
             except BaseException as f:
                 print(f)
@@ -795,8 +797,10 @@ class MarksTab(QtWidgets.QWidget):
                             print(f)
                         else:
                             table_widget.update_table_students()
-                            # self.tableWidget.update_table_students()
-                            # self.students.update_list_students()
+                            if hasattr(self.parent, 'F6'):
+                                self.parent.F6.tableWidget.update_table_students()
+                            if hasattr(self.parent, 'students'):
+                                self.parent.students.update_list_students()
             elif 32 >= item.column() >= 2 and len(MANAGER_STUDENTS.students) + 2 >= item.row() >= 3:
                 if item.text().isnumeric() and 5 >= int(item.text()) >= 2:
                     table_widget.add_mark_table(item.row(), item.column(), item.text())
@@ -928,8 +932,10 @@ class StudentsTab(QtWidgets.QWidget):
             MANAGER_STUDENTS.students[
                 self.listWidget.row(self.listWidget.currentItem())].fio = self.fio_edit.text()
             self.update_list_students()
-            self.parent.F6.tableWidget.update_table_students()
-            self.parent.marks.tableWidget_3.update_table_students()
+            if hasattr(self.parent, 'marks'):
+                self.parent.marks.tableWidget_3.update_table_students()
+            if hasattr(self.parent, 'F6'):
+                self.parent.F6.tableWidget.update_table_students()
 
     def del_student(self):
         if self.listWidget.currentItem():
@@ -938,14 +944,16 @@ class StudentsTab(QtWidgets.QWidget):
                                                             QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
             if message_main == message_main.Yes:
                 MANAGER_STUDENTS.remove_student_id(self.listWidget.row(self.listWidget.currentItem()))
+                if hasattr(self.parent, 'marks'):
+                    self.parent.marks.tableWidget_3.update_table_students()
+                if hasattr(self.parent, 'F6'):
+                    self.parent.F6.tableWidget.update_table_students()
                 self.listWidget.removeItemWidget(self.listWidget.currentItem())
                 self.update_list_students()
-                self.parent.F6.tableWidget_3.update_table_students()
-                self.parent.marks.tableWidget.update_table_students()
 
         if len(MANAGER_STUDENTS.students) == 0:
             self.parent.group.removeTab(self.parent.group.indexOf(self))
-        self.parent.F6.update_statistics()
+            self.update_list_students()
 
     def click_list(self, listwidget):
         self.fio_edit.setText(' '.join(listwidget.currentItem().text().split()[1:]))
@@ -1389,8 +1397,7 @@ class ProfileTab(QtWidgets.QWidget):
 
     def init_atchivments(self):
         if hasattr(self, 'atchivmenys_layout'):
-            self.atchivmenys_layout.clear()
-
+            self.verticalLayout_13 = QtWidgets.QHBoxLayout()
         if not USER_MANAGER.user.parametrs.get('achievements'):
             achievements = []
         else:
@@ -1402,7 +1409,6 @@ class ProfileTab(QtWidgets.QWidget):
             for j in range(5):
                 qlable = QtWidgets.QLabel()
                 qlable.setFixedSize(80, 80)
-                print(achievements, [i, j])
                 if [i, j] in achievements:
                     qlable.setToolTip(str(self.ACHIEVEMENT[(i, j)][0]))
                     qlable.setPixmap(QtGui.QPixmap(self.ACHIEVEMENT[(i, j)][1]))
