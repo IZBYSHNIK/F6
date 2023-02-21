@@ -78,6 +78,69 @@ class SplashScreen(QtWidgets.QSplashScreen):
         self.message.setText(_translate("Form", "Идет загрузка программы, ожидайте ..."))
 
 
+class LicenseWindow(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        super(LicenseWindow, self).__init__(parent=parent)
+        self.setObjectName("Form")
+        self.resize(600, 700)
+        self.setWindowIcon(QtGui.QIcon('media\\logo.svg'))
+        self.setFixedSize(QtCore.QSize(600, 700))
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.label_2 = QtWidgets.QLabel(self)
+        self.label_2.setText("")
+        logo = QtGui.QPixmap(os.path.join(BASE_PATH, 'media', 'logo.svg'))
+        logo = logo.scaledToWidth(45)
+        self.label_2.setPixmap(logo)
+        self.label_2.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.label_2.setObjectName("label_2")
+        self.verticalLayout_2.addWidget(self.label_2)
+        self.label = QtWidgets.QLabel(self)
+        font = QtGui.QFont()
+        font.setPointSize(16)
+        self.label.setFont(font)
+        self.label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.label.setObjectName("label")
+        self.verticalLayout_2.addWidget(self.label)
+        self.textBrowser = QtWidgets.QTextBrowser(self)
+        font = QtGui.QFont()
+        font.setPointSize(9)
+        self.textBrowser.setFont(font)
+        self.textBrowser.setObjectName("textBrowser")
+        self.verticalLayout_2.addWidget(self.textBrowser)
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setContentsMargins(-1, 8, -1, -1)
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.pushButton = QtWidgets.QPushButton(self)
+        self.pushButton.setObjectName("pushButton")
+        self.horizontalLayout.addWidget(self.pushButton)
+        self.verticalLayout_2.addLayout(self.horizontalLayout)
+
+        self.retranslateUi()
+        QtCore.QMetaObject.connectSlotsByName(self)
+
+        self.pushButton.clicked.connect(self.click_OK)
+        self.init_license(os.path.join(BASE_PATH, 'license.txt'))
+
+    def retranslateUi(self):
+        _translate = QtCore.QCoreApplication.translate
+        self.setWindowTitle(_translate("Form", "Лицензия"))
+        self.label.setText(_translate("Form", "Лицензионное соглашение"))
+        self.textBrowser.setHtml(_translate("Form", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt;\">ппппппппппппппп</span></p></body></html>"))
+        self.pushButton.setText(_translate("Form", "ОК"))
+
+    def click_OK(self):
+        self.close()
+
+    def init_license(self, file_puth=None):
+        with open(file_puth, 'r') as f:
+            self.textBrowser.setText(''.join(f.readlines()))
+
+
 class Regist(QtWidgets.QWidget):
     def __init__(self):
         self.status = 0
@@ -357,6 +420,15 @@ class Auth(QtWidgets.QWidget):
         self.message_auth = QtWidgets.QTextBrowser(self)
         self.message_auth.setGeometry(60, 351 + 20, 351, 41)
 
+        self.licensewindow = LicenseWindow()
+
+        self.license_link = QtWidgets.QCommandLinkButton(self)
+        self.license_link.setText('©2022DegtyarevIvan')
+        self.license_link.setIcon(QtGui.QIcon(''))
+        self.license_link.setGeometry(QtCore.QRect(125, 540, 442, 100))
+
+
+
         self.message_auth.setStyleSheet(
             'border: none; color: red; font: 14px; background-color: rgba(249, 248, 244, 0);')
 
@@ -371,6 +443,7 @@ class Auth(QtWidgets.QWidget):
 
         self.in_push.clicked.connect(self.click_auth_push)
         self.regist_push.clicked.connect(self.click_regis_push)
+        self.license_link.clicked.connect(self.click_license)
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
@@ -416,6 +489,9 @@ class Auth(QtWidgets.QWidget):
     def click_regis_push(self):
         self.status = 3
         self.close()
+
+    def click_license(self):
+        self.licensewindow.show()
 
 
 class AbsenceTab(QtWidgets.QWidget):
