@@ -67,8 +67,6 @@ class User:
             "username": self.username,
             "user_id": self.user_id,
             "parametrs": self.parametrs,
-            # 'teamleader': self.teamleader,
-            # 'offical_name': self.offical_name,
             "password": bcrypt.hashpw(self.__password.encode(), bcrypt.gensalt()).decode()
         }
         user_path = os.path.join(self.path, file_name)

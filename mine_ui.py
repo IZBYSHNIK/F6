@@ -18,7 +18,6 @@ dirname, filename = os.path.split(os.path.abspath(__file__))
 
 # print(QtCore.QCoreApplication.libraryPaths())
 
-
 BASE_PATH = dirname
 DOCUMENTS_PATH = os.path.expanduser("~/F6")
 PACH_SAVE_F6 = DOCUMENTS_PATH
@@ -526,8 +525,6 @@ class AbsenceTab(QtWidgets.QWidget):
             self.statustic1.clear()
             self.statustic2.clear()
 
-
-
     def save_to_exel(self):
         try:
             path = MANAGER_STUDENTS.save_f6(os.path.join(DOCUMENTS_PATH,
@@ -538,15 +535,17 @@ class AbsenceTab(QtWidgets.QWidget):
             QtWidgets.QMessageBox.information(self, 'Успешное сохранение',
                                               f'Файл успешно сохранен в дириктории: {path}')
 
-
-
     def save_table(self):
         MANAGER_STUDENTS.save_students()
 
     def set_size_font(self, table, is_posetiv=True):
-        if is_posetiv and table.mod_size < 100:
+        if is_posetiv and table.mod_size < 25:
             table.update_table_students(size=table.mod_size + 2)
-        elif table.mod_size > -12:
+        elif is_posetiv and table.mod_size > 25:
+            self.parent.profile.cod = [1, 4]
+        elif table.mod_size < -7:
+            self.parent.profile.cod = [1, 3]
+        elif table.mod_size > -8:
             table.update_table_students(size=table.mod_size - 2)
 
     def check_value(self, tablewidget):
@@ -601,6 +600,9 @@ class AbsenceTab(QtWidgets.QWidget):
                         except BaseException:
                             item.setBackground(QtGui.QColor(255, 0, 0))
                         else:
+                            self.parent.profile.cod = [0, 1]
+                            if item.text().lower() == 'чайковский пётр ильич':
+                                self.parent.profile.cod = [2, 2]
                             if len(MANAGER_STUDENTS.students) < 30:
                                 MANAGER_STUDENTS.add_student(MANAGER_STUDENTS.CLASS_STUDENT(item.text()))
                                 for i in range(2, 32 + 1):
@@ -621,14 +623,10 @@ class AbsenceTab(QtWidgets.QWidget):
                 print(f)
             self.update_statistics()
 
-
-
     def click_end_period(self):
         self.is_click_end_period = 1
-        try:
-            self.parent.profile.cod = [0, 1]
-        except BaseException as f:
-            print(f)
+        self.parent.profile.cod = [0, 2]
+
         message = QtWidgets.QMessageBox.question(self, 'Завершение',
                                                  'Вы точно хотите завершить этот месяц? \n После этого форма шесть будет сохранена, перенесена и находится в архиве.',
                                                  QtWidgets.QMessageBox.StandardButton.No | QtWidgets.QMessageBox.StandardButton.Yes)
@@ -646,7 +644,7 @@ class AbsenceTab(QtWidgets.QWidget):
                 self.tableWidget.update_table_students()
                 self.parent.marks.tableWidget_3.update_table_students()
                 self.parent.archive.init_archive()
-
+                self.parent.profile.cod = [3, 2]
 
     def init_table_absence(self, only_show=False):
         if hasattr(self, 'tableWidget'):
@@ -827,10 +825,10 @@ class MarksTab(QtWidgets.QWidget):
         table_widget.resizeRowsToContents()
 
     def set_size_font(self, table, is_posetiv=True):
-        if is_posetiv and table.mod_size < 100:
-            table.update_table_students(size=table.mod_size + 1)
-        elif table.mod_size > -12:
-            table.update_table_students(size=table.mod_size - 1)
+        if is_posetiv and table.mod_size < 25:
+            table.update_table_students(size=table.mod_size + 2)
+        elif table.mod_size > -8:
+            table.update_table_students(size=table.mod_size - 2)
 
     def save_to_exel_marks(self):
         try:
@@ -997,6 +995,8 @@ class ArchiveTab(QtWidgets.QWidget):
         self.add_function()
         self.retranslateUi()
 
+        self.is_comebake = 0
+
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
         self.label_4.setText(_translate("MainWindow", "Доступные файлы"))
@@ -1062,6 +1062,8 @@ class ArchiveTab(QtWidgets.QWidget):
                     self.init_archive()
 
     def logout_archive(self):
+        self.is_comebake = 1
+        self.parent.profile.cod = [3, 1]
         self.parent.init_students_manager(path='students.json')
         self.logout_archive_push.hide()
 
@@ -1174,6 +1176,9 @@ class SettingsTab(QtWidgets.QWidget):
         self.add_function()
         self.retranslateUi()
 
+        self.is_add_work_day = 0
+        self.is_del_work_day = 0
+
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
         self.setings1_label.setText(_translate("MainWindow", "Рабочие/нерабочие дни"))
@@ -1202,6 +1207,8 @@ class SettingsTab(QtWidgets.QWidget):
             MANAGER_STUDENTS.on_day(deal.result)
             self.parent.F6.tableWidget.update_table_students()
             self.parent.F6.update_statistics()
+            self.is_add_work_day = 1
+        self.parent.profile.cod = [1, 0]
 
     def del_work_day(self):
         deal = SettingsWindows(self)
@@ -1211,6 +1218,8 @@ class SettingsTab(QtWidgets.QWidget):
             MANAGER_STUDENTS.off_day(deal.result)
             self.parent.F6.tableWidget.update_table_students()
             self.parent.F6.update_statistics()
+            self.is_del_work_day = 1
+        self.parent.profile.cod = [1, 1]
 
     def set_data_table(self):
         try:
@@ -1255,8 +1264,9 @@ class ProfileTab(QtWidgets.QWidget):
         (3, 2): ('Коллекционер', os.path.join('media', 'achievements', '6.svg')),
         (3, 3): ('С НГ!', os.path.join('media', 'achievements', '19.svg')),
         (3, 4): ('Звезда', os.path.join('media', 'achievements', '20.svg')),
-
     }
+
+
     def __init__(self, parent):
         super(ProfileTab, self).__init__(parent=parent)
         self.parent = parent
@@ -1380,6 +1390,8 @@ class ProfileTab(QtWidgets.QWidget):
         self.add_function()
         self.retranslateUi()
 
+        self.is_exit = 0
+
     def add_function(self):
         self.save_user_push.clicked.connect(self.save_user)
         self.set_password_push.clicked.connect(self.set_password)
@@ -1413,7 +1425,7 @@ class ProfileTab(QtWidgets.QWidget):
                     qlable.setToolTip(str(self.ACHIEVEMENT[(i, j)][0]))
                     qlable.setPixmap(QtGui.QPixmap(self.ACHIEVEMENT[(i, j)][1]))
                 else:
-                    qlable.setStyleSheet('background: black;')
+                    qlable.setPixmap(QtGui.QPixmap(os.path.join('media', 'achievements', '0.svg')))
                 self.atchivmenys_layout.addWidget(qlable)
             self.verticalLayout_13.addLayout(self.atchivmenys_layout)
 
@@ -1427,7 +1439,7 @@ class ProfileTab(QtWidgets.QWidget):
                     else:
                         USER_MANAGER.user.parametrs['achievements'] = [list(value)]
                     USER_MANAGER.user.save_user()
-                    self.init_atchivments()
+
             else:
                 raise KeyError
         else:
@@ -1463,6 +1475,8 @@ class ProfileTab(QtWidgets.QWidget):
             self.parent.close()
 
     def logout(self):
+        self.is_exit = 1
+        self.cod = [3, 0]
         USER_MANAGER.user = None
         self.parent.status = 4
         self.parent.close()
@@ -1481,12 +1495,26 @@ class ProfileTab(QtWidgets.QWidget):
 
     def checking_condition(self, key):
         CONDITION = {
-            (0, 0): '',
+            (0, 0): 'True',
             (0, 1): 'len(MANAGER_STUDENTS.students) >= 25',
             (0, 2): 'self.parent.F6.is_click_end_period',
-            (0, 3): '',
+            (3, 2): 'len(self.parent.archive.files_archive) >= 12',
+            (1, 0): 'self.parent.settings.is_add_work_day',
+            (1, 1): 'self.parent.settings.is_del_work_day',
+            (3, 0): 'self.is_exit',
+            (1, 2): 'MANAGER_STUDENTS.period[1] == 1961',
+            (1, 3): 'True',
+            (1, 4): 'True',
+            (3, 3): 'MANAGER_STUDENTS.period[0] == 12',
+            (3, 1): 'self.parent.archive.is_comebake',
+            (2, 1): 'datetime.datetime.today().time().hour >= 21',
+            (2, 2): 'True',
+
+
         }
-        return eval(CONDITION[key])
+        if CONDITION.get(tuple(key)):
+            return eval(CONDITION[tuple(key)])
+
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -1572,6 +1600,8 @@ class MainWindow(QtWidgets.QMainWindow):
         pass
 
     def init_students_manager(self, path=None, only_show=False, period=None):
+        self.profile.cod = [3, 4]
+
 
         global MANAGER_STUDENTS
         if not [0, 0] in USER_MANAGER.user.parametrs.get('achievements', []):
@@ -1608,17 +1638,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.F6.label_2.setText(f"Добро пожаловать, {USER_MANAGER.user.username}!")
         self.profile.update_user_info()
         self.archive.init_archive()
-
         self.profile.init_atchivments()
 
-
-
-
+        self.profile.cod = [1, 2]
+        self.profile.cod = [3, 3]
+        self.profile.cod = [2, 1]
 
 
     def cellPressed(self, row, column):
         if self.F6.tableWidget.hasFocus():
-            print(1)
             if 32 >= column >= 2 and len(
                     MANAGER_STUDENTS.students) + 2 >= row >= 3 and column - 1 in MANAGER_STUDENTS.days:
                 try:
