@@ -3,15 +3,16 @@ import os
 import random
 import sys
 
-from PyQt6 import QtCore, QtGui, QtWidgets
-from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QTableWidgetItem
+from PySide6 import QtCore, QtGui, QtWidgets, QtSvg
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import QTableWidgetItem
+from PySide6 import QtSvgWidgets
 
 from StudentsManager import ManagerStudents
 from UserManager import UserManager
 
 VERSION = '1.1.2'
-QtCore.QCoreApplication.setLibraryPaths(['plugins'])
+# QtCore.QCoreApplication.setLibraryPaths(['plugins'])
 is_work = True
 is_new_user = False
 dirname, filename = os.path.split(os.path.abspath(__file__))
@@ -195,7 +196,7 @@ class Regist(QtWidgets.QWidget):
         font.setPointSize(-1)
         font.setBold(False)
         font.setItalic(False)
-        font.setWeight(50)
+        # font.setWeight(50)
         self.login_edit.setFont(font)
         self.login_edit.setObjectName("login_edit")
         self.create_push = QtWidgets.QPushButton(self)
@@ -270,7 +271,7 @@ class Regist(QtWidgets.QWidget):
         font.setPointSize(-1)
         font.setBold(False)
         font.setItalic(False)
-        font.setWeight(50)
+        font.setWeight(QtGui.QFont.Weight(50))
         self.group_edit.setFont(font)
         self.group_edit.setObjectName("group_edit")
 
@@ -280,7 +281,7 @@ class Regist(QtWidgets.QWidget):
         font.setPointSize(-1)
         font.setBold(False)
         font.setItalic(False)
-        font.setWeight(50)
+        font.setWeight(QtGui.QFont.Weight(50))
         self.specialization_edit.setFont(font)
         self.specialization_edit.setObjectName("specialization_edit")
 
@@ -1175,7 +1176,7 @@ class SettingsTab(QtWidgets.QWidget):
         font.setBold(False)
         font.setItalic(False)
         font.setUnderline(False)
-        font.setWeight(50)
+        font.setWeight(QtGui.QFont.Weight(50))
         self.setings1_label.setFont(font)
         self.setings1_label.setObjectName("setings1_label")
         self.verticalLayout_9.addWidget(self.setings1_label)
@@ -1199,7 +1200,7 @@ class SettingsTab(QtWidgets.QWidget):
         font.setBold(False)
         font.setItalic(False)
         font.setUnderline(False)
-        font.setWeight(50)
+        font.setWeight(QtGui.QFont.Weight(50))
         self.table_label.setFont(font)
         self.table_label.setObjectName("setings2_label")
         self.verticalLayout_9.addWidget(self.table_label)
@@ -1218,7 +1219,7 @@ class SettingsTab(QtWidgets.QWidget):
         font.setBold(False)
         font.setItalic(False)
         font.setUnderline(False)
-        font.setWeight(50)
+        font.setWeight(QtGui.QFont.Weight(50))
         self.setings2_label.setFont(font)
         self.setings2_label.setObjectName("setings2_label")
         self.verticalLayout_9.addWidget(self.setings2_label)
@@ -1346,7 +1347,6 @@ class ProfileTab(QtWidgets.QWidget):
     def __init__(self, parent):
         super(ProfileTab, self).__init__(parent=parent)
         self.parent = parent
-        QtWidgets.QWidget()
         self.setObjectName("profile")
         self.horizontalLayout_8 = QtWidgets.QHBoxLayout(self)
         self.horizontalLayout_8.setObjectName("horizontalLayout_8")
@@ -1445,16 +1445,22 @@ class ProfileTab(QtWidgets.QWidget):
         self.verticalLayout_7.setObjectName("verticalLayout_7")
         self.verticalLayout_12 = QtWidgets.QVBoxLayout()
         self.verticalLayout_12.setObjectName("verticalLayout_12")
-        self.photo = QtWidgets.QLabel(self)
-        photo = QtGui.QPixmap(os.path.join('media', 'profile', f'{str(random.randint(1, 9))}.svg'))
-        photo = photo.scaled(200, 200)
-        self.photo.setPixmap(photo)
+        self.photo = QtSvgWidgets.QSvgWidget(os.path.join('media', 'profile', f'{str(1)}.svg'))
+        # self.photo = QtWidgets.QLabel(self)#str(random.randint(1, 9))
+        # # photo = QtGui.QPixmap(os.path.join('media', 'profile', f'{str(1)}.svg'))
+        # photo = photo.scaledToWidth(250)
+        # # self.photo.setPixmap(photo)
+        self.photo.setFixedSize(QtCore.QSize(250, 250))
         self.photo.setObjectName("photo")
-        self.photo.setStyleSheet('#photo{margin: auto;}')
-        self.verticalLayout_12.addWidget(self.photo, alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+
+        self.verticalLayout_7.addItem(
+                    QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding))
+        self.verticalLayout_12.addWidget(self.photo, QtCore.Qt.AlignmentFlag.AlignVCenter, QtCore.Qt.AlignmentFlag.AlignHCenter)
         self.verticalLayout_7.addLayout(self.verticalLayout_12)
         self.verticalLayout_7.addItem(
             QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding))
+
+
         self.verticalLayout_13 = QtWidgets.QVBoxLayout()
         self.verticalLayout_13.setObjectName("verticalLayout_13")
 
@@ -1519,7 +1525,7 @@ class ProfileTab(QtWidgets.QWidget):
             else:
                 raise KeyError
         else:
-            object.__setattr__(self, key, value)
+            super().__setattr__(key, value)
 
     def save_user(self):
         try:
@@ -1676,7 +1682,7 @@ class MainWindow(QtWidgets.QMainWindow):
         pass
 
     def init_students_manager(self, path=None, only_show=False, period=None):
-        self.profile.cod = [3, 4]
+        # self.profile.cod = [3, 4]
 
 
         global MANAGER_STUDENTS
