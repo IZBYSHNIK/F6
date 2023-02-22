@@ -41,14 +41,12 @@ class SplashScreen(QtWidgets.QSplashScreen):
         self.setFixedSize(379, 443)
         self.move((app.primaryScreen().size().width() - self.size().width()) // 2,
                   (app.primaryScreen().size().height() - self.size().height()) // 2 - 40)
-        self.logo = QtWidgets.QLabel(self)
-        self.logo.setMinimumWidth(379)
-        logo = QtGui.QPixmap(os.path.join(BASE_PATH, 'media', 'logo.svg'))
-        print(os.path.join(BASE_PATH, 'media', 'logo.svg'), '> logo')
-        self.logo.setPixmap(logo)
-        self.logo.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.logo.setText("")
+
+        self.logo = QtSvgWidgets.QSvgWidget(os.path.join(BASE_PATH, 'media', 'logo.svg'), parent=self)
+        self.logo.move(65,25)
+        self.logo.setFixedSize(250, 300)
         self.logo.setObjectName("logo")
+
         self.progressBar = QtWidgets.QProgressBar(self)
         self.progressBar.setGeometry(QtCore.QRect(0, 400, 381, 51))
         self.progressBar.setProperty("value", 0)
@@ -88,14 +86,11 @@ class LicenseWindow(QtWidgets.QWidget):
         self.setFixedSize(QtCore.QSize(600, 700))
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.label_2 = QtWidgets.QLabel(self)
-        self.label_2.setText("")
-        logo = QtGui.QPixmap(os.path.join(BASE_PATH, 'media', 'logo.svg'))
-        logo = logo.scaledToWidth(45)
-        self.label_2.setPixmap(logo)
-        self.label_2.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.label_2.setObjectName("label_2")
-        self.verticalLayout_2.addWidget(self.label_2)
+        self.logo = QtSvgWidgets.QSvgWidget(os.path.join(BASE_PATH, 'media', 'logo.svg'))
+        self.logo.setFixedSize(QtCore.QSize(45, 50))
+
+        self.logo.setObjectName("label_2")
+        self.verticalLayout_2.addWidget(self.logo, QtCore.Qt.AlignmentFlag.AlignVCenter,QtCore.Qt.AlignmentFlag.AlignHCenter)
         self.label = QtWidgets.QLabel(self)
         font = QtGui.QFont()
         font.setPointSize(16)
@@ -1445,11 +1440,7 @@ class ProfileTab(QtWidgets.QWidget):
         self.verticalLayout_7.setObjectName("verticalLayout_7")
         self.verticalLayout_12 = QtWidgets.QVBoxLayout()
         self.verticalLayout_12.setObjectName("verticalLayout_12")
-        self.photo = QtSvgWidgets.QSvgWidget(os.path.join('media', 'profile', f'{str(1)}.svg'))
-        # self.photo = QtWidgets.QLabel(self)#str(random.randint(1, 9))
-        # # photo = QtGui.QPixmap(os.path.join('media', 'profile', f'{str(1)}.svg'))
-        # photo = photo.scaledToWidth(250)
-        # # self.photo.setPixmap(photo)
+        self.photo = QtSvgWidgets.QSvgWidget(os.path.join('media', 'profile', f'{str(random.randint(1, 9))}.svg'))
         self.photo.setFixedSize(QtCore.QSize(250, 250))
         self.photo.setObjectName("photo")
 
@@ -1501,13 +1492,14 @@ class ProfileTab(QtWidgets.QWidget):
 
             self.atchivmenys_layout = QtWidgets.QHBoxLayout()
             for j in range(5):
-                qlable = QtWidgets.QLabel()
-                qlable.setFixedSize(80, 80)
                 if [i, j] in achievements:
+                    qlable = QtSvgWidgets.QSvgWidget(self.ACHIEVEMENT[(i, j)][1])
                     qlable.setToolTip(str(self.ACHIEVEMENT[(i, j)][0]))
-                    qlable.setPixmap(QtGui.QPixmap(self.ACHIEVEMENT[(i, j)][1]))
+                    qlable.setFixedSize(QtCore.QSize(80, 80))
                 else:
-                    qlable.setPixmap(QtGui.QPixmap(os.path.join('media', 'achievements', '0.svg')))
+                    qlable = QtSvgWidgets.QSvgWidget(os.path.join('media', 'achievements', '0.svg'))
+                    # qlable.setToolTip(str(self.ACHIEVEMENT[(i, j)][0]))
+                    qlable.setFixedSize(QtCore.QSize(80, 80))
                 self.atchivmenys_layout.addWidget(qlable)
             self.verticalLayout_13.addLayout(self.atchivmenys_layout)
 
@@ -1682,7 +1674,7 @@ class MainWindow(QtWidgets.QMainWindow):
         pass
 
     def init_students_manager(self, path=None, only_show=False, period=None):
-        # self.profile.cod = [3, 4]
+        self.profile.cod = [3, 4]
 
 
         global MANAGER_STUDENTS
