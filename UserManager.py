@@ -191,8 +191,4 @@ class UserManager:
         self.users_id = self.load_user_manager(self.base_file)
 
 
-class AchievementManager:
 
-
-    def __init__(self, user):
-        self.user = user

@@ -36,9 +36,9 @@ class Student:
 
     @staticmethod
     def chech_hours(hours):
-        if isinstance(hours, int) and 1 <= hours <= 8:
+        if isinstance(hours, int) and 1 <= hours <= 10:
             return hours
-        raise ValueError('Часы должены быть записаны целым числом, от 1 до 8')
+        raise ValueError('Часы должены быть записаны целым числом, от 1 до 10')
 
     @property
     def fio(self):
@@ -97,9 +97,11 @@ class ManagerStudents:
         'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
     )
     HAPPY_DAYS = {
-        10: [4],
-        1: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        12: [30, 31],
+        10: [4, ],
+        1: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ],
+        12: [30, 31, ],
+        2: [23, ],
+        3: [8, ],
     }
 
     def __init__(self, period,  user=None, days=None, students=None):
@@ -144,7 +146,7 @@ class ManagerStudents:
         self.days[day] = hours
 
     def add_hours_by_day(self, day, hours):
-        if day in self.days:
+        if day in self.days and 0 <= hours <= 10:
             self.days[day] = hours
 
     @property
@@ -676,6 +678,10 @@ class ManagerStudents:
             statisitcs['total_attendance'] = total_attendance
             statisitcs["quality_attendance"] = quality_attendance
             statisitcs['absences_by_student'] = absences_by_student
+        else:
+            statisitcs['total_attendance'] = 0
+            statisitcs["quality_attendance"] = 0
+            statisitcs['absences_by_student'] = 0
 
         return statisitcs
 
@@ -704,6 +710,9 @@ class ManagerStudents:
         if count_student > 0:
             statisitcs['total_academic_performance'] = ((count_student - statisitcs['heaving_2']) / count_student)
             statisitcs['quality_academic_performance'] = (statisitcs['heaving_4_and_5'] / count_student)
+        else:
+            statisitcs['total_academic_performance'] = 0
+            statisitcs['quality_academic_performance'] = 0
         return statisitcs
 
     def push_archive(self):
@@ -741,30 +750,58 @@ class ManagerStudents:
         if not os.path.exists(os.path.join(path_archive)):
             os.makedirs(os.path.join(path_archive))
         walk = tuple(os.walk(path_archive))
-        path_archive_files = walk[0][0]
-        name_files = sorted([i for i in walk[0][-1] if i.endswith('.json') and len(i) >= 15], reverse=True)
-        return path_archive_files, name_files
+        self.path_archive_files = walk[0][0]
+        self.name_files = sorted([i for i in walk[0][-1] if i.endswith('.json') and len(i) >= 15], reverse=True)
+        return self.path_archive_files, self.name_files
 
-    def load_archive_file(self, file_name, file_path):
-        path_archive_files, name_files = self.init_archive()
-        if file_name in name_files:
+    def load_archive_file(self, file_name, file_path=None):
+        if file_name in self.name_files:
             return self.load_manager_students(self.user, self.load_students(file_name=file_name, user_path=file_path), file_name)
         return self
 
     def clear_marks(self):
+        for i in range(len(self.students)):
+            self.students[i].marks.clear()
+
+    def clear_absences(self):
+        for i in range(len(self.students)):
+            self.students[i].sick_days.clear()
+            self.students[i].absence_days.clear()
+
+    def get_statistics_for_graph(self):
+        statistics_resalt = {}
         for i in self.students:
-            i.marks.clear()
+            statistics = i.get_statistic_for_student()
+            resalt = statistics['Sick_days'][1]+statistics['Absence_days'][1]
+            if resalt > 0:
+                statistics_resalt[statistics['FIO']] = resalt
+
+
+        statistics_resalt = dict(sorted(statistics_resalt.items(), key=lambda item: item[1], reverse=True))
+        return statistics_resalt
+
+    def get_total_statistic_period(self):
+        months = {
+            #month: (посещ.качест, посещ.общая,)
+        }
+        path_archive_files, name_files = self.init_archive()
+        for i in name_files:
+            month = self.load_archive_file(i, path_archive_files)
+            statistic = month.get_statistics()
+            months[(month.period[1], month.period[0]-1)] = (statistic['sack_days_hours'], statistic['absence_days_hours'], statistic['all_absence'])
+
+        months = dict(sorted(months.items(), key=lambda item: item))
+        print(months)
+        return months
+
+
+
+
+
 
 
 
 
 
 if __name__ == '__main__':
-    ms = ManagerStudents('18.19.20.12', '1GRC-20')
-
-    ms.add_student(Student('Иванов Иван Иванович', {1: 4, 6: 2, 8: 8, 13: 2}, {2: 4, 5: 2, 6: 8, 10: 6}))
-    ms.add_student(Student('Иванов Иван Иванович', {2: 4, 6: 2, 9: 8, 14: 2}, {2: 4, 5: 2, 6: 8, 10: 6}))
-    ms.add_student(Student('Иванов Иван Иванович', {3: 4, 6: 2, 10: 8, 15: 2}, {2: 4, 5: 2, 6: 8, 10: 6}))
-    ms.add_student(Student('Иванов Иван Иванович', {4: 4, 6: 2, 11: 8, 16: 2}, {2: 4, 5: 2, 6: 8, 10: 6}))
-    ms.add_student(Student('Иванов Иван Иванович', {5: 4, 6: 2, 12: 8, 17: 2}, {2: 4, 5: 2, 6: 8, 10: 6}))
-    ms.save_f6()
+    pass
