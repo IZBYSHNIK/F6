@@ -603,9 +603,20 @@ class AbsenceTab(QtWidgets.QWidget):
             self.statustic2.clear()
 
     def save_to_exel(self):
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.Option.DontUseNativeDialog
+
+        file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Выберите путь и имя файла для сохранения.",
+            "",
+            "Книга Excel (*.xlsx)")
+
+        if not file_name:
+            file_name = f'{"_".join(["П", str(MANAGER_STUDENTS.MONTHS[MANAGER_STUDENTS.period[0] - 1]), str(MANAGER_STUDENTS.period[1]), str(USER_MANAGER.user.username)])}.xlsx'
+
+
+
         try:
-            path = MANAGER_STUDENTS.save_f6(os.path.join(DOCUMENTS_PATH,
-                                                         f'{"_".join(["П", str(MANAGER_STUDENTS.MONTHS[MANAGER_STUDENTS.period[0] - 1]), str(MANAGER_STUDENTS.period[1]), str(USER_MANAGER.user.username)])}.xlsx'))
+            path = MANAGER_STUDENTS.save_f6(file_name)
         except BaseException as f:
             QtWidgets.QMessageBox.critical(self, 'Ошибка сохранения', 'Файл не был сохранен. Повторите попытку')
         else:
@@ -625,7 +636,7 @@ class AbsenceTab(QtWidgets.QWidget):
         elif table.mod_size > -8:
             table.update_table_students(size=table.mod_size - 2)
 
-    def check_value(self, tablewidget):
+    def clicked_table(self, tablewidget):
         if self.parent.group.indexOf(self.parent.students) == -1 and len(MANAGER_STUDENTS.students) != 0:
             self.parent.group.insertTab(2, self.parent.students, 'Cтуденты')
 
@@ -725,6 +736,7 @@ class AbsenceTab(QtWidgets.QWidget):
 
     def init_table_absence(self, only_show=False):
         if hasattr(self, 'tableWidget'):
+            self.tableWidget.hide()
             self.verticalLayout.removeWidget(self.tableWidget)
 
         self.tableWidget = TableAbsence()
@@ -739,10 +751,12 @@ class AbsenceTab(QtWidgets.QWidget):
         self.set_size_posetiv_font_push.clicked.connect(lambda: self.set_size_font(self.tableWidget))
         self.tableWidget.update_table_students()
         self.update_statistics()
-        self.tableWidget.cellPressed.connect(self.cellPressed)
+
 
         if not only_show:
-            self.tableWidget.cellChanged.connect(lambda: self.check_value(self.tableWidget))
+            self.tableWidget.cellChanged.connect(lambda: self.clicked_table(self.tableWidget))
+            self.tableWidget.cellPressed.connect(self.cellPressed)
+
     def cellPressed(self, row, column):
         if self.tableWidget.hasFocus():
             if 32 >= column >= 2 and len(
@@ -840,6 +854,7 @@ class MarksTab(QtWidgets.QWidget):
 
     def init_table_marks(self, only_show=False):
         if hasattr(self, 'tableWidget_3'):
+            self.tableWidget_3.hide()
             self.verticalLayout_25.removeWidget(self.tableWidget_3)
 
         self.tableWidget_3 = TableMarks(only_show=only_show)
@@ -848,16 +863,16 @@ class MarksTab(QtWidgets.QWidget):
         self.verticalLayout_25.addItem(
             QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum))
 
-        self.set_size_negativ_font_push2.clicked.connect(lambda: self.set_size_font(self.tableWidget_3, False))
-        self.set_size_posetiv_font_push2.clicked.connect(lambda: self.set_size_font(self.tableWidget_3))
+        self.set_size_negativ_font_push2.clicked.connect(lambda: self.set_size_font(False))
+        self.set_size_posetiv_font_push2.clicked.connect(lambda: self.set_size_font())
         self.tableWidget_3.update_table_students()
 
         if not only_show:
             self.tableWidget_3.cellPressed.connect(self.cellPressed)
-            self.tableWidget_3.cellChanged.connect(lambda: self.clicked_table_marks(self.tableWidget_3))
+            self.tableWidget_3.cellChanged.connect(self.clicked_table_marks)
 
-    def clicked_table_marks(self, table_widget):
-        item = table_widget.currentItem()
+    def clicked_table_marks(self):
+        item = self.tableWidget_3.currentItem()
         if not item is None:
             if item.column() == 1:
                 if item.row() == len(MANAGER_STUDENTS.students) + 3:
@@ -871,17 +886,17 @@ class MarksTab(QtWidgets.QWidget):
                         except BaseException as f:
                             print(f)
                         else:
-                            table_widget.update_table_students()
+                            self.update_table_students()
                             if hasattr(self.parent, 'F6'):
                                 self.parent.F6.tableWidget.update_table_students()
                             if hasattr(self.parent, 'students'):
                                 self.parent.students.update_list_students()
             elif 32 >= item.column() >= 2 and len(MANAGER_STUDENTS.students) + 2 >= item.row() >= 3:
                 if item.text().isnumeric() and 5 >= int(item.text()) >= 2:
-                    table_widget.add_mark_table(item.row(), item.column(), item.text())
+                    self.tableWidget_3.add_mark_table(item.row(), item.column(), item.text())
                 else:
                     item.setText('')
-                    table_widget.del_mark_table(item.row(), item.column())
+                    self.tableWidget_3.del_mark_table(item.row(), item.column())
 
             elif item.row() == 1 and item.column() >= 2:
                 self.tableWidget_3.add_couples(item.column() - 1, couple=item.text())
@@ -890,11 +905,11 @@ class MarksTab(QtWidgets.QWidget):
         self.update_statistics_2()
 
 
-    def set_size_font(self, table, is_posetiv=True):
-        if is_posetiv and table.mod_size < 25:
-            table.update_table_students(size=table.mod_size + 2)
+    def set_size_font(self, is_posetiv=True):
+        if is_posetiv and self.tableWidget_3.mod_size < 25:
+            self.tableWidget_3.update_table_students(size=self.tableWidget_3.mod_size + 2)
         elif table.mod_size > -8:
-            table.update_table_students(size=table.mod_size - 2)
+            self.tableWidget_3.update_table_students(size=self.tableWidget_3.mod_size - 2)
 
     def save_to_exel_marks(self):
         try:
@@ -1055,6 +1070,7 @@ class StudentsTab(QtWidgets.QWidget):
                     self.parent.marks.tableWidget_3.update_table_students()
                 if hasattr(self.parent, 'F6'):
                     self.parent.F6.tableWidget.update_table_students()
+                MANAGER_STUDENTS.save_students()
 
     def del_student(self):
         if self.listWidget.currentItem():
@@ -2126,7 +2142,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if hasattr(self, 'marks'):
                 self.marks.init_table_marks(only_show)
         except:
-            print(144)
+            print('')
 
         self.students.update_list_students()
         self.F6.label_2.setText(f"Добро пожаловать, {USER_MANAGER.user.username}!")
@@ -2145,6 +2161,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.profile.cod = [3, 3]
         self.profile.cod = [2, 1]
         self.profile.cod = [3, 4]
+        global  is_click_license
+        is_click_license = 0
         self.group.currentIndex()
 
 
@@ -2728,14 +2746,13 @@ class ControlerWindows:
         elif self.main.status == 3:
             self.regist.show()
         elif self.main.status == 4:
+            self.is_exit()
             self.main = type(self.main)()
             self.auth.show()
+
         else:
             self.main.close()
-            message = QtWidgets.QMessageBox.question(windows.main, 'Сохранение изменений', "Сохронить изменения?",
-                                                     QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
-            if message == message.Yes:
-                windows.main.save_table()
+            self.is_exit()
 
         self.main.status = 0
         self.main.closeEvent = self.close_event_by_main
@@ -2756,6 +2773,12 @@ class ControlerWindows:
             self.auth.show()
         else:
             self.regist.show()
+
+    def is_exit(self):
+        message = QtWidgets.QMessageBox.question(windows.main, 'Сохранение изменений', "Сохронить изменения?",
+                                                 QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
+        if message == message.Yes:
+            MANAGER_STUDENTS.save_students()
 
 
 app = QtWidgets.QApplication(sys.argv)
