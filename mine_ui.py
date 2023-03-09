@@ -16,7 +16,7 @@ from StudentsManager import ManagerStudents
 from UserManager import UserManager
 
 
-VERSION = '1.1.4'
+VERSION = '1.1.5'
 
 is_work = True
 is_new_user = False
@@ -607,21 +607,17 @@ class AbsenceTab(QtWidgets.QWidget):
         options |= QtWidgets.QFileDialog.Option.DontUseNativeDialog
 
         file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Выберите путь и имя файла для сохранения.",
-            "",
-            "Книга Excel (*.xlsx)")
+        f'{"_".join(["П", str(MANAGER_STUDENTS.MONTHS[MANAGER_STUDENTS.period[0] - 1]), str(MANAGER_STUDENTS.period[1]), str(USER_MANAGER.user.username)])}.xlsx',
+        "Книга Excel (*.xlsx)")
 
-        if not file_name:
-            file_name = f'{"_".join(["П", str(MANAGER_STUDENTS.MONTHS[MANAGER_STUDENTS.period[0] - 1]), str(MANAGER_STUDENTS.period[1]), str(USER_MANAGER.user.username)])}.xlsx'
-
-
-
-        try:
-            path = MANAGER_STUDENTS.save_f6(file_name)
-        except BaseException as f:
-            QtWidgets.QMessageBox.critical(self, 'Ошибка сохранения', 'Файл не был сохранен. Повторите попытку')
-        else:
-            QtWidgets.QMessageBox.information(self, 'Успешное сохранение',
-                                              f'Файл успешно сохранен в дириктории: {path}')
+        if file_name:
+            try:
+                path = MANAGER_STUDENTS.save_f6(file_name)
+            except BaseException as f:
+                QtWidgets.QMessageBox.critical(self, 'Ошибка сохранения', 'Файл не был сохранен. Повторите попытку')
+            else:
+                QtWidgets.QMessageBox.information(self, 'Успешное сохранение',
+                                                  f'Файл успешно сохранен в дириктории: {path}')
 
     def save_table(self):
         MANAGER_STUDENTS.save_students()
@@ -714,16 +710,27 @@ class AbsenceTab(QtWidgets.QWidget):
     def click_end_period(self):
         self.is_click_end_period = 1
         self.parent.profile.cod = [0, 2]
-
+        i = 1
         message = QtWidgets.QMessageBox.question(self, 'Завершение',
                                                  'Вы точно хотите завершить этот месяц? \n После этого форма шесть будет сохранена, перенесена и находится в архиве.',
                                                  QtWidgets.QMessageBox.StandardButton.No | QtWidgets.QMessageBox.StandardButton.Yes)
         if message.Yes == message:
             MANAGER_STUDENTS.save_students()
             try:
-                MANAGER_STUDENTS.push_archive()
-            except BaseException as f:
-                print(f, 3743)
+                file_path = MANAGER_STUDENTS.push_archive()
+            except FileExistsError:
+                massage = QtWidgets.QMessageBox.question(self, 'Ошибка',
+                                                 'Файл уже существует. Заменить его?',
+                                                 QtWidgets.QMessageBox.StandardButton.No | QtWidgets.QMessageBox.StandardButton.Yes)
+                i = 0
+
+                if massage == massage.Yes:
+                    MANAGER_STUDENTS.del_file_archive(file_path)
+                    MANAGER_STUDENTS.push_archive()
+                else:
+                    MANAGER_STUDENTS.del_file_archive(auto=True)
+
+
             else:
 
                 MANAGER_STUDENTS.create_new_table()
@@ -776,6 +783,7 @@ class AbsenceTab(QtWidgets.QWidget):
 
                 except BaseException as f:
                     print(repr(f))
+
 
 
 class MarksTab(QtWidgets.QWidget):
@@ -912,14 +920,22 @@ class MarksTab(QtWidgets.QWidget):
             self.tableWidget_3.update_table_students(size=self.tableWidget_3.mod_size - 2)
 
     def save_to_exel_marks(self):
-        try:
-            path = MANAGER_STUDENTS.save_f6_marks(os.path.join(DOCUMENTS_PATH,
-                                                               f'{"_".join(["О", str(MANAGER_STUDENTS.MONTHS[MANAGER_STUDENTS.period[0] - 1]), str(MANAGER_STUDENTS.period[1]), str(USER_MANAGER.user.username)])}.xlsx'))
-        except BaseException as f:
-            QtWidgets.QMessageBox.critical(self.parent, 'Ошибка сохранения', 'Файл не был сохранен. Повторите попытку')
-        else:
-            QtWidgets.QMessageBox.information(self.parent, 'Успешное сохранение',
-                                              f'Файл успешно сохранен в дириктории: {path}')
+        options = QtWidgets.QFileDialog.Options()
+        options |= QtWidgets.QFileDialog.Option.DontUseNativeDialog
+
+        file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Выберите путь и имя файла для сохранения.",
+                                                             f'{"_".join(["О", str(MANAGER_STUDENTS.MONTHS[MANAGER_STUDENTS.period[0] - 1]), str(MANAGER_STUDENTS.period[1]), str(USER_MANAGER.user.username)])}.xlsx',
+                                                             "Книга Excel (*.xlsx)")
+
+        if file_name:
+            try:
+                path = MANAGER_STUDENTS.save_f6(file_name)
+            except BaseException as f:
+                QtWidgets.QMessageBox.critical(self, 'Ошибка сохранения', 'Файл не был сохранен. Повторите попытку')
+            else:
+                QtWidgets.QMessageBox.information(self, 'Успешное сохранение',
+                                                  f'Файл успешно сохранен в дириктории: {path}')
+
 
     def cellPressed(self, row, column):
         if self.tableWidget_3.hasFocus():
@@ -1813,13 +1829,34 @@ class StatisticTab(QtWidgets.QWidget):
         super(StatisticTab, self).__init__(parent=parent)
         self.parent = parent
         self.setObjectName(u"tab_2")
+        self.setStyleSheet(
+            """
+            * {
+            background-color: white;
+            }
+            #button_before {
+                background-color: green;
+                font-size: 4em;
+                border: none;
+                color: white;
+            }"""
+        )
         self.verticalLayout_14 = QtWidgets.QVBoxLayout(self)
         self.verticalLayout_14.setObjectName(u"verticalLayout_14")
 
         self.button_before = QtWidgets.QPushButton()
+        self.button_before.setObjectName('button_before')
+        font = QtGui.QFont()
+        font.setPointSize(14)
+        font.setBold(False)
+        font.setItalic(False)
+        font.setUnderline(False)
+        font.setWeight(QtGui.QFont.Weight(50))
+        self.button_before.setFont(font)
         self.button_before.setText('Создать статистику')
+        self.button_before.setFixedSize(175, 70)
         self.button_before.clicked.connect(self.clicked_before)
-        self.verticalLayout_14.addWidget(self.button_before)
+        self.verticalLayout_14.addWidget(self.button_before, QtCore.Qt.AlignmentFlag.AlignVCenter, QtCore.Qt.AlignmentFlag.AlignHCenter)
 
 
 
@@ -1857,9 +1894,9 @@ class StatisticTab(QtWidgets.QWidget):
         self.update_statistic_push_button = QtWidgets.QPushButton(self)
         self.update_statistic_push_button.setObjectName(u"update_statistic_push_button")
         self.horizontalLayout_11.addWidget(self.update_statistic_push_button)
-        self.pushButton_7 = QtWidgets.QPushButton(self)
-        self.pushButton_7.setObjectName(u"pushButton_7")
-        self.horizontalLayout_11.addWidget(self.pushButton_7)
+        self.save_diagram_push_button = QtWidgets.QPushButton(self)
+        self.save_diagram_push_button.setObjectName(u"save_diagram_push_button")
+        self.horizontalLayout_11.addWidget(self.save_diagram_push_button)
         self.pushButton_6 = QtWidgets.QPushButton(self)
         self.pushButton_6.setObjectName(u"pushButton_6")
         self.horizontalLayout_11.addWidget(self.pushButton_6)
@@ -1873,6 +1910,8 @@ class StatisticTab(QtWidgets.QWidget):
 
     def retranslateUi(self):
         self.update_statistic_push_button.setText('Обновить статистику')
+        self.save_diagram_push_button.setFont('Сохранить ')
+
 
 
     def add_function(self):

@@ -715,13 +715,15 @@ class ManagerStudents:
             statisitcs['quality_academic_performance'] = 0
         return statisitcs
 
-    def push_archive(self):
+    def push_archive(self, new_file_name=None):
         if not os.path.exists(os.path.join(self.user.path, 'archive')):
             os.makedirs(os.path.join(self.user.path, "archive"))
         self.replace_file(os.path.join(self.user.path, 'students.json'),
                    os.path.join(self.user.path, 'archive', 'students.json'))
-        self.rename_file(os.path.join(self.user.path, 'archive', 'students.json'),
-                  os.path.join(self.user.path, 'archive', str(self.period[1])+'_'+str(self.period[0]).rjust(2, '0')+self.MONTHS[self.period[0]-1]+'.json'))
+
+        new_file_path = os.path.join(self.user.path, 'archive', new_file_name if new_file_name else str(self.period[1])+'_'+str(self.period[0]).rjust(2, '0')+self.MONTHS[self.period[0]-1]+'.json')
+        self.rename_file(os.path.join(self.user.path, 'archive', 'students.json'), new_file_path)
+        return new_file_path
 
     def create_new_table(self):
         if 1 <= self.period[0] < 12:
@@ -791,8 +793,13 @@ class ManagerStudents:
             months[(month.period[1], month.period[0]-1)] = (statistic['sack_days_hours'], statistic['absence_days_hours'], statistic['all_absence'])
 
         months = dict(sorted(months.items(), key=lambda item: item))
-        print(months)
+
         return months
+
+
+    def del_file_archive(self, file_name):
+        os.remove(os.path.join(self.path_archive, file_name))
+
 
 
 
