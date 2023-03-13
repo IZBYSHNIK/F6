@@ -20,7 +20,7 @@ from PySide6.QtCore import QTranslator, QLocale, QLibraryInfo
 
 
 
-VERSION = '1.1.5'
+VERSION = '1.1.6'
 
 LANGUAGES = ['english', 'china', 'russia']
 
@@ -330,13 +330,16 @@ class Regist(QtWidgets.QWidget):
         self.specialization_lable.setText(self.tr('Специализация'))
 
     def check_lables(self):
+
         kwargs = {}
-        USER_MANAGER.USER_CLASS.check_username(self.login_edit.text())
-        USER_MANAGER.USER_CLASS.check_password(self.password_edit.text())
+        if not USER_MANAGER.USER_CLASS.is_valid_username(self.login_edit.text()):
+            raise ValueError(self.tr('Имя пользователя должно быть строкой из 3-20 букв или числовых символов'))
+        if not USER_MANAGER.USER_CLASS.is_valid_password(self.password_edit.text()):
+            raise  ValueError(self.tr('Пароль должен быть строкой из 4-30 символов'))
         if self.login_edit.text() in USER_MANAGER.users_id.values():
             raise ValueError(self.tr('Имя пользователя занято'))
         if not self.password_edit.text() == self.password_edit_2.text():
-            raise ValueError( self.tr('Не совподают пароли'))
+            raise ValueError( self.tr('Не совпадают пароли'))
         if self.office_name_edit.text():
             if USER_MANAGER.USER_CLASS.is_valid_fio(self.office_name_edit.text()):
                 kwargs['offical_name'] = self.office_name_edit.text()
@@ -437,6 +440,7 @@ class Auth(QtWidgets.QWidget):
         self.login_lable.setObjectName("login_lable")
         self.password_lable = QtWidgets.QLabel(self)
         self.password_lable.move(70, 235)
+        self.password_lable.setFixedWidth(480)
         self.password_lable.setObjectName("password_lable")
         self.message_auth = QtWidgets.QTextBrowser(self)
         self.message_auth.setGeometry(60, 351 + 20, 351, 41)
@@ -479,6 +483,7 @@ class Auth(QtWidgets.QWidget):
 
         self.licensewindow.retranslateUi()
 
+
     def keyPressEvent(self, e):
         k = e.key()
         super().keyPressEvent(e)
@@ -491,22 +496,24 @@ class Auth(QtWidgets.QWidget):
             self.spin_box.addItem(QIcon('0'), USER_MANAGER.users_id[i])
 
     def checking_log_password(self):
-        if not USER_MANAGER.USER_CLASS.is_valud_username(self.spin_box.currentText()):
+
+        if not USER_MANAGER.USER_CLASS.is_valid_username(self.spin_box.currentText()):
             raise ValueError(self.tr('Имя пользователя должено быть строкой из 3-20 букв или числовых символов'))
-        if not USER_MANAGER.USER_CLASS.is_valud_password(self.password_edit.text()):
-            raise ValueError(self.tr('Пороль должен быть строкой из 4-30 символов'))
+        if not USER_MANAGER.USER_CLASS.is_valid_password(self.password_edit.text()):
+            raise ValueError(self.tr('Пароль должен быть строкой из 4-30 символов'))
         return self.spin_box.currentText(), self.password_edit.text()
 
     def click_auth_push(self):
+
         try:
             username, password = self.checking_log_password()
         except BaseException as message:
-            self.message_auth.setText(self.tr('*Неверный пароль'))
+            self.message_auth.setText(str(message))
         else:
             try:
                 USER_MANAGER.link_user_by_username(username, password)
             except BaseException as message:
-                self.message_auth.setText('*' + str(message))
+                self.message_auth.setText(self.tr('*Неверный пароль'))
             else:
                 self.password_edit.clear()
                 self.status = 1
@@ -526,8 +533,6 @@ class Auth(QtWidgets.QWidget):
         print(l)
         if translator.load(os.path.join(BASE_PATH, 'languages', l)):
             app.installTranslator(translator)
-
-
 
         windows.retranslateUi()
 
@@ -643,10 +648,10 @@ class AbsenceTab(QtWidgets.QWidget):
         statistics = MANAGER_STUDENTS.get_statistics()
         if statistics.get('man_hours') > 0:
             self.statustic1.setText(
-                self.tr(f'Чел.час = ') + f'{str(statistics.get("man_hours"))} \t' +
-                        self.tr(f' Посещ.Кач. = ') + f'{str(round(statistics.get("quality_attendance") * 100, 2))}%')
+                self.tr('Чел.час = ') + f'{str(statistics.get("man_hours"))} \t' +
+                        self.tr(' Посещ.Кач. = ') + f'{str(round(statistics.get("quality_attendance") * 100, 2))}%')
             self.statustic2.setText(
-                self.tr(f'Посещ.Общ. = ') + f'{str(round(statistics.get("total_attendance") * 100, 2))}% \t' +
+                self.tr('Посещ.Общ. = ') + f'{str(round(statistics.get("total_attendance") * 100, 2))}% \t' +
             self.tr('Прогул 1 студ. = ') + f'{str(round(statistics.get("absences_by_student", 1)))}')
         else:
             self.statustic1.clear()
@@ -907,9 +912,9 @@ class MarksTab(QtWidgets.QWidget):
         statistics = MANAGER_STUDENTS.get_statistics_marks()
         if statistics.get('is_ready') == 1:
             self.statustic3.setText(
-                self.tr(f'Кол-во студ. им-х 2 = {statistics.get("heaving_2")!r} | Кол-во студ. им-х одну 3 = {statistics.get("heaving_one_3")!r} \t| Успеваемость общая = {str(round(statistics.get("total_academic_performance", 0) * 100, 2))}%'))
+                self.tr('Кол-во студ. им-х 2 = ') + str(statistics.get("heaving_2")) + ' | ' + self.tr('Кол-во студ. им-х одну 3 = ') + str(statistics.get("heaving_one_3")) + ' \t| ' + self.tr('Успеваемость общая = ') + str(round(statistics.get("total_academic_performance", 0) * 100, 2))+'%')
             self.statustic4.setText(
-                self.tr(f'Кол-во студ. им-х 5 = {statistics.get("heaving_5")!r} | Кол-во студ. им-х 4 и 5 = {statistics.get("heaving_4_and_5")!r}\t| Успеваемость качественная = {round(statistics.get("quality_academic_performance", 0) * 100, 2)!r}%'))
+                self.tr('Кол-во студ. им-х 5 = ') + str(statistics.get("heaving_5")) + ' | ' + self.tr('Кол-во студ. им-х 4 и 5 = ') + str(statistics.get("heaving_4_and_5")) + ' \t| ' + self.tr('Успеваемость качественная = ') + str(round(statistics.get("quality_academic_performance", 0) * 100, 2))+'%')
         else:
             self.statustic3.clear()
             self.statustic4.clear()
@@ -996,7 +1001,8 @@ class MarksTab(QtWidgets.QWidget):
 
     def cellPressed(self, row, column):
         if self.tableWidget_3.hasFocus():
-            if 32 >= column >= 2 and row >= 3:
+            if 32 >= column >= 2 and row >= 3 and len(
+                    MANAGER_STUDENTS.students) + 2 >= row >= 3 and column - 1 in MANAGER_STUDENTS.days:
                 try:
                     if hasattr(self.tableWidget_3, 'old_item1'):
                         self.tableWidget_3.item(self.tableWidget_3.old_item1[0], 0).setBackground(
@@ -1140,14 +1146,13 @@ class StudentsTab(QtWidgets.QWidget):
                 if hasattr(self.parent, 'F6'):
                     self.parent.F6.tableWidget.update_table_students()
                 MANAGER_STUDENTS.save_students()
-
             else:
                 self.message_students.setText(self.tr('ФИО должно состоять только из букв и быть из 3 частей, каждая из которых не менее 2 символов'))
 
     def del_student(self):
         if self.listWidget.currentItem():
             message_main = QtWidgets.QMessageBox().question(self, self.tr("Удаление студента"),
-                                                            str(self.tr(f'Вы точно хотите навсегда удалить студента {" ".join(self.listWidget.currentItem().text().split()[1:])}?')),
+                                                            self.tr('Вы точно хотите навсегда удалить студента ')+" ".join(self.listWidget.currentItem().text().split()[1:])+'?',
                                                             QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
             if message_main == message_main.Yes:
                 MANAGER_STUDENTS.remove_student_id(self.listWidget.row(self.listWidget.currentItem()))
@@ -1291,7 +1296,9 @@ class ArchiveTab(QtWidgets.QWidget):
     def del_file_archive(self, file_name):
         if file_name in self.files_archive:
             message = QtWidgets.QMessageBox.question(self.parent, self.tr('Удаление архивного файла'),
-                                                     self.tr(f'Вы точно хотите удалить файл: ') + file_name + self.tr('?\n После этого он будет удален навсегда'),
+                                                     self.tr('Вы точно хотите удалить файл: ') +
+                                                     file_name +
+                                                     self.tr('?\n После этого он будет удален навсегда'),
                                                      QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
             if message == message.Yes:
                 try:
@@ -1538,7 +1545,7 @@ class SettingsTab(QtWidgets.QWidget):
         MANAGER_STUDENTS.clear_marks()
 
     def clear_table_marks(self):
-        message = QtWidgets.QMessageBox.question(self, self.tr('Отчиста таблицы оценок'), self.tr('Вы точно хотите отчистить таблицу оценок?'), QtWidgets.QMessageBox.StandardButton.Yes, QtWidgets.QMessageBox.StandardButton.No)
+        message = QtWidgets.QMessageBox.question(self, self.tr('Очиста таблицы оценок'), self.tr('Вы точно хотите очистить таблицу оценок?'), QtWidgets.QMessageBox.StandardButton.Yes, QtWidgets.QMessageBox.StandardButton.No)
         if message == QtWidgets.QMessageBox.StandardButton.Yes:
             MANAGER_STUDENTS.clear_marks()
             MANAGER_STUDENTS.save_students()
@@ -1547,8 +1554,8 @@ class SettingsTab(QtWidgets.QWidget):
 
 
     def clear_table_abcense(self):
-        message = QtWidgets.QMessageBox.question(self, self.tr('Отчиста таблицы прогулов'),
-                                                 self.tr('Вы точно хотите отчистить таблицу прогулов?'),
+        message = QtWidgets.QMessageBox.question(self, self.tr('Очиста таблицы прогулов'),
+                                                 self.tr('Вы точно хотите очистить таблицу прогулов?'),
                                                  QtWidgets.QMessageBox.StandardButton.Yes,
                                                  QtWidgets.QMessageBox.StandardButton.No)
         if message == QtWidgets.QMessageBox.StandardButton.Yes:
@@ -1570,28 +1577,7 @@ class SettingsTab(QtWidgets.QWidget):
 
 
 class ProfileTab(QtWidgets.QWidget):
-    ACHIEVEMENT = {
-        (0, 0): ('Поехали!', os.path.join('media', 'achievements', '10.svg')),
-        (0, 1): ('Fullstack', os.path.join('media', 'achievements', '1.svg')),
-        (0, 2): ('Игра окончена', os.path.join('media', 'achievements', '2.svg')),
-        (0, 3): ('Шерлок?', os.path.join('media', 'achievements', '4.svg')),
-        (0, 4): ('Исследователь', os.path.join('media', 'achievements', '5.svg')),
-        (1, 0): ('Делу время....', os.path.join('media', 'achievements', '7.svg')),
-        (1, 1): ('..потехе час', os.path.join('media', 'achievements', '8.svg')),
-        (1, 2): ('Частичка истории', os.path.join('media', 'achievements', '14.svg')),
-        (1, 3): ('Это что? Микробы!', os.path.join('media', 'achievements', '12.svg')),
-        (1, 4): ('Я видел темную сторону Луны', os.path.join('media', 'achievements', '13.svg')),
-        (2, 0): ('Моя прелесть', os.path.join('media', 'achievements', '16.svg')),
-        (2, 1): ('Сова', os.path.join('media', 'achievements', '17.svg')),
-        (2, 2): ('Классику сер?', os.path.join('media', 'achievements', '15.svg')),
-        (2, 3): ('Трансформация', os.path.join('media', 'achievements', '3.svg')),
-        (2, 4): ('Быть или не быть', os.path.join('media', 'achievements', '9.svg')),
-        (3, 0): ('Ушел по-английски', os.path.join('media', 'achievements', '11.svg')),
-        (3, 1): ('Назад в будущее', os.path.join('media', 'achievements', '18.svg')),
-        (3, 2): ('Коллекционер', os.path.join('media', 'achievements', '6.svg')),
-        (3, 3): ('С НГ!', os.path.join('media', 'achievements', '19.svg')),
-        (3, 4): ('Звезда', os.path.join('media', 'achievements', '20.svg')),
-    }
+
 
 
     def __init__(self, parent):
@@ -1734,6 +1720,31 @@ class ProfileTab(QtWidgets.QWidget):
         self.is_clicked = 0
 
 
+    def load_atchivments(self):
+        self.ACHIEVEMENT = {
+        (0, 0): (self.tr('Поехали!'), os.path.join('media', 'achievements', '10.svg')),
+        (0, 1): (self.tr('Полный набор'), os.path.join('media', 'achievements', '1.svg')),
+        (0, 2): (self.tr('Игра окончена'), os.path.join('media', 'achievements', '2.svg')),
+        (0, 3): (self.tr('Шерлок?'), os.path.join('media', 'achievements', '4.svg')),
+        (0, 4): (self.tr('Исследователь'), os.path.join('media', 'achievements', '5.svg')),
+        (1, 0): (self.tr('Делу время....'), os.path.join('media', 'achievements', '7.svg')),
+        (1, 1): (self.tr('..потехе час'), os.path.join('media', 'achievements', '8.svg')),
+        (1, 2): (self.tr('Частичка истории'), os.path.join('media', 'achievements', '14.svg')),
+        (1, 3): (self.tr('Это что? Микробы!'), os.path.join('media', 'achievements', '12.svg')),
+        (1, 4): (self.tr('Я видел темную сторону Луны'), os.path.join('media', 'achievements', '13.svg')),
+        (2, 0): (self.tr('Моя прелесть'), os.path.join('media', 'achievements', '16.svg')),
+        (2, 1): (self.tr('Сова'), os.path.join('media', 'achievements', '17.svg')),
+        (2, 2): (self.tr('Классику сэр?'), os.path.join('media', 'achievements', '15.svg')),
+        (2, 3): (self.tr('Трансформация'), os.path.join('media', 'achievements', '3.svg')),
+        (2, 4): (self.tr('Быть или не быть'), os.path.join('media', 'achievements', '9.svg')),
+        (3, 0): (self.tr('Ушел по-английски'), os.path.join('media', 'achievements', '11.svg')),
+        (3, 1): (self.tr('Назад в будущее'), os.path.join('media', 'achievements', '18.svg')),
+        (3, 2): (self.tr('Коллекционер'), os.path.join('media', 'achievements', '6.svg')),
+        (3, 3): (self.tr('С НГ!'), os.path.join('media', 'achievements', '19.svg')),
+        (3, 4): (self.tr('Звезда'), os.path.join('media', 'achievements', '20.svg')),
+    }
+
+
     def add_function(self):
         self.save_user_push.clicked.connect(self.save_user)
         self.set_password_push.clicked.connect(self.set_password)
@@ -1750,10 +1761,14 @@ class ProfileTab(QtWidgets.QWidget):
         self.group_label.setText(_translate('MainWindow', self.tr("Группа")))
         self.specialization_label.setText(_translate('MainWindow', self.tr("Специальность")))
 
-        self.save_user_push.setToolTip(self.tr('Сохронить изменения'))
+        self.save_user_push.setToolTip(self.tr('Сохранить изменения'))
         self.set_password_push.setToolTip(self.tr('Изменить пароль'))
         self.del_user_push.setToolTip(self.tr('Удалить пользователя'))
         self.logout_push.setToolTip(self.tr('Выйти из аккаунта'))
+        self.load_atchivments()
+
+
+
 
 
     def click_profile(self, *args, **kwargs):
@@ -1978,9 +1993,9 @@ class StatisticTab(QtWidgets.QWidget):
         self.set_style_diagrams_push_button = QtWidgets.QPushButton(self)
         self.set_style_diagrams_push_button.setObjectName(u"set_style_diagrams")
         self.horizontalLayout_11.addWidget(self.set_style_diagrams_push_button)
-        self.pushButton_5 = QtWidgets.QPushButton(self)
-        self.pushButton_5.setObjectName(u"pushButton_5")
-        self.horizontalLayout_11.addWidget(self.pushButton_5)
+        self.set_mod_view_push_button = QtWidgets.QPushButton(self)
+        self.set_mod_view_push_button.setObjectName(u"set_mod_view_push_button")
+        self.horizontalLayout_11.addWidget(self.set_mod_view_push_button)
         self.verticalLayout_14.addLayout(self.horizontalLayout_11)
         self.add_function()
 
@@ -1989,12 +2004,25 @@ class StatisticTab(QtWidgets.QWidget):
     def retranslate(self):
         self.update_statistic_push_button.setText(self.tr('Обновить статистику'))
         self.set_style_diagrams_push_button.setText(self.tr('Изменить стиль диаграмм'))
+        self.set_mod_view_push_button.setText(self.tr('Изменить отображение'))
+        self.save_diagram_push_button.setText(self.tr('Сохранить диаграмм'))
 
 
 
     def add_function(self):
         self.update_statistic_push_button.clicked.connect(self.update_statistic)
         self.set_style_diagrams_push_button.clicked.connect(self.set_style_diagrams)
+        self.set_mod_view_push_button.clicked.connect(self.set_mod_view)
+        self.save_diagram_push_button.clicked.connect(self.save_diagram)
+
+
+    def save_diagram(self):
+        path = QtWidgets.QFileDialog.getExistingDirectory()
+        self.grafic_period.figure.savefig(os.path.join(path, 'period.svg'), transparent=True)
+        self.grafic_group.figure.savefig(os.path.join(path, 'group.svg'), transparent=True)
+
+
+
 
     def clicked_before(self):
         self.init_statistic()
@@ -2003,6 +2031,14 @@ class StatisticTab(QtWidgets.QWidget):
 
     def set_style_diagrams(self):
         self.update_statistic(next(self.styles_diagram))
+
+    def set_mod_view(self):
+        if not hasattr(self, 'is_number'):
+            self.is_number = False
+            self.update_statistic(is_number=self.is_number)
+        else:
+            self.update_statistic(is_number=True)
+            del self.is_number
 
 
     def update_statistic(self, *args, **kwargs):
@@ -2032,6 +2068,7 @@ class StatisticTab(QtWidgets.QWidget):
             self.table_layout.setItem(row, 1, QTableWidgetItem(str(round(fractions[row]*100, 2))+'%'))
 
         self.table_layout.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
+        self.table_layout.setHorizontalHeaderLabels([self.tr('ФИО'), self.tr('Процент на студента')])
         self.verticalLayout_16.addWidget(self.table_layout)
 
     def __add_legend2(self, *args):
@@ -2053,6 +2090,7 @@ class StatisticTab(QtWidgets.QWidget):
 
 
         self.table_layout2.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
+        self.table_layout2.setHorizontalHeaderLabels([self.tr('Месяц'), self.tr('ПОУВ'), self.tr('НЕУВ'), self.tr('Всего')])
         self.verticalLayout_17.addWidget(self.table_layout2)
 
 
@@ -2066,48 +2104,50 @@ class Grafics(QtWidgets.QWidget):
         # self.toolbar = NavigationToolbar(self.canvas, self)
         self.layout = QtWidgets.QVBoxLayout()
         # self.layout.addWidget(self.toolbar)
-        # self.setMinimumSize(300, 300)
+
         # self.setMaximumSize(900, 600)
         plt.style.use('seaborn-v0_8-whitegrid')
 
         self.layout.addWidget(self.canvas)
         self.setLayout(self.layout)
 
-    def draw_graph(self, style=None):
+    def draw_graph(self, style=None, is_number=True):
         if style:
             plt.style.use(style)
         statistic = MANAGER_STUDENTS.get_total_statistic_period()
 
 
         labels = statistic.keys()
-        labels = list(map(lambda x: f'{x[0]!r} {ManagerStudents.MONTHS[x[1]]}', labels))
 
+        labels = list(map(lambda x: f'{x[0]!r} {ManagerStudents.MONTHS[x[1]]}', labels))
         data = list(map(lambda x: x[0], statistic.values()))
         data1 = list(map(lambda x: x[1], statistic.values()))
         data2 = list(map(lambda x: x[2], statistic.values()))
 
         self.figure.clear()
-        ax = self.figure.add_subplot()
-        ax.plot(list(map(str, range(1, len(labels)+1))), data, label =self.tr('ПОУВ'))
-        ax.plot(data1, label=self.tr('НЕУВ'))
-        ax.plot(data2, label=self.tr('Всего'))
+        self.ax = self.figure.add_subplot()
+        self.ax.plot(list(map(str, range(1, len(labels)+1))) if is_number else labels, data, label =self.tr('ПОУВ'))
+        self.ax.plot(data1, label=self.tr('НЕУВ'))
+        self.ax.plot(data2, label=self.tr('Всего'))
+        plt.xticks(rotation = 45)
 
 
 
-        ax.scatter(list(map(str, range(1, len(labels)+1))), data, s=5)
-        ax.scatter(list(map(str, range(1, len(labels) + 1))), data1, s=5)
-        ax.scatter(list(map(str, range(1, len(labels) + 1))), data2, s=5)
+
+        # ax.scatter(list(map(str, range(1, len(labels)+1))), data, s=5)
+        # ax.scatter(list(map(str, range(1, len(labels) + 1))), data1, s=5)
+        # ax.scatter(list(map(str, range(1, len(labels) + 1))), data2, s=5)
 
 
-        ax.legend(loc='upper left')
-        ax.set_title(self.tr('Тенденция прогулов по месяцам'))
+        self.ax.legend(loc='upper left')
+        self.ax.set_title(self.tr('Тенденция прогулов по месяцам'))
         self.canvas.draw()
         return labels, data, data1, data2
 
 
 
 
-    def draw_circle_graph(self, style=None):
+    def draw_circle_graph(self, style=None, is_number=True):
         if style:
             plt.style.use(style)
         try:
@@ -2118,9 +2158,9 @@ class Grafics(QtWidgets.QWidget):
             print('Ltktybt yf yjkm')
         else:
             self.figure.clear()
-            ax = self.figure.add_subplot()
-            ax.pie(values, labels=list(range(1, len(labels)+1)))
-            ax.set_title(self.tr('Доля прогулов на студента за месяц'))
+            self.ax = self.figure.add_subplot()
+            self.ax.pie(values, labels=list(range(1, len(labels)+1)) if is_number else labels)
+            self.ax.set_title(self.tr('Доля прогулов на студента за месяц'))
             self.canvas.draw()
             return labels, values
 
@@ -2794,7 +2834,7 @@ class WindowSetPassword(QtWidgets.QDialog):
         self.label.setText(_translate("Form", self.tr("Старый пароль")))
         self.label_2.setText(_translate("Form", self.tr("Новый пароль")))
         self.label_3.setText(_translate("Form", self.tr("Повторите новый пароль")))
-        self.save_password_pushbutton.setText(_translate("Form", self.tr("Сохрнить")))
+        self.save_password_pushbutton.setText(_translate("Form", self.tr("Сохранить")))
         self.cancel_pushbutton.setText(_translate("Form", self.tr("Отмена")))
 
     def add_function(self):

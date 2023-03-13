@@ -29,12 +29,12 @@ class User:
     @classmethod
     def check_fio(cls, fio):
         if not fio is None:
-            if cls.is_valud_fio(fio):
+            if cls.is_valid_fio(fio):
                 return fio
             raise ValueError('ФИО должно состоять только из букв и быть из 3 частей, каждая из которых не менее 2 символов')
 
     @staticmethod
-    def is_valud_fio(fio):
+    def is_valid_fio(fio):
         return isinstance(fio.replace(' ', ''), str) and sum(
             [item.isalpha() and len(item) >= 2 for item in fio.split()]) == 3
 
@@ -49,22 +49,22 @@ class User:
 
     @classmethod
     def check_password(cls, password):
-        if cls.is_valud_password(password):
+        if cls.is_valid_password(password):
             return password
-        raise ValueError('Пороль должен быть строкой из 4-30 символов')
+        raise ValueError('Пароль должен быть строкой из 4-30 символов')
 
     @staticmethod
-    def is_valud_password(password):
+    def is_valid_password(password):
         return isinstance(password, str) and 30 >= len(password) >= 4
 
     @classmethod
     def check_username(cls, username):
-        if cls.is_valud_username(username):
+        if cls.is_valid_username(username):
             return username
         raise TypeError('Имя пользователя должено быть строкой из 3-20 букв или числовых символов')
 
     @staticmethod
-    def is_valud_username(username):
+    def is_valid_username(username):
         return isinstance(username, str) and 20 >= len(username) >= 3 and username.isalnum()
 
     @classmethod
