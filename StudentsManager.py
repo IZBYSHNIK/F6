@@ -22,11 +22,16 @@ class Student:
     def __str__(self):
         return self.create_shorts_fio(self.fio)
 
-    @staticmethod
-    def chech_fio(fio):
-        if isinstance(fio.replace(' ', ''), str) and sum([item.isalpha() and len(item) >= 2 for item in fio.split()]) == 3:
+    @classmethod
+    def chech_fio(cls, fio):
+        if cls.is_valud_fio(fio):
             return fio.title()
         raise ValueError('ФИО должно состоять только из букв и быть из 3 частей, каждая из которых не менее 2 символов')
+
+    @staticmethod
+    def is_valud_fio(fio):
+        return isinstance(fio.replace(' ', ''), str) and sum([item.isalpha() and len(item) >= 2 for item in fio.split()]) == 3
+
 
     @staticmethod
     def chech_day(day):
@@ -715,15 +720,39 @@ class ManagerStudents:
             statisitcs['quality_academic_performance'] = 0
         return statisitcs
 
-    def push_archive(self, new_file_name=None):
+    def push_archive(self, *args, **kargs):
         if not os.path.exists(os.path.join(self.user.path, 'archive')):
             os.makedirs(os.path.join(self.user.path, "archive"))
+        file_path, file_name = self.create_archive_file_path(*args, **kargs)
+
+
         self.replace_file(os.path.join(self.user.path, 'students.json'),
                    os.path.join(self.user.path, 'archive', 'students.json'))
+        self.rename_file(os.path.join(self.user.path, 'archive', 'students.json'), file_path)
 
-        new_file_path = os.path.join(self.user.path, 'archive', new_file_name if new_file_name else str(self.period[1])+'_'+str(self.period[0]).rjust(2, '0')+self.MONTHS[self.period[0]-1]+'.json')
-        self.rename_file(os.path.join(self.user.path, 'archive', 'students.json'), new_file_path)
-        return new_file_path
+
+
+    def create_archive_file_path(self, file_name=None, auto=False):
+        if not file_name:
+            file_name = self.create_archive_file_name()
+
+        if os.path.exists(os.path.join(self.user.path, 'archive', file_name)) and not auto:
+            raise FileExistsError
+
+        id_copy = 1
+        while os.path.exists(os.path.join(self.user.path, 'archive', file_name)):
+            file_name = self.create_archive_file_name(id_copy)
+            id_copy += 1
+
+        return os.path.join(self.user.path, 'archive', file_name), file_name
+
+    def create_archive_file_name(self, level=''):
+        if level:
+            level = ' (' + str(level) + ')'
+        return str(self.period[1]) + '_' + str(self.period[0]).rjust(2, '0') + self.MONTHS[
+                self.period[0] - 1] + level + '.json'
+
+
 
     def create_new_table(self):
         if 1 <= self.period[0] < 12:
@@ -798,7 +827,7 @@ class ManagerStudents:
 
 
     def del_file_archive(self, file_name):
-        os.remove(os.path.join(self.path_archive, file_name))
+        os.remove(os.path.join(self.path_archive_files, file_name))
 
 
 

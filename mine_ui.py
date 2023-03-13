@@ -15,11 +15,16 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 from StudentsManager import ManagerStudents
 from UserManager import UserManager
 
+from PySide6.QtCore import QTranslator, QLocale, QLibraryInfo
+
+
+
 
 VERSION = '1.1.5'
 
-is_work = True
-is_new_user = False
+LANGUAGES = ['english', 'china', 'russia']
+
+
 dirname, filename = os.path.split(os.path.abspath(__file__))
 
 
@@ -76,7 +81,7 @@ class SplashScreen(QtWidgets.QSplashScreen):
         _translate = QtCore.QCoreApplication.translate
         self.setWindowTitle(_translate("Form", "Form"))
         self.version.setText(_translate("Form", VERSION))
-        self.message.setText(_translate("Form", "Идет загрузка программы, ожидайте ..."))
+        self.message.setText(_translate("Form", self.tr("Идет загрузка программы, ожидайте ...")))
 
 
 class LicenseWindow(QtWidgets.QWidget):
@@ -123,14 +128,14 @@ class LicenseWindow(QtWidgets.QWidget):
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
-        self.setWindowTitle(_translate("Form", "Лицензия"))
-        self.label.setText(_translate("Form", "Лицензионное соглашение"))
-        self.textBrowser.setHtml(_translate("Form", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt;\">ппппппппппппппп</span></p></body></html>"))
-        self.pushButton.setText(_translate("Form", "ОК"))
+        self.setWindowTitle(_translate("Form", self.tr("Лицензия")))
+        self.label.setText(_translate("Form", self.tr("Лицензионное соглашение")))
+#         self.textBrowser.setHtml(_translate("Form", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+# "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+# "p, li { white-space: pre-wrap; }\n"
+# "</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
+# "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt;\">ппппппппппппппп</span></p></body></html>"))
+        self.pushButton.setText(_translate("Form", self.tr("ОК")))
 
     def click_OK(self):
         global is_click_license
@@ -183,8 +188,8 @@ class Regist(QtWidgets.QWidget):
         self.regist_lable = QtWidgets.QLabel(self)
         self.regist_lable.setEnabled(True)
         self.regist_lable.setGeometry(QtCore.QRect(0, -10, 442, 100))
-        self.regist_lable.setMinimumSize(QtCore.QSize(442, 100))
-        self.regist_lable.setMaximumSize(QtCore.QSize(442, 70))
+        # self.regist_lable.setMinimumSize(QtCore.QSize(442, 100))
+        # self.regist_lable.setMaximumSize(QtCore.QSize(442, 70))
         self.regist_lable.setStyleSheet("")
         self.regist_lable.setTextFormat(QtCore.Qt.TextFormat.RichText)
         self.regist_lable.setScaledContents(False)
@@ -224,13 +229,13 @@ class Regist(QtWidgets.QWidget):
         self.password_edit.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
         self.password_edit.setObjectName("password_edit")
         self.login_lable = QtWidgets.QLabel(self)
-        self.login_lable.setGeometry(QtCore.QRect(20, 100, 311, 41))
+        self.login_lable.move(20, 100)
         font = QtGui.QFont()
         font.setPointSize(14)
         self.login_lable.setFont(font)
         self.login_lable.setObjectName("login_lable")
         self.password_lable = QtWidgets.QLabel(self)
-        self.password_lable.setGeometry(QtCore.QRect(20, 190, 141, 51))
+        self.password_lable.move(20, 190)
         font = QtGui.QFont()
         font.setPointSize(14)
         self.password_lable.setFont(font)
@@ -240,13 +245,13 @@ class Regist(QtWidgets.QWidget):
         self.password_edit_2.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
         self.password_edit_2.setObjectName("password_edit_2")
         self.password_lable_2 = QtWidgets.QLabel(self)
-        self.password_lable_2.setGeometry(QtCore.QRect(30, 280, 311, 51))
+        self.password_lable_2.move(30, 280)
         font = QtGui.QFont()
         font.setPointSize(14)
         self.password_lable_2.setFont(font)
         self.password_lable_2.setObjectName("password_lable_2")
         self.teamleader_lable = QtWidgets.QLabel(self)
-        self.teamleader_lable.setGeometry(QtCore.QRect(240, 380, 311, 51))
+        self.teamleader_lable.move(240, 380)
         font = QtGui.QFont()
         font.setPointSize(11)
         self.teamleader_lable.setFont(font)
@@ -260,7 +265,7 @@ class Regist(QtWidgets.QWidget):
         self.office_name_edit.setFocusPolicy(QtCore.Qt.FocusPolicy.StrongFocus)
         self.office_name_edit.setObjectName("office_name_edit")
         self.office_name_lable = QtWidgets.QLabel(self)
-        self.office_name_lable.setGeometry(QtCore.QRect(40, 380, 91, 51))
+        self.office_name_lable.move(40, 380)
         font = QtGui.QFont()
         font.setPointSize(11)
         self.office_name_lable.setFont(font)
@@ -312,30 +317,39 @@ class Regist(QtWidgets.QWidget):
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
-        self.setWindowTitle(_translate("Regist", "Регистрация"))
-        self.regist_lable.setText(_translate("Regist", "<html><head/><body><p>РЕГИСТРАЦИЯ</p></body></html>"))
-        self.create_push.setText(_translate("Regist", "Создать"))
-        self.cancel_push.setText(_translate("Regist", "Отмена"))
-        self.login_lable.setText(_translate("Regist", "*Имя пользователя"))
-        self.password_lable.setText(_translate("Regist", "*Пароль"))
-        self.password_lable_2.setText(_translate("Regist", "*Повторите пароль"))
-        self.teamleader_lable.setText(_translate("Regist", "ФИО Кл.руководителя"))
-        self.office_name_lable.setText(_translate("Regist", "Своё ФИО"))
-        self.group_lable.setText(_translate("Regist", "Группа"))
-        self.specialization_lable.setText('Специализация')
+        self.setWindowTitle(_translate("Regist", self.tr("Регистрация")))
+        self.regist_lable.setText(_translate("Regist", self.tr("РЕГИСТРАЦИЯ")))
+        self.create_push.setText(_translate("Regist", self.tr("Создать")))
+        self.cancel_push.setText(_translate("Regist", self.tr("Отмена")))
+        self.login_lable.setText(_translate("Regist", self.tr("*Имя пользователя")))
+        self.password_lable.setText(_translate("Regist", self.tr("*Пароль")))
+        self.password_lable_2.setText(_translate("Regist", self.tr("*Повторите пароль")))
+        self.teamleader_lable.setText(_translate("Regist", self.tr("ФИО Кл.руководителя")))
+        self.office_name_lable.setText(_translate("Regist", self.tr("Своё ФИО")))
+        self.group_lable.setText(_translate("Regist", self.tr("Группа")))
+        self.specialization_lable.setText(self.tr('Специализация'))
 
     def check_lables(self):
         kwargs = {}
         USER_MANAGER.USER_CLASS.check_username(self.login_edit.text())
         USER_MANAGER.USER_CLASS.check_password(self.password_edit.text())
         if self.login_edit.text() in USER_MANAGER.users_id.values():
-            raise ValueError('Имя пользователя занято')
+            raise ValueError(self.tr('Имя пользователя занято'))
         if not self.password_edit.text() == self.password_edit_2.text():
-            raise ValueError('Не совподают пароли')
+            raise ValueError( self.tr('Не совподают пароли'))
         if self.office_name_edit.text():
-            kwargs['offical_name'] = USER_MANAGER.USER_CLASS.check_fio(self.office_name_edit.text())
+            if USER_MANAGER.USER_CLASS.is_valid_fio(self.office_name_edit.text()):
+                kwargs['offical_name'] = self.office_name_edit.text()
+            else:
+                raise ValueError(
+                    self.tr('ФИО должно состоять только из букв и быть из 3 частей, каждая из которых не менее 2 символов'))
         if self.teamleader_edit.text():
-            kwargs['teamleader'] = USER_MANAGER.USER_CLASS.check_fio(self.teamleader_edit.text())
+            if USER_MANAGER.USER_CLASS.is_valid_fio(self.teamleader_edit.text()):
+                kwargs['teamleader'] = USER_MANAGER.USER_CLASS.check_fio(self.teamleader_edit.text())
+            else:
+                raise ValueError(
+                    self.tr(
+                        'ФИО должно состоять только из букв и быть из 3 частей, каждая из которых не менее 2 символов'))
         if self.group_edit.text():
             kwargs['group'] = self.group_edit.text()
         if self.specialization_edit.text():
@@ -394,6 +408,12 @@ class Auth(QtWidgets.QWidget):
         self.auth.setScaledContents(False)
         self.auth.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.auth.setObjectName("auth")
+
+        self.logo = QtSvgWidgets.QSvgWidget(self)
+        self.logo.load(os.path.join(BASE_PATH, 'media', 'language.svg'))
+        self.logo.setFixedSize(QtCore.QSize(50, 50))
+        self.logo.move(362, 100)
+
         self.in_push = QtWidgets.QPushButton(self)
         self.in_push.setGeometry(QtCore.QRect(70, 480, 151, 61))
         self.in_push.setCursor(QtGui.QCursor(QtCore.Qt.CursorShape.ArrowCursor))
@@ -413,10 +433,10 @@ class Auth(QtWidgets.QWidget):
         self.password_edit.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
         self.password_edit.setObjectName("password_edit")
         self.login_lable = QtWidgets.QLabel(self)
-        self.login_lable.setGeometry(QtCore.QRect(70, 120, 131, 41))
+        self.login_lable.move(70, 120)
         self.login_lable.setObjectName("login_lable")
         self.password_lable = QtWidgets.QLabel(self)
-        self.password_lable.setGeometry(QtCore.QRect(70, 235, 141, 51))
+        self.password_lable.move(70, 235)
         self.password_lable.setObjectName("password_lable")
         self.message_auth = QtWidgets.QTextBrowser(self)
         self.message_auth.setGeometry(60, 351 + 20, 351, 41)
@@ -427,8 +447,6 @@ class Auth(QtWidgets.QWidget):
         self.license_link.setText('©2022DegtyarevIvan')
         self.license_link.setIcon(QtGui.QIcon(''))
         self.license_link.setGeometry(QtCore.QRect(125, 540, 442, 100))
-
-
 
         self.message_auth.setStyleSheet(
             'border: none; color: red; font: 14px; background-color: rgba(249, 248, 244, 0);')
@@ -445,15 +463,21 @@ class Auth(QtWidgets.QWidget):
         self.in_push.clicked.connect(self.click_auth_push)
         self.regist_push.clicked.connect(self.click_regis_push)
         self.license_link.clicked.connect(self.click_license)
+        self.logo.mousePressEvent = self.set_language
+
+        self.languages = ManagerStudents.crate_eternal_iter(LANGUAGES)
+
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
-        self.setWindowTitle(_translate("Auth", "Авторизация"))
-        self.auth.setText(_translate("Auth", "<p>АВТОРИЗАЦИЯ </p>"))
-        self.in_push.setText(_translate("Auth", "Вход"))
-        self.regist_push.setText(_translate("Auth", "Регистрация"))
-        self.login_lable.setText(_translate("Auth", "Логин"))
-        self.password_lable.setText(_translate("Auth", "Пароль"))
+        self.setWindowTitle(_translate("Auth", self.tr("Авторизация")))
+        self.auth.setText(_translate("Auth", self.tr("АВТОРИЗАЦИЯ")))
+        self.in_push.setText(_translate("Auth", self.tr("Вход")))
+        self.regist_push.setText(_translate("Auth", self.tr("Регистрация")))
+        self.login_lable.setText(_translate("Auth", self.tr("Логин")))
+        self.password_lable.setText(_translate("Auth", self.tr("Пароль")))
+
+        self.licensewindow.retranslateUi()
 
     def keyPressEvent(self, e):
         k = e.key()
@@ -467,16 +491,17 @@ class Auth(QtWidgets.QWidget):
             self.spin_box.addItem(QIcon('0'), USER_MANAGER.users_id[i])
 
     def checking_log_password(self):
-        USER_MANAGER.USER_CLASS.check_username(self.spin_box.currentText())
-        USER_MANAGER.USER_CLASS.check_password(self.password_edit.text())
+        if not USER_MANAGER.USER_CLASS.is_valud_username(self.spin_box.currentText()):
+            raise ValueError(self.tr('Имя пользователя должено быть строкой из 3-20 букв или числовых символов'))
+        if not USER_MANAGER.USER_CLASS.is_valud_password(self.password_edit.text()):
+            raise ValueError(self.tr('Пороль должен быть строкой из 4-30 символов'))
         return self.spin_box.currentText(), self.password_edit.text()
 
     def click_auth_push(self):
         try:
             username, password = self.checking_log_password()
         except BaseException as message:
-            # self.message = QtWidgets.QMessageBox().critical(self, "Ошибка", str(message), QtWidgets.QMessageBox.StandardButton.Ok)
-            self.message_auth.setText('*' + str(message))
+            self.message_auth.setText(self.tr('*Неверный пароль'))
         else:
             try:
                 USER_MANAGER.link_user_by_username(username, password)
@@ -493,6 +518,22 @@ class Auth(QtWidgets.QWidget):
 
     def click_license(self):
         self.licensewindow.show()
+
+    def set_language(self, *args, **kwargs):
+        global  translator
+        print('langiages')
+        l = next(self.languages)
+        print(l)
+        if translator.load(os.path.join(BASE_PATH, 'languages', l)):
+            app.installTranslator(translator)
+
+
+
+        windows.retranslateUi()
+
+
+
+
 
 
 class AbsenceTab(QtWidgets.QWidget):
@@ -547,11 +588,12 @@ class AbsenceTab(QtWidgets.QWidget):
         self.horizontalLayout_4.addWidget(self.radioButton_2)
 
         # ________________________________________
-        self.set_size_posetiv_font_push = Push(self.frame, 40, 40, 5, tool_tip='Увеличить размер текста',
+        self.set_size_posetiv_font_push = Push(self.frame, 40, 40, 5,
                                                icon_path=os.path.join('media', 'posetive.svg'))
+
         self.horizontalLayout_2.addWidget(self.set_size_posetiv_font_push)
 
-        self.set_size_negativ_font_push = Push(self.frame, 40, 40, 5, tool_tip='Уменьшить размер текста',
+        self.set_size_negativ_font_push = Push(self.frame, 40, 40, 5,
                                                icon_path=os.path.join('media', 'negative.svg'))
         self.horizontalLayout_2.addWidget(self.set_size_negativ_font_push)
 
@@ -559,15 +601,15 @@ class AbsenceTab(QtWidgets.QWidget):
 
         self.horizontalLayout_2.addLayout(self.horizontalLayout_4)
 
-        self.save_table_push = Push(self.frame, 40, 40, 5, tool_tip='Сохронить изменения',
+        self.save_table_push = Push(self.frame, 40, 40, 5,
                                     icon_path=os.path.join('media', 'buttons', 'save.svg'))
         self.save_table_push.setObjectName("save_table_push")
         self.horizontalLayout_2.addWidget(self.save_table_push)
-        self.game_over_push = Push(self.frame, 40, 40, 5, tool_tip='Завершить текущий месяц',
+        self.game_over_push = Push(self.frame, 40, 40, 5,
                                    icon_path=os.path.join('media', 'game_over.svg'))
         self.game_over_push.setObjectName("game_over_push")
         self.horizontalLayout_2.addWidget(self.game_over_push)
-        self.save_to_exel_push = Push(self.frame, 55, 55, 5, tool_tip='Сохронить в EXEL',
+        self.save_to_exel_push = Push(self.frame, 55, 55, 5,
                                       icon_path=os.path.join('media', 'save_exel.svg'))
         self.save_to_exel_push.setObjectName("save_to_exel_push")
         self.horizontalLayout_2.addWidget(self.save_to_exel_push)
@@ -587,17 +629,25 @@ class AbsenceTab(QtWidgets.QWidget):
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
-        self.label_2.setText(_translate("MainWindow", f"Добро пожаловать, Nouname!"))
-        self.is_sick_rb.setText(_translate("MainWindow", "ПОУВ"))
-        self.radioButton_2.setText(_translate("MainWindow", "НЕУВ"))
+        self.label_2.setText(_translate("MainWindow",  self.tr('Добро пожаловать ') + f", Nouname!"))
+        self.is_sick_rb.setText(_translate("MainWindow",  self.tr("ПОУВ")))
+        self.radioButton_2.setText(_translate("MainWindow",  self.tr("НЕУВ")))
+
+        self.set_size_posetiv_font_push.setToolTip(self.tr('Увеличить размер текста'))
+        self.set_size_negativ_font_push.setToolTip(self.tr('Уменьшить размер текста'))
+        self.save_table_push.setToolTip(self.tr('Сохранить изменения'))
+        self.game_over_push.setToolTip(self.tr('Завершить текущий месяц'))
+        self.save_to_exel_push.setToolTip(self.tr('Сохранить в EXEL'))
 
     def update_statistics(self):
         statistics = MANAGER_STUDENTS.get_statistics()
         if statistics.get('man_hours') > 0:
             self.statustic1.setText(
-                f'Чел.час = {str(statistics.get("man_hours"))} \t\t Посещ.Кач. = {str(round(statistics.get("quality_attendance") * 100, 2))}%')
+                self.tr(f'Чел.час = ') + f'{str(statistics.get("man_hours"))} \t' +
+                        self.tr(f' Посещ.Кач. = ') + f'{str(round(statistics.get("quality_attendance") * 100, 2))}%')
             self.statustic2.setText(
-                f'Посещ.Общ. = {str(round(statistics.get("total_attendance") * 100, 2))}% \t Прогул 1 студ. = {str(round(statistics.get("absences_by_student", 1)))}')
+                self.tr(f'Посещ.Общ. = ') + f'{str(round(statistics.get("total_attendance") * 100, 2))}% \t' +
+            self.tr('Прогул 1 студ. = ') + f'{str(round(statistics.get("absences_by_student", 1)))}')
         else:
             self.statustic1.clear()
             self.statustic2.clear()
@@ -606,18 +656,18 @@ class AbsenceTab(QtWidgets.QWidget):
         options = QtWidgets.QFileDialog.Options()
         options |= QtWidgets.QFileDialog.Option.DontUseNativeDialog
 
-        file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Выберите путь и имя файла для сохранения.",
+        file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self,  self.tr("Выберите путь и имя файла для сохранения."),
         f'{"_".join(["П", str(MANAGER_STUDENTS.MONTHS[MANAGER_STUDENTS.period[0] - 1]), str(MANAGER_STUDENTS.period[1]), str(USER_MANAGER.user.username)])}.xlsx',
-        "Книга Excel (*.xlsx)")
+         self.tr("Книга Excel (*.xlsx)"))
 
         if file_name:
             try:
                 path = MANAGER_STUDENTS.save_f6(file_name)
             except BaseException as f:
-                QtWidgets.QMessageBox.critical(self, 'Ошибка сохранения', 'Файл не был сохранен. Повторите попытку')
+                QtWidgets.QMessageBox.critical(self,  self.tr('Ошибка сохранения'),  self.tr('Файл не был сохранен. Повторите попытку'))
             else:
-                QtWidgets.QMessageBox.information(self, 'Успешное сохранение',
-                                                  f'Файл успешно сохранен в дириктории: {path}')
+                QtWidgets.QMessageBox.information(self,  self.tr('Успешное сохранение'),
+                                                   self.tr(f'Файл успешно сохранен в дириктории: {path}'))
 
     def save_table(self):
         MANAGER_STUDENTS.save_students()
@@ -634,7 +684,7 @@ class AbsenceTab(QtWidgets.QWidget):
 
     def clicked_table(self, tablewidget):
         if self.parent.group.indexOf(self.parent.students) == -1 and len(MANAGER_STUDENTS.students) != 0:
-            self.parent.group.insertTab(2, self.parent.students, 'Cтуденты')
+            self.parent.group.insertTab(2, self.parent.students,  self.tr('Cтуденты'))
 
         item = tablewidget.currentItem()
         if not item is None:
@@ -685,7 +735,7 @@ class AbsenceTab(QtWidgets.QWidget):
                             item.setBackground(QtGui.QColor(255, 0, 0))
                         else:
                             self.parent.profile.cod = [0, 1]
-                            if item.text().lower() == 'чайковский пётр ильич':
+                            if item.text().lower() == self.tr('чайковский пётр ильич') or item.text().lower() == 'чайковский петр ильич':
                                 self.parent.profile.cod = [2, 2]
                             if len(MANAGER_STUDENTS.students) < 30:
                                 MANAGER_STUDENTS.add_student(MANAGER_STUDENTS.CLASS_STUDENT(item.text()))
@@ -711,35 +761,35 @@ class AbsenceTab(QtWidgets.QWidget):
         self.is_click_end_period = 1
         self.parent.profile.cod = [0, 2]
         i = 1
-        message = QtWidgets.QMessageBox.question(self, 'Завершение',
-                                                 'Вы точно хотите завершить этот месяц? \n После этого форма шесть будет сохранена, перенесена и находится в архиве.',
+        message = QtWidgets.QMessageBox.question(self, self.tr('Завершение текущего месяца'),
+                                                 self.tr('После завершения рабочего месяца, таблицы будут сохранены в архиве, но изменение данных в них будет уже не доступно. Продолжить?'),
                                                  QtWidgets.QMessageBox.StandardButton.No | QtWidgets.QMessageBox.StandardButton.Yes)
         if message.Yes == message:
             MANAGER_STUDENTS.save_students()
             try:
-                file_path = MANAGER_STUDENTS.push_archive()
+                MANAGER_STUDENTS.push_archive()#
             except FileExistsError:
-                massage = QtWidgets.QMessageBox.question(self, 'Ошибка',
-                                                 'Файл уже существует. Заменить его?',
+
+                massage = QtWidgets.QMessageBox.question(self, self.tr('Ошибка'),
+                                                 self.tr('Файл уже существует. Заменить его?\nДа - заменит старый файл на новый\nНет - файл будет помещен рядом'),
                                                  QtWidgets.QMessageBox.StandardButton.No | QtWidgets.QMessageBox.StandardButton.Yes)
-                i = 0
 
                 if massage == massage.Yes:
-                    MANAGER_STUDENTS.del_file_archive(file_path)
+                    MANAGER_STUDENTS.del_file_archive(MANAGER_STUDENTS.create_archive_file_name())
                     MANAGER_STUDENTS.push_archive()
                 else:
-                    MANAGER_STUDENTS.del_file_archive(auto=True)
+                    MANAGER_STUDENTS.push_archive(auto=True)
 
+            except FileNotFoundError:
+                print('Отстутствует активный файл')
 
-            else:
-
-                MANAGER_STUDENTS.create_new_table()
-                self.update_statistics()
-                self.parent.marks.update_statistics_2()
-                self.tableWidget.update_table_students()
-                self.parent.marks.tableWidget_3.update_table_students()
-                self.parent.archive.init_archive()
-                self.parent.profile.cod = [3, 2]
+            MANAGER_STUDENTS.create_new_table()
+            self.update_statistics()
+            self.parent.marks.update_statistics_2()
+            self.tableWidget.update_table_students()
+            self.parent.marks.tableWidget_3.update_table_students()
+            self.parent.archive.init_archive()
+            self.parent.profile.cod = [3, 2]
 
     def init_table_absence(self, only_show=False):
         if hasattr(self, 'tableWidget'):
@@ -817,30 +867,37 @@ class MarksTab(QtWidgets.QWidget):
         self.horizontalLayout_19 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_19.setContentsMargins(7, -1, -1, -1)
         self.horizontalLayout_19.setObjectName("horizontalLayout_19")
-        self.pushButton_9 = Push(self.frame_3, 40, 40, 5, tool_tip='Сохронить изменения',
+        self.pushButton_9 = Push(self.frame_3, 40, 40, 5,
                                  icon_path=os.path.join('media', 'buttons', 'save.svg'))
         self.pushButton_9.setObjectName("pushButton_9")
 
         # ___________________________________________________________________
-        self.set_size_posetiv_font_push2 = Push(self.frame_3, 40, 40, 5, tool_tip='Увеличить размер текста',
+        self.set_size_posetiv_font_push = Push(self.frame_3, 40, 40, 5,
                                                 icon_path=os.path.join('media', 'posetive.svg'))
-        self.horizontalLayout_19.addWidget(self.set_size_posetiv_font_push2)
+        self.horizontalLayout_19.addWidget(self.set_size_posetiv_font_push)
 
-        self.set_size_negativ_font_push2 = Push(self.frame_3, 40, 40, 5, tool_tip='Уменьшить размер текста',
+        self.set_size_negativ_font_push = Push(self.frame_3, 40, 40, 5,
                                                 icon_path=os.path.join('media', 'negative.svg'))
-        self.horizontalLayout_19.addWidget(self.set_size_negativ_font_push2)
+        self.horizontalLayout_19.addWidget(self.set_size_negativ_font_push)
 
         # ___________________________________________________________________
         self.horizontalLayout_19.addWidget(self.pushButton_9)
-        self.save_to_exel_marks_push = Push(self.frame_3, 55, 55, 5, tool_tip='Сохронить в EXEL',
+        self.save_to_exel_marks_push = Push(self.frame_3, 55, 55, 5,
                                             icon_path=os.path.join('media', 'save_exel.svg'))
         self.save_to_exel_marks_push.setObjectName("pushButton_10")
         self.horizontalLayout_19.addWidget(self.save_to_exel_marks_push)
         self.horizontalLayout_17.addLayout(self.horizontalLayout_19)
         self.verticalLayout_24.addWidget(self.frame_3)
         self.verticalLayout_25.addLayout(self.verticalLayout_24)
-
+        self.retranslateUi()
         self.add_function()
+
+    def retranslateUi(self):
+        _translate = QtCore.QCoreApplication.translate
+        self.set_size_posetiv_font_push.setToolTip(self.tr('Увеличить размер текста'))
+        self.set_size_negativ_font_push.setToolTip(self.tr('Уменьшить размер текста'))
+        self.pushButton_9.setToolTip(self.tr('Сохранить изменения'))
+        self.save_to_exel_marks_push.setToolTip(self.tr('Сохранить в EXEL'))
 
     def add_function(self):
         self.pushButton_9.clicked.connect(self.save_table)
@@ -850,9 +907,9 @@ class MarksTab(QtWidgets.QWidget):
         statistics = MANAGER_STUDENTS.get_statistics_marks()
         if statistics.get('is_ready') == 1:
             self.statustic3.setText(
-                f'Кол-во студ. им-х 2 = {statistics.get("heaving_2")!r} | Кол-во студ. им-х одну 3 = {statistics.get("heaving_one_3")!r} \t| Успеваемость общая = {str(round(statistics.get("total_academic_performance", 0) * 100, 2))}%')
+                self.tr(f'Кол-во студ. им-х 2 = {statistics.get("heaving_2")!r} | Кол-во студ. им-х одну 3 = {statistics.get("heaving_one_3")!r} \t| Успеваемость общая = {str(round(statistics.get("total_academic_performance", 0) * 100, 2))}%'))
             self.statustic4.setText(
-                f'Кол-во студ. им-х 5 = {statistics.get("heaving_5")!r} | Кол-во студ. им-х 4 и 5 = {statistics.get("heaving_4_and_5")!r}\t| Успеваемость качественная = {round(statistics.get("quality_academic_performance", 0) * 100, 2)!r}%')
+                self.tr(f'Кол-во студ. им-х 5 = {statistics.get("heaving_5")!r} | Кол-во студ. им-х 4 и 5 = {statistics.get("heaving_4_and_5")!r}\t| Успеваемость качественная = {round(statistics.get("quality_academic_performance", 0) * 100, 2)!r}%'))
         else:
             self.statustic3.clear()
             self.statustic4.clear()
@@ -871,8 +928,8 @@ class MarksTab(QtWidgets.QWidget):
         self.verticalLayout_25.addItem(
             QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum))
 
-        self.set_size_negativ_font_push2.clicked.connect(lambda: self.set_size_font(False))
-        self.set_size_posetiv_font_push2.clicked.connect(lambda: self.set_size_font())
+        self.set_size_negativ_font_push.clicked.connect(lambda: self.set_size_font(False))
+        self.set_size_posetiv_font_push.clicked.connect(lambda: self.set_size_font())
         self.tableWidget_3.update_table_students()
 
         if not only_show:
@@ -916,25 +973,25 @@ class MarksTab(QtWidgets.QWidget):
     def set_size_font(self, is_posetiv=True):
         if is_posetiv and self.tableWidget_3.mod_size < 25:
             self.tableWidget_3.update_table_students(size=self.tableWidget_3.mod_size + 2)
-        elif table.mod_size > -8:
+        elif self.tableWidget_3.mod_size > -8:
             self.tableWidget_3.update_table_students(size=self.tableWidget_3.mod_size - 2)
 
     def save_to_exel_marks(self):
         options = QtWidgets.QFileDialog.Options()
         options |= QtWidgets.QFileDialog.Option.DontUseNativeDialog
 
-        file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Выберите путь и имя файла для сохранения.",
+        file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, self.tr("Выберите путь и имя файла для сохранения."),
                                                              f'{"_".join(["О", str(MANAGER_STUDENTS.MONTHS[MANAGER_STUDENTS.period[0] - 1]), str(MANAGER_STUDENTS.period[1]), str(USER_MANAGER.user.username)])}.xlsx',
-                                                             "Книга Excel (*.xlsx)")
+                                                             self.tr("Книга Excel (*.xlsx)"))
 
         if file_name:
             try:
                 path = MANAGER_STUDENTS.save_f6(file_name)
             except BaseException as f:
-                QtWidgets.QMessageBox.critical(self, 'Ошибка сохранения', 'Файл не был сохранен. Повторите попытку')
+                QtWidgets.QMessageBox.critical(self, self.tr('Ошибка сохранения', 'Файл не был сохранен. Повторите попытку'))
             else:
-                QtWidgets.QMessageBox.information(self, 'Успешное сохранение',
-                                                  f'Файл успешно сохранен в дириктории: {path}')
+                QtWidgets.QMessageBox.information(self, self.tr('Успешное сохранение'),
+                                                  self.tr(f'Файл успешно сохранен в дириктории: {path}'))
 
 
     def cellPressed(self, row, column):
@@ -1055,10 +1112,10 @@ class StudentsTab(QtWidgets.QWidget):
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
-        self.fio_label.setText(_translate("MainWindow", "ФИО"))
-        self.del_push.setText(_translate("MainWindow", "Удалить"))
-        self.save_push.setText(_translate("MainWindow", "Сохранить"))
-        self.label.setText(_translate("MainWindow", "Список студентов"))
+        self.fio_label.setText(_translate("MainWindow", self.tr("ФИО")))
+        self.del_push.setText(_translate("MainWindow", self.tr("Удалить")))
+        self.save_push.setText(_translate("MainWindow", self.tr("Сохранить")))
+        self.label.setText(_translate("MainWindow", self.tr("Список студентов")))
 
     def add_function(self):
         self.save_push.clicked.connect(self.save_student)
@@ -1074,11 +1131,7 @@ class StudentsTab(QtWidgets.QWidget):
     def save_student(self):
         self.message_students.setText('')
         if self.listWidget.currentItem():
-            try:
-                MANAGER_STUDENTS.CLASS_STUDENT.chech_fio(self.fio_edit.text())
-            except BaseException as f:
-                self.message_students.setText(str(f))
-            else:
+            if MANAGER_STUDENTS.CLASS_STUDENT.is_valud_fio(self.fio_edit.text()):
                 MANAGER_STUDENTS.students[
                     self.listWidget.row(self.listWidget.currentItem())].fio = self.fio_edit.text()
                 self.update_list_students()
@@ -1088,10 +1141,13 @@ class StudentsTab(QtWidgets.QWidget):
                     self.parent.F6.tableWidget.update_table_students()
                 MANAGER_STUDENTS.save_students()
 
+            else:
+                self.message_students.setText(self.tr('ФИО должно состоять только из букв и быть из 3 частей, каждая из которых не менее 2 символов'))
+
     def del_student(self):
         if self.listWidget.currentItem():
-            message_main = QtWidgets.QMessageBox().question(self, "Удаление студента",
-                                                            str(f'Вы точно хотите навсегда удалить студента {" ".join(self.listWidget.currentItem().text().split()[1:])}?'),
+            message_main = QtWidgets.QMessageBox().question(self, self.tr("Удаление студента"),
+                                                            str(self.tr(f'Вы точно хотите навсегда удалить студента {" ".join(self.listWidget.currentItem().text().split()[1:])}?')),
                                                             QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
             if message_main == message_main.Yes:
                 MANAGER_STUDENTS.remove_student_id(self.listWidget.row(self.listWidget.currentItem()))
@@ -1167,7 +1223,7 @@ class ArchiveTab(QtWidgets.QWidget):
         self.load_file_push.setObjectName("load_file_push")
         self.horizontalLayout_9.addWidget(self.load_file_push)
         self.verticalLayout_11.addLayout(self.horizontalLayout_9)
-        self.logout_archive_push = Push(self.parent.F6.frame, 40, 40, 5, tool_tip='Выйти из архива',
+        self.logout_archive_push = Push(self.parent.F6.frame, 40, 40, 5, tool_tip=self.tr('Выйти из архива'),
                                         icon_path=os.path.join('media', 'undo.svg'))
         self.logout_archive_push.hide()
         self.logout_archive_push.setObjectName("logout_archive_push")
@@ -1181,9 +1237,9 @@ class ArchiveTab(QtWidgets.QWidget):
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
-        self.label_4.setText(_translate("MainWindow", "Доступные файлы"))
-        self.del_file_push.setText(_translate("MainWindow", "Удалить"))
-        self.load_file_push.setText(_translate("MainWindow", "Активировать"))
+        self.label_4.setText(_translate("MainWindow", self.tr("Доступные файлы")))
+        self.del_file_push.setText(_translate("MainWindow", self.tr("Удалить")))
+        self.load_file_push.setText(_translate("MainWindow", self.tr("Активировать")))
 
     def add_function(self):
         self.del_file_push.clicked.connect(self.clicked_del_file_push)
@@ -1205,8 +1261,8 @@ class ArchiveTab(QtWidgets.QWidget):
             try:
                 self.parent.init_students_manager(path=os.path.join('archive', item.text()), only_show=True)
             except BaseException as f:
-                QtWidgets.QMessageBox.critical(self, 'Просмотр архивного файла',
-                                               f'При попытки  загрузки файла {item.text()} произошла ошибка. Попробуйте загрузить его заного. Если проблема не исчезнет, то скорее всего файл поврежден или удален.',
+                QtWidgets.QMessageBox.critical(self, self.tr('Просмотр архивного файла'),
+                                               self.tr(f'При попытки  загрузки файла {item.text()} произошла ошибка. Попробуйте загрузить его заного. Если проблема не исчезнет, то скорее всего файл поврежден или удален.'),
                                                QtWidgets.QMessageBox.StandardButton.Ok)
 
             else:
@@ -1221,8 +1277,8 @@ class ArchiveTab(QtWidgets.QWidget):
                 self.parent.group.removeTab(self.parent.group.indexOf(self.parent.students))
                 self.parent.group.removeTab(self.parent.group.indexOf(self.parent.settings))
 
-                QtWidgets.QMessageBox.information(self, 'Просмотр архивного файла',
-                                                  'Файла успешно загружен. Вы можете перейти к просмотру.',
+                QtWidgets.QMessageBox.information(self, self.tr('Просмотр архивного файла'),
+                                                  self.tr('Файла успешно загружен. Вы можете перейти к просмотру.'),
                                                   QtWidgets.QMessageBox.StandardButton.Ok)
 
     def clicked_del_file_push(self):
@@ -1234,8 +1290,8 @@ class ArchiveTab(QtWidgets.QWidget):
 
     def del_file_archive(self, file_name):
         if file_name in self.files_archive:
-            message = QtWidgets.QMessageBox.question(self.parent, 'Удаление архивного файла',
-                                                     f'Вы точно хотите удалить файл: {file_name}? \n После этого он будет удален навсегда',
+            message = QtWidgets.QMessageBox.question(self.parent, self.tr('Удаление архивного файла'),
+                                                     self.tr(f'Вы точно хотите удалить файл: ') + file_name + self.tr('?\n После этого он будет удален навсегда'),
                                                      QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
             if message == message.Yes:
                 try:
@@ -1257,8 +1313,8 @@ class ArchiveTab(QtWidgets.QWidget):
         self.parent.F6.radioButton_2.show()
         self.parent.F6.is_sick_rb.show()
 
-        self.parent.group.insertTab(2, self.parent.students, 'Cтуденты')
-        self.parent.group.insertTab(4, self.parent.settings, 'Настройки')
+        self.parent.group.insertTab(2, self.parent.students, self.tr('Cтуденты'))
+        self.parent.group.insertTab(4, self.parent.settings, self.tr('Настройки'))
 
 
 class SettingsTab(QtWidgets.QWidget):
@@ -1267,6 +1323,9 @@ class SettingsTab(QtWidgets.QWidget):
         self.parent = parent
         QtWidgets.QWidget()
         self.setObjectName("settings")
+        self.setStyleSheet(
+            '''#scrollAreaWidgetContents {background-color:white}'''
+        )
         self.verticalLayout_10 = QtWidgets.QVBoxLayout(self)
         self.verticalLayout_10.setObjectName("verticalLayout_10")
         self.scrollArea = QtWidgets.QScrollArea(self)
@@ -1414,10 +1473,10 @@ class SettingsTab(QtWidgets.QWidget):
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
-        self.setings1_label.setText(_translate("MainWindow", "Рабочие/нерабочие дни"))
-        self.add_work_day_link_button.setText(_translate("MainWindow", "Добавить рабочий день"))
-        self.set_data_table_link_button.setText(_translate("MainWindow", "Изменить месяц и год"))
-        self.del_work_day_link_button.setText(_translate("MainWindow", "Удалить рабочий день"))
+        self.setings1_label.setText(_translate("MainWindow", self.tr("Рабочие/нерабочие дни")))
+        self.add_work_day_link_button.setText(_translate("MainWindow", self.tr("Добавить рабочий день")))
+        self.set_data_table_link_button.setText(_translate("MainWindow", self.tr("Изменить месяц и год")))
+        self.del_work_day_link_button.setText(_translate("MainWindow", self.tr("Удалить рабочий день")))
         # self.setings2_label.setText(_translate("MainWindow", "Пути сохранения"))
         # self.set_path_save_bd_link_button.setText(_translate("MainWindow", "Изменить путь сохранения базы данных"))
         # self.set_path_save_exel_link_button.setText(
@@ -1426,11 +1485,11 @@ class SettingsTab(QtWidgets.QWidget):
         # self.create_table_marks_link_button.setText(_translate("MainWindow", "Создать таблицу для оценок"))
         # self.del_table_marks_link_button.setText(_translate("MainWindow", "Удалить таблицу для оценок"))
 
-        self.clear_table_label.setText('Отчистка таблицы')
-        self.clear_table_marks_link_button.setText('Отчистить таблицу оценок')
-        self.clear_table_abcense_link_button.setText('Отчистить таблицу прогулов')
-        self.on_off_table_marks_label.setText('Таблицу оценок')
-        self.on_off_table_marks_link_button.setText('Включить/выключить таблицу оценок')
+        self.clear_table_label.setText(self.tr('Очистка таблицы'))
+        self.clear_table_marks_link_button.setText(self.tr('Очистить таблицу оценок'))
+        self.clear_table_abcense_link_button.setText(self.tr('Очистить таблицу прогулов'))
+        self.on_off_table_marks_label.setText(self.tr('Таблицу оценок'))
+        self.on_off_table_marks_link_button.setText(self.tr('Включить/выключить таблицу оценок'))
 
     def add_function(self):
         self.add_work_day_link_button.clicked.connect(self.add_work_day)
@@ -1479,7 +1538,7 @@ class SettingsTab(QtWidgets.QWidget):
         MANAGER_STUDENTS.clear_marks()
 
     def clear_table_marks(self):
-        message = QtWidgets.QMessageBox.question(self, 'Отчиста таблицы оценок', 'Вы точно хотите отчистить таблицу оценок?', QtWidgets.QMessageBox.StandardButton.Yes, QtWidgets.QMessageBox.StandardButton.No)
+        message = QtWidgets.QMessageBox.question(self, self.tr('Отчиста таблицы оценок'), self.tr('Вы точно хотите отчистить таблицу оценок?'), QtWidgets.QMessageBox.StandardButton.Yes, QtWidgets.QMessageBox.StandardButton.No)
         if message == QtWidgets.QMessageBox.StandardButton.Yes:
             MANAGER_STUDENTS.clear_marks()
             MANAGER_STUDENTS.save_students()
@@ -1488,8 +1547,8 @@ class SettingsTab(QtWidgets.QWidget):
 
 
     def clear_table_abcense(self):
-        message = QtWidgets.QMessageBox.question(self, 'Отчиста таблицы прогулов',
-                                                 'Вы точно хотите отчистить таблицу прогулов?',
+        message = QtWidgets.QMessageBox.question(self, self.tr('Отчиста таблицы прогулов'),
+                                                 self.tr('Вы точно хотите отчистить таблицу прогулов?'),
                                                  QtWidgets.QMessageBox.StandardButton.Yes,
                                                  QtWidgets.QMessageBox.StandardButton.No)
         if message == QtWidgets.QMessageBox.StandardButton.Yes:
@@ -1504,7 +1563,7 @@ class SettingsTab(QtWidgets.QWidget):
             self.parent.group.removeTab(self.parent.group.indexOf(self.parent.marks))
             USER_MANAGER.user.parametrs['table_marks'] = False
         else:
-            self.parent.group.insertTab(1, self.parent.marks, 'Оценки')
+            self.parent.group.insertTab(1, self.parent.marks, self.tr('Оценки'))
             USER_MANAGER.user.parametrs['table_marks'] = True
         USER_MANAGER.user.save_user()
 
@@ -1625,19 +1684,19 @@ class ProfileTab(QtWidgets.QWidget):
         self.verticalLayout_8.addItem(spacerItem2)
         self.horizontalLayout_7 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_7.setObjectName("horizontalLayout_7")
-        self.save_user_push = Push(self, 35, 35, 5, tool_tip='Сохронить изменения',
+        self.save_user_push = Push(self, 35, 35, 5,
                                    icon_path=os.path.join('media', 'buttons', 'save.svg'))
         self.save_user_push.setObjectName("save_user_push")
         self.horizontalLayout_7.addWidget(self.save_user_push)
-        self.set_password_push = Push(self, 35, 35, 5, tool_tip='Изменить пароль',
+        self.set_password_push = Push(self, 35, 35, 5,
                                       icon_path=os.path.join('media', 'buttons', 'set_password.svg'))
         self.set_password_push.setObjectName("set_password_push")
         self.horizontalLayout_7.addWidget(self.set_password_push)
-        self.del_user_push = Push(self, 35, 35, 5, tool_tip='Удалить пользователя',
+        self.del_user_push = Push(self, 35, 35, 5,
                                   icon_path=os.path.join('media', 'buttons', 'del_user.svg'))
         self.del_user_push.setObjectName("del_user_push")
         self.horizontalLayout_7.addWidget(self.del_user_push)
-        self.logout_push = Push(self, 35, 35, 5, tool_tip='Выйти из аккаунта',
+        self.logout_push = Push(self, 35, 35, 5,
                                 icon_path=os.path.join('media', 'buttons', 'logout.svg'))
         self.logout_push.setObjectName("logout_push")
         self.horizontalLayout_7.addWidget(self.logout_push)
@@ -1684,12 +1743,18 @@ class ProfileTab(QtWidgets.QWidget):
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
-        self.accaunt_label.setText(_translate("MainWindow", "Аккаунт"))
-        self.username_label.setText(_translate("MainWindow", "Имя пользователя"))
-        self.fio_user_label.setText(_translate("MainWindow", "ФИО Своё"))
-        self.teamleader_label.setText(_translate("MainWindow", "ФИО Кл.руководителя"))
-        self.group_label.setText(_translate('MainWindow', "Группа"))
-        self.specialization_label.setText(_translate('MainWindow', "Специальность"))
+        self.accaunt_label.setText(_translate("MainWindow", self.tr("Аккаунт")))
+        self.username_label.setText(_translate("MainWindow", self.tr("Имя пользователя")))
+        self.fio_user_label.setText(_translate("MainWindow", self.tr("ФИО Своё")))
+        self.teamleader_label.setText(_translate("MainWindow", self.tr("ФИО Кл.руководителя")))
+        self.group_label.setText(_translate('MainWindow', self.tr("Группа")))
+        self.specialization_label.setText(_translate('MainWindow', self.tr("Специальность")))
+
+        self.save_user_push.setToolTip(self.tr('Сохронить изменения'))
+        self.set_password_push.setToolTip(self.tr('Изменить пароль'))
+        self.del_user_push.setToolTip(self.tr('Удалить пользователя'))
+        self.logout_push.setToolTip(self.tr('Выйти из аккаунта'))
+
 
     def click_profile(self, *args, **kwargs):
         photo = QtSvgWidgets.QSvgWidget(os.path.join('media', 'profile', f'{str(random.randint(1, 15))}.svg'))
@@ -1744,16 +1809,21 @@ class ProfileTab(QtWidgets.QWidget):
     def save_user(self):
         try:
             if self.fio_user_edit.text():
-                USER_MANAGER.user.parametrs['offical_name'] = USER_MANAGER.USER_CLASS.check_fio(
-                    self.fio_user_edit.text()).title()
+                if USER_MANAGER.USER_CLASS.is_valud_fio(self.fio_user_edit.text()):
+                    USER_MANAGER.user.parametrs['offical_name'] = self.fio_user_edit.text().title()
+                else:
+                    raise ValueError('ФИО должно состоять только из букв и быть из 3 частей, каждая из которых не менее 2 символов')
                 self.fio_user_edit.setText(USER_MANAGER.user.parametrs.get('offical_name'))
             if self.fio_teamleader_edit.text():
-                USER_MANAGER.user.parametrs['teamleader'] = USER_MANAGER.USER_CLASS.check_fio(
-                    self.fio_teamleader_edit.text()).title()
+                if USER_MANAGER.USER_CLASS.is_valud_password(self.fio_teamleader_edit.text()):
+                    USER_MANAGER.user.parametrs['teamleader'] = self.fio_teamleader_edit.text().title()
+                else:
+                    raise ValueError(
+                        'ФИО должно состоять только из букв и быть из 3 частей, каждая из которых не менее 2 символов')
                 self.fio_teamleader_edit.setText(USER_MANAGER.user.parametrs.get('teamleader'))
             USER_MANAGER.user.parametrs['group'] = self.group_edit.text()
             USER_MANAGER.user.parametrs['specialization'] = self.specialization_edit.text()
-            if USER_MANAGER.user.parametrs['specialization'].lower() == 'великий сыщик':
+            if USER_MANAGER.user.parametrs['specialization'].lower() == self.tr('великий сыщик'):
                 self.cod = [0, 3]
 
 
@@ -1765,8 +1835,8 @@ class ProfileTab(QtWidgets.QWidget):
             USER_MANAGER.user.save_user()
 
     def del_user(self):
-        message = QtWidgets.QMessageBox.question(self.parent, 'Удаление пользователя',
-                                                 "Вы точно хотите удалить свой аккаунт?",
+        message = QtWidgets.QMessageBox.question(self.parent, self.tr('Удаление пользователя'),
+                                                 self.tr("Вы точно хотите удалить свой аккаунт?"),
                                                  QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
         if message == message.Yes:
             USER_MANAGER.del_user()
@@ -1782,6 +1852,7 @@ class ProfileTab(QtWidgets.QWidget):
 
     def set_password(self):
         window_password = WindowSetPassword(self.parent)
+        window_password.retranslateUi()
         window_password.show()
 
     def update_user_info(self):
@@ -1825,21 +1896,27 @@ class ProfileTab(QtWidgets.QWidget):
 
 
 class StatisticTab(QtWidgets.QWidget):
+    STYLE = ['Solarize_Light2', '_classic_test_patch', '_mpl-gallery', '_mpl-gallery-nogrid', 'bmh', 'seaborn-v0_8', 'seaborn-v0_8-bright',
+             'seaborn-v0_8-colorblind', 'seaborn-v0_8-dark', 'seaborn-v0_8-dark-palette', 'seaborn-v0_8-darkgrid',
+             'seaborn-v0_8-deep', 'seaborn-v0_8-muted', 'seaborn-v0_8-notebook', 'seaborn-v0_8-paper',
+             'seaborn-v0_8-pastel', 'seaborn-v0_8-talk', 'seaborn-v0_8-whitegrid', 'tableau-colorblind10']
     def __init__(self, parent=None):
         super(StatisticTab, self).__init__(parent=parent)
         self.parent = parent
         self.setObjectName(u"tab_2")
         self.setStyleSheet(
             """
-            * {
-            background-color: white;
-            }
+            
             #button_before {
                 background-color: green;
                 font-size: 4em;
                 border: none;
                 color: white;
-            }"""
+            }
+            
+            #scrollAreaWidgetContents_2 {background-color:white; background-color:white}
+            QTableWidget {border: none; background-color:white;}
+        )"""
         )
         self.verticalLayout_14 = QtWidgets.QVBoxLayout(self)
         self.verticalLayout_14.setObjectName(u"verticalLayout_14")
@@ -1853,14 +1930,15 @@ class StatisticTab(QtWidgets.QWidget):
         font.setUnderline(False)
         font.setWeight(QtGui.QFont.Weight(50))
         self.button_before.setFont(font)
-        self.button_before.setText('Создать статистику')
+        self.styles_diagram = ManagerStudents.crate_eternal_iter(self.STYLE)
+
         self.button_before.setFixedSize(175, 70)
         self.button_before.clicked.connect(self.clicked_before)
         self.verticalLayout_14.addWidget(self.button_before, QtCore.Qt.AlignmentFlag.AlignVCenter, QtCore.Qt.AlignmentFlag.AlignHCenter)
 
-
-
-
+    def retranslateUi(self):
+        _translate = QtCore.QCoreApplication.translate
+        self.button_before.setText(_translate("MainWindow", self.tr("Создать статистику")))
 
     def init_statistic(self):
         self.scrollArea_2 = QtWidgets.QScrollArea(self)
@@ -1897,42 +1975,45 @@ class StatisticTab(QtWidgets.QWidget):
         self.save_diagram_push_button = QtWidgets.QPushButton(self)
         self.save_diagram_push_button.setObjectName(u"save_diagram_push_button")
         self.horizontalLayout_11.addWidget(self.save_diagram_push_button)
-        self.pushButton_6 = QtWidgets.QPushButton(self)
-        self.pushButton_6.setObjectName(u"pushButton_6")
-        self.horizontalLayout_11.addWidget(self.pushButton_6)
+        self.set_style_diagrams_push_button = QtWidgets.QPushButton(self)
+        self.set_style_diagrams_push_button.setObjectName(u"set_style_diagrams")
+        self.horizontalLayout_11.addWidget(self.set_style_diagrams_push_button)
         self.pushButton_5 = QtWidgets.QPushButton(self)
         self.pushButton_5.setObjectName(u"pushButton_5")
         self.horizontalLayout_11.addWidget(self.pushButton_5)
         self.verticalLayout_14.addLayout(self.horizontalLayout_11)
         self.add_function()
 
-        self.retranslateUi()
+        self.retranslate()
 
-    def retranslateUi(self):
-        self.update_statistic_push_button.setText('Обновить статистику')
-        self.save_diagram_push_button.setFont('Сохранить ')
+    def retranslate(self):
+        self.update_statistic_push_button.setText(self.tr('Обновить статистику'))
+        self.set_style_diagrams_push_button.setText(self.tr('Изменить стиль диаграмм'))
 
 
 
     def add_function(self):
         self.update_statistic_push_button.clicked.connect(self.update_statistic)
+        self.set_style_diagrams_push_button.clicked.connect(self.set_style_diagrams)
 
     def clicked_before(self):
         self.init_statistic()
         self.update_statistic()
         self.button_before.hide()
 
+    def set_style_diagrams(self):
+        self.update_statistic(next(self.styles_diagram))
 
 
-    def update_statistic(self):
-        self.draw_circle_graph()
-        self.draw_graph()
+    def update_statistic(self, *args, **kwargs):
+        self.draw_circle_graph(*args, **kwargs)
+        self.draw_graph(*args, **kwargs)
 
-    def draw_circle_graph(self):
-        self.__add_legend(*self.grafic_group.draw_circle_graph())
+    def draw_circle_graph(self, *args, **kwargs):
+        self.__add_legend(*self.grafic_group.draw_circle_graph(*args, **kwargs))
 
-    def draw_graph(self):
-        self.__add_legend2(*self.grafic_period.draw_graph())
+    def draw_graph(self,*args, **kwargs):
+        self.__add_legend2(*self.grafic_period.draw_graph(*args, **kwargs))
 
     def __add_legend(self, *args):
         if hasattr(self, 'table_layout'):
@@ -1940,7 +2021,7 @@ class StatisticTab(QtWidgets.QWidget):
             self.table_layout.hide()
 
         self.table_layout = QtWidgets.QTableWidget()
-
+        self.table_layout.setObjectName('table_layout')
 
         self.table_layout.setRowCount(len(args[0]))
         self.table_layout.setColumnCount(2)
@@ -1977,28 +2058,24 @@ class StatisticTab(QtWidgets.QWidget):
 
 
 class Grafics(QtWidgets.QWidget):
-    STYLE = ['Solarize_Light2', '_classic_test_patch', '_mpl-gallery', '_mpl-gallery-nogrid', 'bmh', 'classic',
-             'dark_background', 'fast', 'fivethirtyeight', 'ggplot', 'grayscale', 'seaborn-v0_8', 'seaborn-v0_8-bright',
-             'seaborn-v0_8-colorblind', 'seaborn-v0_8-dark', 'seaborn-v0_8-dark-palette', 'seaborn-v0_8-darkgrid',
-             'seaborn-v0_8-deep', 'seaborn-v0_8-muted', 'seaborn-v0_8-notebook', 'seaborn-v0_8-paper',
-             'seaborn-v0_8-pastel', 'seaborn-v0_8-poster', 'seaborn-v0_8-talk', 'seaborn-v0_8-ticks',
-             'seaborn-v0_8-white', 'seaborn-v0_8-whitegrid', 'tableau-colorblind10']
+
     def __init__(self, parent=None):
         super(Grafics, self).__init__(parent=parent)
         self.figure = plt.figure()
         self.canvas = FigureCanvas(self.figure)
-        plt.style.use('seaborn-v0_8-whitegrid')
         # self.toolbar = NavigationToolbar(self.canvas, self)
-
         self.layout = QtWidgets.QVBoxLayout()
         # self.layout.addWidget(self.toolbar)
         # self.setMinimumSize(300, 300)
         # self.setMaximumSize(900, 600)
+        plt.style.use('seaborn-v0_8-whitegrid')
 
         self.layout.addWidget(self.canvas)
         self.setLayout(self.layout)
 
-    def draw_graph(self):
+    def draw_graph(self, style=None):
+        if style:
+            plt.style.use(style)
         statistic = MANAGER_STUDENTS.get_total_statistic_period()
 
 
@@ -2011,9 +2088,9 @@ class Grafics(QtWidgets.QWidget):
 
         self.figure.clear()
         ax = self.figure.add_subplot()
-        ax.plot(list(map(str, range(1, len(labels)+1))), data, label ='ПОУВ')
-        ax.plot(data1, label='НЕУВ')
-        ax.plot(data2, label='Всего')
+        ax.plot(list(map(str, range(1, len(labels)+1))), data, label =self.tr('ПОУВ'))
+        ax.plot(data1, label=self.tr('НЕУВ'))
+        ax.plot(data2, label=self.tr('Всего'))
 
 
 
@@ -2023,14 +2100,16 @@ class Grafics(QtWidgets.QWidget):
 
 
         ax.legend(loc='upper left')
-        ax.set_title('Тенденция прогулов по месяцам')
+        ax.set_title(self.tr('Тенденция прогулов по месяцам'))
         self.canvas.draw()
         return labels, data, data1, data2
 
 
 
 
-    def draw_circle_graph(self):
+    def draw_circle_graph(self, style=None):
+        if style:
+            plt.style.use(style)
         try:
             labels = MANAGER_STUDENTS.get_statistics_for_graph().keys()
             all_abcense = sum(MANAGER_STUDENTS.get_statistics_for_graph().values())
@@ -2041,7 +2120,7 @@ class Grafics(QtWidgets.QWidget):
             self.figure.clear()
             ax = self.figure.add_subplot()
             ax.pie(values, labels=list(range(1, len(labels)+1)))
-            ax.set_title('Доля прогулов на студента за месяц')
+            ax.set_title(self.tr('Доля прогулов на студента за месяц'))
             self.canvas.draw()
             return labels, values
 
@@ -2059,6 +2138,8 @@ class MainWindow(QtWidgets.QMainWindow):
             QListWidget {margin-left: auto; margin-top: 20%; margin-right: auto; border: none;}
             #profile QPushButton {background-color: rgba(249, 248, 244, 0);}
             QScrollArea {border: none}
+    
+            
 
             """)
         self.setWindowIcon(QtGui.QIcon('media\\logo.svg'))
@@ -2105,14 +2186,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 
+
         self.verticalLayout_2.addWidget(self.group)
         self.setCentralWidget(self.centralwidget)
-        self.action_2 = QtGui.QAction(self)
-        self.action_2.setObjectName("action_2")
-        self.verticalLayout_2.addWidget(self.group)
-        self.setCentralWidget(self.centralwidget)
-        self.action_2 = QtGui.QAction(self)
-        self.action_2.setObjectName("action_2")
+
         self.retranslateUi()
         self.group.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(self)
@@ -2122,17 +2199,25 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
+
         if hasattr(self, 'marks'):
-            self.group.setTabText(self.group.indexOf(self.marks), _translate("MainWindow", "Оценки"))
-        self.setWindowTitle(_translate("MainWindow", "F6"))
-        self.group.setTabText(self.group.indexOf(self.F6), _translate("MainWindow", "Прогулы"))
-        self.group.setTabText(self.group.indexOf(self.students), _translate("MainWindow", "Студенты"))
-        self.group.setTabText(self.group.indexOf(self.settings), _translate("MainWindow", "Настройки"))
-        self.group.setTabText(self.group.indexOf(self.profile), _translate("MainWindow", "Профиль"))
-        self.action_2.setText(_translate("MainWindow", "ншнге"))
-        self.group.setTabText(self.group.indexOf(self.archive), _translate("MainWindow", "Архив"))
+            self.group.setTabText(self.group.indexOf(self.marks), _translate("MainWindow", self.tr("Оценки")))
+        self.setWindowTitle(_translate("MainWindow", self.tr("F6")))
+        self.group.setTabText(self.group.indexOf(self.F6), _translate("MainWindow", self.tr("Прогулы")))
+        self.group.setTabText(self.group.indexOf(self.students), _translate("MainWindow", self.tr("Студенты")))
+        self.group.setTabText(self.group.indexOf(self.settings), _translate("MainWindow", self.tr("Настройки")))
+        self.group.setTabText(self.group.indexOf(self.profile), _translate("MainWindow", self.tr("Профиль")))
+        self.group.setTabText(self.group.indexOf(self.archive), _translate("MainWindow", self.tr("Архив")))
+
+        self.F6.retranslateUi()
+        # self.marks.retranslateUi()
+        self.students.retranslateUi()
+        self.profile.retranslateUi()
+        self.archive.retranslateUi()
+        self.settings.retranslateUi()
+        self.statistics.retranslateUi()
         if DEBAG:
-            self.group.setTabText(self.group.indexOf(self.statistics), _translate("MainWindow", "Статистика"))
+            self.group.setTabText(self.group.indexOf(self.statistics), _translate("MainWindow", self.tr("Статистика")))
 
 
     def click_tab(self):
@@ -2184,7 +2269,7 @@ class MainWindow(QtWidgets.QMainWindow):
             print('')
 
         self.students.update_list_students()
-        self.F6.label_2.setText(f"Добро пожаловать, {USER_MANAGER.user.username}!")
+        self.F6.label_2.setText(self.tr('Добро пожаловать, ') + f"{USER_MANAGER.user.username}!")
         self.profile.update_user_info()
         self.archive.init_archive()
         self.profile.init_atchivments()
@@ -2237,35 +2322,35 @@ class TableAbsence(QtWidgets.QTableWidget):
         self.setSpan(1, 0, 2, 1)
 
         self.setItem(0, 0, QTableWidgetItem(
-            f"ВЕДОМОСТЬ УЧЁТА ЧАСОВ ПРОГУЛОВ за {str(ManagerStudents.MONTHS[MANAGER_STUDENTS.period[0] - 1]) + ' ' + str(MANAGER_STUDENTS.period[1])}"))
+            self.tr('ВЕДОМОСТЬ УЧЁТА ЧАСОВ ПРОГУЛОВ за') + f" {str(ManagerStudents.MONTHS[MANAGER_STUDENTS.period[0] - 1]) + ' ' + str(MANAGER_STUDENTS.period[1])}"))
         title = self.item(0, 0)
         title.setBackground(QtGui.QColor(153, 153, 153))
         title.setFont(QtGui.QFont('Calibri', 26 + size))
         title.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
 
-        self.setItem(1, 34, QTableWidgetItem("Из них"))
+        self.setItem(1, 34, QTableWidgetItem(self.tr("Из них")))
         self.item(1, 34).setFont(QtGui.QFont('Calibri', 14 + size))
         self.item(1, 34).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
         self.item(1, 34).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
 
-        self.setItem(2, 34, QTableWidgetItem("УВ"))
+        self.setItem(2, 34, QTableWidgetItem(self.tr("УВ")))
         self.item(2, 34).setFont(QtGui.QFont('Calibri', 14 + size))
         self.item(2, 34).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.item(2, 34).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
 
-        self.setItem(2, 35, QTableWidgetItem("НЕУВ"))
+        self.setItem(2, 35, QTableWidgetItem(self.tr("НЕУВ")))
         self.item(2, 35).setFont(QtGui.QFont('Calibri', 14 + size))
         self.item(2, 35).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.item(2, 35).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
 
         self.setItem(2, 33, QTableWidgetItem(str(sum(MANAGER_STUDENTS.days.values()))))
 
-        self.setItem(1, 1, QTableWidgetItem("ФИО"))
+        self.setItem(1, 1, QTableWidgetItem(self.tr("ФИО")))
         fio = self.item(1, 1)
         fio.setFont(QtGui.QFont('Calibri', 14 + size))
         fio.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         fio.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
-        self.setItem(1, 33, QTableWidgetItem("Итог"))
+        self.setItem(1, 33, QTableWidgetItem(self.tr("Итог")))
         result_up = self.item(1, 33)
         result_up.setFont(QtGui.QFont('Calibri', 14 + size))
         result_up.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
@@ -2369,16 +2454,15 @@ class TableAbsence(QtWidgets.QTableWidget):
             str(statistics['Sick_days'][1] if statistics['Sick_days'][1] > 0 else ''))
         self.item(row, 35).setText(
             str(statistics['Absence_days'][1] if statistics['Absence_days'][1] > 0 else ''))
-        self.item(row, 1).setToolTip(f"""
-    ФИО: {statistics['FIO']};
-    Прогулы по неув. причине: {str(statistics["Absence_days"][1])};
-    Прогулы по ув. причине: {str(statistics["Sick_days"][1])}
-                        """)
+        self.item(row, 1).setToolTip(
+    self.tr('ФИО') + f": {statistics['FIO']};\n" +
+    self.tr('Прогулы по неув. причине') + f': {str(statistics["Absence_days"][1])};\n' +
+    self.tr('Прогулы по ув. причине') + f': {str(statistics["Sick_days"][1])}')
         self.item(row, 34).setFont(QtGui.QFont('Calibri', 14 + self.mod_size))
         self.item(row, 35).setFont(QtGui.QFont('Calibri', 14 + self.mod_size))
 
     def update_table_students(self, *args, **kwargs):
-        """Отчищает полностью таблицу и создает ее заново"""
+        """Очищает полностью таблицу и создает ее заново"""
         self.clear()
         self.generate_table(*args, **kwargs)
         if len(MANAGER_STUDENTS.students) >= 25:
@@ -2411,13 +2495,13 @@ class TableMarks(QtWidgets.QTableWidget):
         self.setSpan(1, 0, 2, 1)
 
         self.setItem(0, 0, QTableWidgetItem(
-            f"ВЕДОМОСТЬ УЧЁТА УСПЕВАЕМОСТИ за {str(ManagerStudents.MONTHS[MANAGER_STUDENTS.period[0] - 1]) + ' ' + str(MANAGER_STUDENTS.period[1])}"))
+            self.tr('ВЕДОМОСТЬ УЧЁТА УСПЕВАЕМОСТИ за ')+f" {str(ManagerStudents.MONTHS[MANAGER_STUDENTS.period[0] - 1]) + ' ' + str(MANAGER_STUDENTS.period[1])}"))
         title = self.item(0, 0)
         title.setBackground(QtGui.QColor(153, 153, 153))
         title.setFont(QtGui.QFont('Calibri', 26 + size))
         title.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
 
-        self.setItem(1, 1, QTableWidgetItem("ФИО"))
+        self.setItem(1, 1, QTableWidgetItem(self.tr("ФИО")))
         fio = self.item(1, 1)
         fio.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         fio.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
@@ -2474,7 +2558,7 @@ class TableMarks(QtWidgets.QTableWidget):
     def update_statistics_student(self, row):
         statistics = MANAGER_STUDENTS.students[row - 3].get_statistic_for_student()
         self.item(row, 1).setToolTip(f"""
-    ФИО: {statistics['FIO']};
+    {self.tr('ФИО')}: {statistics['FIO']};
                         """)
 
     def update_table_students(self, *args, **kwargs):
@@ -2558,9 +2642,9 @@ class SettingsWindows(QtWidgets.QDialog):
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
         self.setWindowTitle(_translate("Form", "Form"))
-        self.title_messages.setText(_translate("Form", "TextLabel"))
-        self.cancel_button.setText(_translate("Form", "Отмена"))
-        self.save_button.setText(_translate("Form", "Сохранить"))
+        self.title_messages.setText(_translate("Form", self.tr("")))
+        self.cancel_button.setText(_translate("Form", self.tr("Отмена")))
+        self.save_button.setText(_translate("Form", self.tr("Сохранить")))
 
     def clicked_cancel(self):
         self.close()
@@ -2568,7 +2652,7 @@ class SettingsWindows(QtWidgets.QDialog):
     def check_value(self):
         if self.lineEdit.text().isnumeric() and 31 >= int(self.lineEdit.text()) > 0:
             return int(self.lineEdit.text())
-        raise ValueError('Введен недопустимый номер дня')
+        raise ValueError(self.tr('Введен недопустимый номер дня'))
 
     def clicked_save(self):
         try:
@@ -2620,8 +2704,8 @@ class SettingsData(QtWidgets.QDialog):
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
         self.setWindowTitle(_translate("self", "self"))
-        self.create_new_table_pushButton.setText(_translate("self", "Изменить"))
-        self.cancel_pushButton.setText(_translate("self", "Отмена"))
+        self.create_new_table_pushButton.setText(_translate("self", self.tr("Изменить")))
+        self.cancel_pushButton.setText(_translate("self", self.tr("Отмена")))
 
     def clicked_create_table(self):
         self.close()
@@ -2707,11 +2791,11 @@ class WindowSetPassword(QtWidgets.QDialog):
     def retranslateUi(self, ):
         _translate = QtCore.QCoreApplication.translate
         self.setWindowTitle(_translate("Form", "Form"))
-        self.label.setText(_translate("Form", "Старый пароль"))
-        self.label_2.setText(_translate("Form", "Новый пороль"))
-        self.label_3.setText(_translate("Form", "Повторите новый пароль"))
-        self.save_password_pushbutton.setText(_translate("Form", "Сохронить"))
-        self.cancel_pushbutton.setText(_translate("Form", "Отмена"))
+        self.label.setText(_translate("Form", self.tr("Старый пароль")))
+        self.label_2.setText(_translate("Form", self.tr("Новый пароль")))
+        self.label_3.setText(_translate("Form", self.tr("Повторите новый пароль")))
+        self.save_password_pushbutton.setText(_translate("Form", self.tr("Сохрнить")))
+        self.cancel_pushbutton.setText(_translate("Form", self.tr("Отмена")))
 
     def add_function(self):
         self.cancel_pushbutton.clicked.connect(self.click_cancel)
@@ -2722,9 +2806,9 @@ class WindowSetPassword(QtWidgets.QDialog):
 
     def checking_parametrs(self):
         if not self.old_password_edit.text() == USER_MANAGER.user.password:
-            raise ValueError('Введен неверный текущий пароль')
+            raise ValueError(self.tr('Введен неверный текущий пароль'))
         if not self.new_password_edit2.text() == self.new_password_edit1.text():
-            raise ValueError('Пароли не соответствуют')
+            raise ValueError(self.tr('Пароли не соответствуют'))
 
     def click_save(self):
         self.fielderrors.clear()
@@ -2785,13 +2869,13 @@ class ControlerWindows:
         elif self.main.status == 3:
             self.regist.show()
         elif self.main.status == 4:
-            self.is_exit()
+            self.is_exit(self.main)
             self.main = type(self.main)()
             self.auth.show()
 
         else:
             self.main.close()
-            self.is_exit()
+            self.is_exit(self.main)
 
         self.main.status = 0
         self.main.closeEvent = self.close_event_by_main
@@ -2813,17 +2897,30 @@ class ControlerWindows:
         else:
             self.regist.show()
 
-    def is_exit(self):
-        message = QtWidgets.QMessageBox.question(windows.main, 'Сохранение изменений', "Сохронить изменения?",
+    def is_exit(self, parent):
+        message = QtWidgets.QMessageBox.question(windows.main, translator.tr('Сохранение изменений'), translator.tr("Сохранить изменения?"),
                                                  QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
         if message == message.Yes:
             MANAGER_STUDENTS.save_students()
 
+    def retranslateUi(self):
+        self.main.retranslateUi()
+        self.auth.retranslateUi()
+        self.regist.retranslateUi()
+        self.splash_screen.retranslateUi()
 
 app = QtWidgets.QApplication(sys.argv)
 
+translator = QTranslator(app)
+
+# # if translator.load("qt_" + QLocale.system().name(), QLibraryInfo.location(QLibraryInfo.TranslationsPath)):
+#     app.installTranslator(translator)
+#
+# if translator.load(os.path.join(BASE_PATH, 'languages','english')):
+#     app.installTranslator(translator)
 windows = ControlerWindows(SplashScreen, Auth, Regist, MainWindow)
 windows.show()
+
 
 status = app.exec()
 
