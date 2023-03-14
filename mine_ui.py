@@ -12,6 +12,8 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
 
+
+
 from StudentsManager import ManagerStudents
 from UserManager import UserManager
 
@@ -31,7 +33,7 @@ dirname, filename = os.path.split(os.path.abspath(__file__))
 DEBAG = True
 BASE_PATH = dirname
 DOCUMENTS_PATH = os.path.expanduser("~/F6")
-PACH_SAVE_F6 = DOCUMENTS_PATH
+
 BD_PATH = os.path.join(DOCUMENTS_PATH, 'BD')
 if not os.path.exists(os.path.join(DOCUMENTS_PATH, 'BD')):
     os.makedirs(os.path.join(DOCUMENTS_PATH, "BD"))
@@ -527,11 +529,12 @@ class Auth(QtWidgets.QWidget):
         self.licensewindow.show()
 
     def set_language(self, *args, **kwargs):
-        global  translator
-        print('langiages')
+        global translator, app, windows
         l = next(self.languages)
-        print(l)
         if translator.load(os.path.join(BASE_PATH, 'languages', l)):
+            app.installTranslator(translator)
+        else:
+            translator.load('qt_ru_RU')
             app.installTranslator(translator)
 
         windows.retranslateUi()
@@ -672,7 +675,7 @@ class AbsenceTab(QtWidgets.QWidget):
                 QtWidgets.QMessageBox.critical(self,  self.tr('Ошибка сохранения'),  self.tr('Файл не был сохранен. Повторите попытку'))
             else:
                 QtWidgets.QMessageBox.information(self,  self.tr('Успешное сохранение'),
-                                                   self.tr(f'Файл успешно сохранен в дириктории: {path}'))
+                                                   self.tr('Файл успешно сохранен в директории: ') + path)
 
     def save_table(self):
         MANAGER_STUDENTS.save_students()
@@ -956,7 +959,7 @@ class MarksTab(QtWidgets.QWidget):
                         except BaseException as f:
                             print(f)
                         else:
-                            self.update_table_students()
+                            self.tableWidget_3.update_table_students()
                             if hasattr(self.parent, 'F6'):
                                 self.parent.F6.tableWidget.update_table_students()
                             if hasattr(self.parent, 'students'):
@@ -996,8 +999,7 @@ class MarksTab(QtWidgets.QWidget):
                 QtWidgets.QMessageBox.critical(self, self.tr('Ошибка сохранения', 'Файл не был сохранен. Повторите попытку'))
             else:
                 QtWidgets.QMessageBox.information(self, self.tr('Успешное сохранение'),
-                                                  self.tr(f'Файл успешно сохранен в дириктории: {path}'))
-
+                                                  self.tr('Файл успешно сохранен в директории: ') + path)
 
     def cellPressed(self, row, column):
         if self.tableWidget_3.hasFocus():
@@ -1545,7 +1547,7 @@ class SettingsTab(QtWidgets.QWidget):
         MANAGER_STUDENTS.clear_marks()
 
     def clear_table_marks(self):
-        message = QtWidgets.QMessageBox.question(self, self.tr('Очиста таблицы оценок'), self.tr('Вы точно хотите очистить таблицу оценок?'), QtWidgets.QMessageBox.StandardButton.Yes, QtWidgets.QMessageBox.StandardButton.No)
+        message = QtWidgets.QMessageBox.question(self, self.tr('Очистка таблицы оценок'), self.tr('Вы точно хотите очистить таблицу оценок?'), QtWidgets.QMessageBox.StandardButton.Yes, QtWidgets.QMessageBox.StandardButton.No)
         if message == QtWidgets.QMessageBox.StandardButton.Yes:
             MANAGER_STUDENTS.clear_marks()
             MANAGER_STUDENTS.save_students()
@@ -1554,7 +1556,7 @@ class SettingsTab(QtWidgets.QWidget):
 
 
     def clear_table_abcense(self):
-        message = QtWidgets.QMessageBox.question(self, self.tr('Очиста таблицы прогулов'),
+        message = QtWidgets.QMessageBox.question(self, self.tr('Очистка таблицы прогулов'),
                                                  self.tr('Вы точно хотите очистить таблицу прогулов?'),
                                                  QtWidgets.QMessageBox.StandardButton.Yes,
                                                  QtWidgets.QMessageBox.StandardButton.No)
@@ -1824,17 +1826,16 @@ class ProfileTab(QtWidgets.QWidget):
     def save_user(self):
         try:
             if self.fio_user_edit.text():
-                if USER_MANAGER.USER_CLASS.is_valud_fio(self.fio_user_edit.text()):
+                if USER_MANAGER.USER_CLASS.is_valid_fio(self.fio_user_edit.text()):
                     USER_MANAGER.user.parametrs['offical_name'] = self.fio_user_edit.text().title()
                 else:
-                    raise ValueError('ФИО должно состоять только из букв и быть из 3 частей, каждая из которых не менее 2 символов')
+                    raise ValueError(self.tr('ФИО должно состоять только из букв и быть из 3 частей, каждая из которых не менее 2 символов'))
                 self.fio_user_edit.setText(USER_MANAGER.user.parametrs.get('offical_name'))
             if self.fio_teamleader_edit.text():
-                if USER_MANAGER.USER_CLASS.is_valud_password(self.fio_teamleader_edit.text()):
+                if USER_MANAGER.USER_CLASS.is_valid_fio(self.fio_teamleader_edit.text()):
                     USER_MANAGER.user.parametrs['teamleader'] = self.fio_teamleader_edit.text().title()
                 else:
-                    raise ValueError(
-                        'ФИО должно состоять только из букв и быть из 3 частей, каждая из которых не менее 2 символов')
+                    raise ValueError(self.tr('ФИО должно состоять только из букв и быть из 3 частей, каждая из которых не менее 2 символов'))
                 self.fio_teamleader_edit.setText(USER_MANAGER.user.parametrs.get('teamleader'))
             USER_MANAGER.user.parametrs['group'] = self.group_edit.text()
             USER_MANAGER.user.parametrs['specialization'] = self.specialization_edit.text()
@@ -2116,13 +2117,13 @@ class Grafics(QtWidgets.QWidget):
             plt.style.use(style)
         statistic = MANAGER_STUDENTS.get_total_statistic_period()
 
-
         labels = statistic.keys()
 
         labels = list(map(lambda x: f'{x[0]!r} {ManagerStudents.MONTHS[x[1]]}', labels))
         data = list(map(lambda x: x[0], statistic.values()))
         data1 = list(map(lambda x: x[1], statistic.values()))
         data2 = list(map(lambda x: x[2], statistic.values()))
+
 
         self.figure.clear()
         self.ax = self.figure.add_subplot()
@@ -2938,7 +2939,7 @@ class ControlerWindows:
             self.regist.show()
 
     def is_exit(self, parent):
-        message = QtWidgets.QMessageBox.question(windows.main, translator.tr('Сохранение изменений'), translator.tr("Сохранить изменения?"),
+        message = QtWidgets.QMessageBox.question(self.main, self.main.tr('Сохранение изменений'), self.main.tr("Сохранить изменения?"),
                                                  QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
         if message == message.Yes:
             MANAGER_STUDENTS.save_students()
@@ -2951,13 +2952,15 @@ class ControlerWindows:
 
 app = QtWidgets.QApplication(sys.argv)
 
-translator = QTranslator(app)
 
-# # if translator.load("qt_" + QLocale.system().name(), QLibraryInfo.location(QLibraryInfo.TranslationsPath)):
-#     app.installTranslator(translator)
-#
+translator = QTranslator(app)
+if translator.load("qt_" + QLocale.system().name(), QLibraryInfo.location(QLibraryInfo.TranslationsPath)):
+    app.installTranslator(translator)
+# print(QLocale.system().name())
 # if translator.load(os.path.join(BASE_PATH, 'languages','english')):
 #     app.installTranslator(translator)
+
+
 windows = ControlerWindows(SplashScreen, Auth, Regist, MainWindow)
 windows.show()
 
