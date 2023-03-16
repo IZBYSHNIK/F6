@@ -738,7 +738,7 @@ class AbsenceTab(QtWidgets.QWidget):
                 elif item.column() == 1:
                     if item.row() == len(MANAGER_STUDENTS.students) + 3:
                         try:
-                            MANAGER_STUDENTS.CLASS_STUDENT.chech_fio(item.text())
+                            MANAGER_STUDENTS.CLASS_STUDENT.check_fio(item.text())
                         except BaseException:
                             item.setBackground(QtGui.QColor(255, 0, 0))
                         else:
@@ -803,6 +803,7 @@ class AbsenceTab(QtWidgets.QWidget):
         if hasattr(self, 'tableWidget'):
             self.tableWidget.hide()
             self.verticalLayout.removeWidget(self.tableWidget)
+
 
         self.tableWidget = TableAbsence()
         self.tableWidget.setStyleSheet("""QTableWidget {border: none;}""")
@@ -950,7 +951,7 @@ class MarksTab(QtWidgets.QWidget):
             if item.column() == 1:
                 if item.row() == len(MANAGER_STUDENTS.students) + 3:
                     try:
-                        MANAGER_STUDENTS.CLASS_STUDENT.chech_fio(item.text())
+                        MANAGER_STUDENTS.CLASS_STUDENT.check_fio(item.text())
                     except BaseException:
                         print('ошибка')
                     else:
@@ -1839,7 +1840,7 @@ class ProfileTab(QtWidgets.QWidget):
                 self.fio_teamleader_edit.setText(USER_MANAGER.user.parametrs.get('teamleader'))
             USER_MANAGER.user.parametrs['group'] = self.group_edit.text()
             USER_MANAGER.user.parametrs['specialization'] = self.specialization_edit.text()
-            if USER_MANAGER.user.parametrs['specialization'].lower() == self.tr('великий сыщик'):
+            if USER_MANAGER.user.parametrs['specialization'].lower() == 'великий сыщик':
                 self.cod = [0, 3]
 
 
@@ -2152,9 +2153,9 @@ class Grafics(QtWidgets.QWidget):
         if style:
             plt.style.use(style)
         try:
-            labels = MANAGER_STUDENTS.get_statistics_for_graph().keys()
-            all_abcense = sum(MANAGER_STUDENTS.get_statistics_for_graph().values())
-            values = list(map(lambda x: x/all_abcense,MANAGER_STUDENTS.get_statistics_for_graph().values()))
+            labels = MANAGER_STUDENTS.get_statistics_for_group().keys()
+            all_abcense = sum(MANAGER_STUDENTS.get_statistics_for_group().values())
+            values = list(map(lambda x: x/all_abcense,MANAGER_STUDENTS.get_statistics_for_group().values()))
         except ZeroDivisionError:
             print('Ltktybt yf yjkm')
         else:
@@ -2217,9 +2218,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.settings = SettingsTab(self)
         self.group.addTab(self.settings, "")
-        if DEBAG:
-            self.statistics = StatisticTab(self)
-            self.group.addTab(self.statistics, "")
+
+        self.statistics = StatisticTab(self)
+        self.group.addTab(self.statistics, "")
 
         self.profile = ProfileTab(self)
         self.group.addTab(self.profile, "")
@@ -2257,8 +2258,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.archive.retranslateUi()
         self.settings.retranslateUi()
         self.statistics.retranslateUi()
-        if DEBAG:
-            self.group.setTabText(self.group.indexOf(self.statistics), _translate("MainWindow", self.tr("Статистика")))
+
+        self.group.setTabText(self.group.indexOf(self.statistics), _translate("MainWindow", self.tr("Статистика")))
 
 
     def click_tab(self):
@@ -2287,7 +2288,7 @@ class MainWindow(QtWidgets.QMainWindow):
             except BaseException as message:
                 if 'archive' in path:
                     raise FileNotFoundError
-                print(120, message)
+                print(120, repr(message))
                 MANAGER_STUDENTS = ManagerStudents((datetime.date.today().month, datetime.date.today().year),
                                                    USER_MANAGER.user)
         else:
@@ -2307,7 +2308,7 @@ class MainWindow(QtWidgets.QMainWindow):
             if hasattr(self, 'marks'):
                 self.marks.init_table_marks(only_show)
         except:
-            print('')
+            print('Ошибка инициализации таблиц')
 
         self.students.update_list_students()
         self.F6.label_2.setText(self.tr('Добро пожаловать, ') + f"{USER_MANAGER.user.username}!")
@@ -2427,7 +2428,6 @@ class TableAbsence(QtWidgets.QTableWidget):
 
         for i, student in enumerate(MANAGER_STUDENTS.students):
             i += 3
-
             self.setItem(i, 1, QTableWidgetItem(student.create_shorts_fio(student.fio)))
             self.item(i, 1).setFont(QtGui.QFont('Calibri', 14 + size))
             self.item(i, 1).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
@@ -2953,12 +2953,12 @@ class ControlerWindows:
 app = QtWidgets.QApplication(sys.argv)
 
 
-translator = QTranslator(app)
-if translator.load("qt_" + QLocale.system().name(), QLibraryInfo.location(QLibraryInfo.TranslationsPath)):
-    app.installTranslator(translator)
-# print(QLocale.system().name())
-# if translator.load(os.path.join(BASE_PATH, 'languages','english')):
+# translator = QTranslator(app)
+# if translator.load("qt_" + QLocale.system().name(), QLibraryInfo.location(QLibraryInfo.TranslationsPath)):
 #     app.installTranslator(translator)
+# # print(QLocale.system().name())
+# # if translator.load(os.path.join(BASE_PATH, 'languages','english')):
+# #     app.installTranslator(translator)
 
 
 windows = ControlerWindows(SplashScreen, Auth, Regist, MainWindow)
