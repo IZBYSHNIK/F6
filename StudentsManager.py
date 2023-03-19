@@ -438,9 +438,9 @@ class ManagerStudents:
 
         return os.path.join(self.user.path, 'archive', file_name), file_name
 
-    def create_archive_file_name(self, level:int =0) -> str:
+    def create_archive_file_name(self, level:int ='') -> str:
         '''Создает имя для архивного файла'''
-        if level:
+        if level or level == 0:
             level = ' (' + str(level) + ')'
         return str(self.period[1]) + '_' + str(self.period[0]).rjust(2, '0') + self.MONTHS[
                 self.period[0] - 1] + level + '.json'
@@ -815,7 +815,7 @@ class ManagerStudents:
             name_call1 = self.get_number_by_chars(i + BASE_COORDS[0]) + str(3 + BASE_COORDS[1])
             name_cell2 = self.get_number_by_chars(i + BASE_COORDS[0]) + str(4 + BASE_COORDS[1])
             ws[name_call1] = self.couples.get(str(i - 2))[0] if self.couples.get(str(i - 2)) else ''
-            ws[name_cell2] = self.couples.get(str(i - 2))[1] if self.couples.get(str(i - 2)) else ''
+            ws[name_cell2] = self.CLASS_STUDENT.create_shorts_fio(self.couples.get(str(i - 2))[1]) if self.couples.get(str(i - 2)) else ''
             ws.column_dimensions[self.get_number_by_chars(i + BASE_COORDS[0])].width = 15
 
         for name, value in CELLS_INIT.items():

@@ -121,8 +121,9 @@ class UserManager:
         self.base_file = 'USERS.json'
         self.path = path
         self.user = None
-        self.users_id = self.load_user_manager(self.base_file)
         self.parametrs = {} if not parametrs else parametrs
+        self.users_id = self.load_user_manager(self.base_file)
+
 
 
     def link_user_by_obj(self, obj: User) -> None:
@@ -210,7 +211,7 @@ class UserManager:
         for _id in data['Users']:
             if os.path.isdir(os.path.join(self.path, f'user_{_id}')):
                 result[_id] = data['Users'][_id]
-
+        self.parametrs = data['Parametrs']
         return result
 
     def update_user_id(self) -> None:
