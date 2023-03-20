@@ -28,7 +28,12 @@ dirname, filename = os.path.split(os.path.abspath(__file__))
 
 DEBAG = True
 BASE_PATH = dirname
-DOCUMENTS_PATH = os.path.expanduser("~/F6")
+DOCUMENTS_PATH = dirname
+if not os.path.exists(os.path.join(DOCUMENTS_PATH, 'BD')):
+    os.makedirs(os.path.join(DOCUMENTS_PATH, "BD"))
+DOCUMENTS_PATH = os.path.join(dirname, 'BD')
+# DOCUMENTS_PATH = os.path.expanduser("~/F6")
+
 
 
 USER_MANAGER = UserManager(DOCUMENTS_PATH)
@@ -776,6 +781,9 @@ class AbsenceTab(QtWidgets.QWidget):
             self.parent.archive.init_archive()
             self.parent.profile.cod = [3, 2]
 
+        if self.parent.group.indexOf(self.parent.archive) == -1 and len(self.parent.archive.files_archive) != 0:
+            self.parent.group.insertTab(3, self.parent.archive,  self.tr('Архив'))
+
     def init_table_absence(self, only_show=False):
         if hasattr(self, 'tableWidget'):
             self.tableWidget.hide()
@@ -1292,6 +1300,9 @@ class ArchiveTab(QtWidgets.QWidget):
                     pass
                 finally:
                     self.init_archive()
+
+            if len(self.parent.archive.files_archive) == 0 and self.parent.group.indexOf(self.parent.archive) != -1:
+                self.parent.group.removeTab(self.parent.group.indexOf(self.parent.archive))
 
     def logout_archive(self):
         self.is_comebake = 1
@@ -1880,7 +1891,63 @@ class StatisticTab(QtWidgets.QWidget):
         self.setObjectName(u"tab_2")
         self.setStyleSheet(
             """
+            #update_statistic_push_button {
+               font-size: 16px;
+               color: black;
+               background-color: YellowGreen;
+               border: none;
+               padding: 5px;
+               color: white;
+               }
+               
+            #save_diagram_push_button {
+               font-size: 16px;
+               color: black;
+               background-color: Navy;
+               border: none;
+               padding: 5px;
+               color: white;
+               }
+               
+            #set_style_diagrams {
+               font-size: 16px;
+               color: black;
+               background-color: Peru;
+               border: none;
+               padding: 5px;
+               color: white;
+               }
+               
+            #set_mod_view_push_button {
+               font-size: 16px;
+               color: black;
+               background-color: Indigo;
+               border: none;
+               padding: 5px;
+               color: white;
+               }
             
+
+            #update_statistic_push_button:hover {
+               font: 18px;
+               border: 2px solid OliveDrab;
+               }
+               
+            #save_diagram_push_button:hover {
+               font: 18px;
+               border: 2px solid MidnightBlue;
+               }
+               
+            #set_style_diagrams:hover {
+               font: 18px;
+               border: 2px solid Chocolate;
+               }
+               
+            #set_mod_view_push_button:hover {
+               font: 18px;
+               border: 2px solid DarkSlateBlue;
+               }
+
             #button_before {
                 background-color: green;
                 font-size: 4em;
@@ -2290,6 +2357,9 @@ class MainWindow(QtWidgets.QMainWindow):
             self.group.removeTab(self.group.indexOf(self.marks))
         if USER_MANAGER.user.parametrs.get('statistic') == False:
             self.group.removeTab(self.group.indexOf(self.statistics))
+
+        if len(self.archive.files_archive) == 0 and self.group.indexOf(self.archive) != -1:
+            self.group.removeTab(self.group.indexOf(self.archive))
 
         self.retranslateUi()
 
