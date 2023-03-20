@@ -2047,8 +2047,9 @@ class StatisticTab(QtWidgets.QWidget):
 
     def save_diagram(self):
         path = QtWidgets.QFileDialog.getExistingDirectory()
-        self.grafic_period.figure.savefig(os.path.join(path, 'period.svg'), transparent=True)
-        self.grafic_group.figure.savefig(os.path.join(path, 'group.svg'), transparent=True)
+        if path:
+            self.grafic_period.figure.savefig(os.path.join(path, 'period.svg'), transparent=True)
+            self.grafic_group.figure.savefig(os.path.join(path, 'group.svg'), transparent=True)
 
 
 
