@@ -5,7 +5,7 @@ import sys
 
 from PySide6 import QtCore, QtGui, QtWidgets, QtSvg
 from PySide6.QtWidgets import QTableWidgetItem
-from PySide6.QtCore import QTranslator
+from PySide6.QtCore import QTranslator, QLocale, QLibraryInfo
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PySide6.QtCore import QUrl
 from PySide6 import QtSvgWidgets
@@ -30,8 +30,6 @@ DEBAG = True
 BASE_PATH = dirname
 DOCUMENTS_PATH = os.path.expanduser("~/F6")
 
-if not os.path.exists(os.path.join(DOCUMENTS_PATH, 'BD')):
-    os.makedirs(os.path.join(DOCUMENTS_PATH, "BD"))
 
 USER_MANAGER = UserManager(DOCUMENTS_PATH)
 MANAGER_STUDENTS = None
@@ -2839,7 +2837,7 @@ class WindowSetPassword(QtWidgets.QDialog):
                 self.close()
 
 
-class ControlerWindows:
+class ControlerWindows(QtWidgets.QWidget):
     def __init__(self, splash_screen: SplashScreen, auth: Auth, regist: Regist, main: MainWindow):
         self.splash_screen = splash_screen()
         self.splash_screen.show()
@@ -2907,7 +2905,7 @@ class ControlerWindows:
             self.regist.show()
 
     def is_exit(self, parent):
-        message = QtWidgets.QMessageBox.question(self.main, self.main.tr('Сохранение изменений'), self.main.tr("Сохранить изменения?"),
+        message = QtWidgets.QMessageBox.question(self.main, self.tr('Сохранение изменений'), self.tr("Сохранить изменения?"),
                                                  QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
         if message == message.Yes:
             MANAGER_STUDENTS.save_students()
@@ -2922,10 +2920,14 @@ class ControlerWindows:
 def set_language(*args, **kwargs):
     global CURRENT_LANGUAGE, USER_MANAGER
     CURRENT_LANGUAGE = next(LANGUAGES)
+    if USER_MANAGER.parametrs.get('language') == CURRENT_LANGUAGE:
+        CURRENT_LANGUAGE = next(LANGUAGES)
     if translator.load(os.path.join(BASE_PATH, 'languages', CURRENT_LANGUAGE)):
         app.installTranslator(translator)
         USER_MANAGER.parametrs['language'] = CURRENT_LANGUAGE
     else:
+        translator.load("qt_" + 'ru_RU', QLibraryInfo.location(QLibraryInfo.TranslationsPath))
+        app.installTranslator(translator)
         USER_MANAGER.parametrs['language'] = 'russia'
     USER_MANAGER.save_users()
 
@@ -2934,14 +2936,16 @@ def set_language(*args, **kwargs):
 
 
 app = QtWidgets.QApplication(sys.argv)
-
 translator = QTranslator(app)
 
 
 if translator.load(os.path.join(BASE_PATH, 'languages', str(USER_MANAGER.parametrs.get('language')))):
     app.installTranslator(translator)
-
-
+    CURRENT_LANGUAGE = USER_MANAGER.parametrs.get('language')
+else:
+    translator.load("qt_" + 'ru_RU', QLibraryInfo.location(QLibraryInfo.TranslationsPath))
+    app.installTranslator(translator)
+    CURRENT_LANGUAGE = 'russia'
 try:
     filename = os.path.join('sounds', "logo.mp3")
     player = QMediaPlayer()
@@ -2952,6 +2956,7 @@ try:
     player.play()
 except:
     print('No sound')
+
 
 
 windows = ControlerWindows(SplashScreen, Auth, Regist, MainWindow)
