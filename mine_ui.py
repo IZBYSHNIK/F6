@@ -6,7 +6,7 @@ import sys
 from PySide6 import QtCore, QtGui, QtWidgets, QtSvg
 from PySide6.QtWidgets import QTableWidgetItem
 from PySide6.QtCore import QTranslator, QLocale, QLibraryInfo
-from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
+# from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PySide6.QtCore import QUrl
 from PySide6 import QtSvgWidgets
 from matplotlib import pyplot as plt
@@ -25,14 +25,14 @@ VERSION = '1.1.7'
 LANGUAGES = ManagerStudents.crate_eternal_iter(['english', 'china', 'russia'])
 CURRENT_LANGUAGE = None
 dirname, filename = os.path.split(os.path.abspath(__file__))
-
 DEBAG = True
 BASE_PATH = dirname
-DOCUMENTS_PATH = dirname
-if not os.path.exists(os.path.join(DOCUMENTS_PATH, 'BD')):
-    os.makedirs(os.path.join(DOCUMENTS_PATH, "BD"))
-DOCUMENTS_PATH = os.path.join(dirname, 'BD')
-# DOCUMENTS_PATH = os.path.expanduser("~/F6")
+# DOCUMENTS_PATH = dirname
+# if not os.path.exists(os.path.join(DOCUMENTS_PATH, 'BD')):
+#     os.makedirs(os.path.join(DOCUMENTS_PATH, "BD"))
+# DOCUMENTS_PATH = os.path.join(dirname, 'BD')
+# print(DOCUMENTS_PATH, 'DOC_PATH')
+DOCUMENTS_PATH = os.path.expanduser("~/F6")
 
 
 
@@ -427,10 +427,11 @@ class Auth(QtWidgets.QWidget):
         self.password_edit.setObjectName("password_edit")
         self.login_lable = QtWidgets.QLabel(self)
         self.login_lable.move(70, 120)
+        self.login_lable.setFixedWidth(250)
         self.login_lable.setObjectName("login_lable")
         self.password_lable = QtWidgets.QLabel(self)
         self.password_lable.move(70, 235)
-        self.password_lable.setFixedWidth(480)
+        self.password_lable.setFixedWidth(300)
         self.password_lable.setObjectName("password_lable")
         self.message_auth = QtWidgets.QTextBrowser(self)
         self.message_auth.setGeometry(60, 351 + 20, 351, 41)
@@ -2991,8 +2992,6 @@ class ControlerWindows(QtWidgets.QWidget):
 def set_language(*args, **kwargs):
     global CURRENT_LANGUAGE, USER_MANAGER
     CURRENT_LANGUAGE = next(LANGUAGES)
-    if USER_MANAGER.parametrs.get('language') == CURRENT_LANGUAGE:
-        CURRENT_LANGUAGE = next(LANGUAGES)
     if translator.load(os.path.join(BASE_PATH, 'languages', CURRENT_LANGUAGE)):
         app.installTranslator(translator)
         USER_MANAGER.parametrs['language'] = CURRENT_LANGUAGE
@@ -3001,7 +3000,6 @@ def set_language(*args, **kwargs):
         app.installTranslator(translator)
         USER_MANAGER.parametrs['language'] = 'russia'
     USER_MANAGER.save_users()
-
     windows.retranslateUi()
 
 
@@ -3017,16 +3015,17 @@ else:
     translator.load("qt_" + 'ru_RU', QLibraryInfo.location(QLibraryInfo.TranslationsPath))
     app.installTranslator(translator)
     CURRENT_LANGUAGE = 'russia'
-try:
-    filename = os.path.join('sounds', "logo.mp3")
-    player = QMediaPlayer()
-    audio_output = QAudioOutput()
-    player.setAudioOutput(audio_output)
-    player.setSource(QUrl.fromLocalFile(filename))
-    audio_output.setVolume(25)
-    player.play()
-except:
-    print('No sound')
+USER_MANAGER.save_users()
+# try:
+#     filename = os.path.join('sounds', "logo.mp3")
+#     player = QMediaPlayer()
+#     audio_output = QAudioOutput()
+#     player.setAudioOutput(audio_output)
+#     player.setSource(QUrl.fromLocalFile(filename))
+#     audio_output.setVolume(25)
+#     player.play()
+# except:
+#     print('No sound')
 
 
 

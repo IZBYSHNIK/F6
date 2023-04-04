@@ -17,18 +17,29 @@ class Student:
         if not absence_days:
             absence_days = {}
         self.__fio = self.check_fio(fio)
-        self.__sick_days = sick_days
-        self.__absence_days = absence_days
+        self.__sick_days = self.check_days(sick_days)
+        self.__absence_days = self.check_days(absence_days)
         self.marks = {}
 
     def __str__(self):
         return self.create_shorts_fio(self.fio)
 
     @classmethod
+    def check_days(cls, days: dict) -> dict:
+        """Проверяет правильность словаря дней, при верном результате возвращает его, иначе ошибку ValueError"""
+        if not isinstance(days, dict):
+            raise ValueError('Функция работает только с данными типа словарь')
+        for day, hours in days.items():
+            if not(cls.is_valud_day(day) and cls.is_valud_hours(hours)):
+                raise ValueError('Словарь с днями поврежден')
+        return days
+
+
+    @classmethod
     def check_fio(cls, fio: str) -> str:
         """Проверяет правильность ФИО, при верном результате возвращает ФИО, иначе ошибку ValueError"""
         if cls.is_valud_fio(fio):
-            return fio.title()
+            return ' '.join(fio.title().split())
         raise ValueError('ФИО должно состоять только из букв и быть из 3 частей, каждая из которых не менее 2 символов')
 
     @staticmethod
@@ -54,12 +65,12 @@ class Student:
         '''Проверяет правильность "часов", при верном результате возвращает "часы", иначе ошибку ValueError'''
         if cls.is_valud_hours(hours):
             return hours
-        raise ValueError('Часы должены быть записаны целым числом, от 1 до 10')
+        raise ValueError('Часы должены быть записаны целым числом, от 0 до 10')
 
     @staticmethod
     def is_valud_hours(hours: int) -> bool:
         """Проверяет правильность часов, возвращает булевое значение"""
-        return isinstance(hours, int) and 1 <= hours <= 10
+        return isinstance(hours, int) and 0 <= hours <= 10
 
     @property
     def fio(self) -> str:
@@ -87,7 +98,7 @@ class Student:
         return self.__absence_days
 
     def add_sick_day(self, day:int, hours:int) -> None:
-        """Добавляет пару: ключ - день и значение - время в словарь с прогулами по боезни"""
+        """Добавляет пару: ключ - день и значение - время в словарь с прогулами по болезни"""
         day = self.check_day(day)
         hours = self.check_hours(hours)
         self.__sick_days[day] = hours
@@ -118,6 +129,7 @@ class Student:
         Добавляет номер дня и его значения в соответсвующий словарь в зависимости от типа:
         type_day='a'/'s'
         """
+        type_day = type_day.lower()
         if type_day == 's':
             self.add_sick_day(number_day, hours)
         elif type_day == 'a':
@@ -146,15 +158,15 @@ class ManagerStudents:
     def __init__(self, period: tuple,  user=None, days=None, students=None):
         self.user = user
         self.period = period
-        self.days = days if days else self.generate_work_days()
+        self.days = days if days else self.generate_work_days(month=self.period[0], year=self.period[1])
         self.__students = [] if not students else students
         self.date = datetime.datetime.now().timetuple()
         self.parametrs = {}
         self.couples = {}
         self.is_archive = False
 
-
-    def generate_work_days(self) -> dict:
+    @classmethod
+    def generate_work_days(cls, month: int, year: int) -> dict:
         """
         Генерирует рабочие дни с учетом праздников и выходных
         Возвращает словарь в виде
@@ -163,17 +175,41 @@ class ManagerStudents:
         "day": "hours"
         }
         """
+        month = cls.check_month(month)
+        year = cls.check_year(year)
+
         work_days = {}
-        for week in calendar.monthcalendar(year=self.period[1], month=self.period[0]):
+        for week in calendar.monthcalendar(month=month, year=year):
             for day in range(7):
-                if day > 4 or week[day] in self.HAPPY_DAYS.get(self.period[0], []):
+                if day > 4 or week[day] in cls.HAPPY_DAYS.get(month, []):
                     continue
                 elif week[day] != 0 and week[day]:
                     work_days[week[day]] = 0
         return work_days
 
+    @classmethod
+    def check_month(cls, month: int) -> int:
+        if cls.is_valud_month(month):
+            return month
+        raise ValueError('Месяц должен быть от 1 до 12')
+
+    @staticmethod
+    def is_valud_month(month: int) -> bool:
+        return isinstance(month, int) and 1 <= month <= 12
+
+    @classmethod
+    def check_year(cls, year: int) -> int:
+        if cls.is_valud_year(year):
+            return year
+        raise ValueError('Год должен быть от 1700')
+
+    @staticmethod
+    def is_valud_year(year: int) -> bool:
+        return isinstance(year, int) and 1700 <= year
+
     def off_day(self, day: int) -> None:
         """Удаляет рабочий день из переменной self.days"""
+        self.CLASS_STUDENT.check_day(day)
         if day in self.days:
             for st in self.students:
                 if st.sick_days.get(day):
@@ -185,6 +221,8 @@ class ManagerStudents:
 
     def on_day(self, day: int, hours: int=0) -> None:
         """Добавляет рабочий день из переменной self.days"""
+        self.CLASS_STUDENT.check_day(day)
+        self.CLASS_STUDENT.check_hours(hours)
         self.days[day] = hours
 
     def add_day(self, student, number_day, hours, type_day='a'):
@@ -202,10 +240,21 @@ class ManagerStudents:
         if number_day in student.absence_days:
             del student.absence_days[number_day]
 
+    @staticmethod
+    def is_valud_period(period: tuple) -> bool:
+        return isinstance(period, tuple) and len(period) == 2 and \
+        isinstance(period[0], int) and isinstance(period[1], int) and 1 <= period[0] <= 12 and 1700 <= period[1]
+
+    @classmethod
+    def check_period(cls, period: tuple) -> tuple:
+        if cls.is_valud_period(period):
+            return period
+        raise ValueError('Период должен быть катрежем из двух чисел: месяц (int) и год (int), которые находятся в диапазоне от 1 до 12 (month) и от 1700 (year) соответственно ')
+
     def set_period(self, month: int, year: int):
         '''Изменяет месяц и год таблицы'''
-        self.period = (int(month), int(year))
-        self.days = self.generate_work_days()
+        self.period = self.check_period((month, year))
+        self.days = self.generate_work_days(month, year)
 
     def add_hours_by_day(self, day, hours: int=0) -> None:
         """Добавляет значение времени в словарь по ключу day"""
