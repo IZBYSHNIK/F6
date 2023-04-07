@@ -644,8 +644,8 @@ class AbsenceTab(QtWidgets.QWidget):
             self.statustic2.clear()
 
     def save_to_exel(self):
-        options = QtWidgets.QFileDialog.Options()
-        options |= QtWidgets.QFileDialog.Option.DontUseNativeDialog
+        # options = QtWidgets.QFileDialog.Options()
+        # options |= QtWidgets.QFileDialog.Option.DontUseNativeDialog
 
         file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self,  self.tr("Выберите путь и имя файла для сохранения."),
         f'{"_".join(["П", str(MANAGER_STUDENTS.MONTHS[MANAGER_STUDENTS.period[0] - 1]), str(MANAGER_STUDENTS.period[1]), str(USER_MANAGER.user.username)])}.xlsx',
@@ -979,8 +979,8 @@ class MarksTab(QtWidgets.QWidget):
             self.tableWidget_3.update_table_students(size=self.tableWidget_3.mod_size - 2)
 
     def save_to_exel_marks(self):
-        options = QtWidgets.QFileDialog.Options()
-        options |= QtWidgets.QFileDialog.Option.DontUseNativeDialog
+        # options = QtWidgets.QFileDialog.Options()
+        # options |= QtWidgets.QFileDialog.Option.DontUseNativeDialog
 
         file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, self.tr("Выберите путь и имя файла для сохранения."),
                                                              f'{"_".join(["О", str(MANAGER_STUDENTS.MONTHS[MANAGER_STUDENTS.period[0] - 1]), str(MANAGER_STUDENTS.period[1]), str(USER_MANAGER.user.username)])}.xlsx',
