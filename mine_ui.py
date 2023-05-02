@@ -525,9 +525,9 @@ class BaseTable:
             global IS_CHANGE
             IS_CHANGE = False
         except BaseException:
-            self.parent.get_down_message('Не удалось сохранить файл')
+            self.parent.get_down_message(self.tr('Не удалось сохранить файл'))
         else:
-            self.parent.get_down_message('Успешное сохранение')
+            self.parent.get_down_message(self.tr('Успешное сохранение'))
 
 
 
