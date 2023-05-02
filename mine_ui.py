@@ -585,6 +585,7 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
 
         self.double_mod = QtWidgets.QCheckBox()
         self.horizontalLayout_2.addWidget(self.double_mod)
+        self.double_mod.hide()
 
         # ________________________________________
         self.set_size_posetiv_font_push = Push(self.frame, 40, 40, 5,
@@ -720,6 +721,7 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
         if not item is None:
             hours = item.text()
             try:
+
                 if item.row() == 1 and 2 <= item.column() <= 32:
                     if item.text() == '' or item.text() == ' ':
                         if MANAGER_STUDENTS.days.get(item.column() - 1):
@@ -740,13 +742,8 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
                             del MANAGER_STUDENTS.students[item.row() - 3].sick_days[item.column() - 1]
                         item.setBackground(QtGui.QColor(255, 255, 255))
 
-                    elif hours.isnumeric() and 0 <= (int(hours)*2 if self.double_mod.isChecked() else int(hours))<= 10:
+                    elif hours.isnumeric() and 1 <= (int(hours)*2 if self.double_mod.isChecked() else int(hours))<= 10:
                         hours = int(hours)
-                        print(hours, '--------------------')
-                        if self.double_mod.isChecked():
-                            print(hours, '-- old  ----')
-                            hours = int(hours) * 2
-                            print(hours, '--  new ----')
                         if self.is_sick_rb.isChecked():
                             tablewidget.add_hours_in_table(item.row(), item.column(), hours, type_day='s')
                         else:
@@ -1196,6 +1193,7 @@ class StudentsTab(QtWidgets.QWidget):
                 if hasattr(self.parent, 'F6'):
                     self.parent.F6.tableWidget.update_table_students()
                 MANAGER_STUDENTS.save_students()
+                self.parent.get_down_message(self.tr('Изменения сохранены'))
             else:
                 self.message_students.setText(self.tr('ФИО должно состоять только из букв и быть из 3 частей, каждая из которых не менее 2 символов'))
 

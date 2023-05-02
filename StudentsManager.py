@@ -153,6 +153,8 @@ class ManagerStudents:
         12: [30, 31, ],
         2: [23, ],
         3: [8, ],
+        5: [1, 9],
+
     }
 
     def __init__(self, period: tuple,  user=None, days=None, students=None):
