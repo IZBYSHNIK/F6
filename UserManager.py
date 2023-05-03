@@ -10,6 +10,17 @@ class User:
     LOWER_CASE = ascii_lowercase
     UPPER_CASE = ascii_lowercase.upper()
     NUMBERS = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+    HAPPY_DAYS = {
+        10: [4, ],
+        1: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ],
+        12: [30, 31, ],
+        2: [23, ],
+        3: [8, ],
+        5: [1, 9, ],
+
+
+
+    }
 
     @staticmethod
     def create_shorts_fio(fio: str) -> str:
@@ -17,12 +28,17 @@ class User:
         last_name, first_name, middle_name = fio.title().split()
         return f'{last_name} {first_name[0]}. {middle_name[0]}.'
 
-    def __init__(self, username: str, password: str, parametrs=None):
+    def __init__(self, username: str, password: str, parametrs=None, ):
         if parametrs is None:
             parametrs = {}
         self.path = None
         self.username = self.check_username(username)
         self.parametrs = parametrs
+        if self.parametrs.get('happy_days'):
+            self.happy_days = self.parametrs.get('happy_days')
+        else:
+            self.happy_days = self.HAPPY_DAYS
+
 
         self.user_id = self.generate_user_id() + '_' + username
         self.__password = self.check_password(password)
@@ -80,6 +96,7 @@ class User:
         return result
 
     def save_user(self, file_name='user.json') -> None:
+        self.parametrs['happy_days'] = self.happy_days
         date = {
             "username": self.username,
             "user_id": self.user_id,
@@ -96,9 +113,8 @@ class User:
     @staticmethod
     def load_user(data: dict, password: str):
         '''Создает новый экземпляр класса'''
-        new_obj = User(data['username'], password)
+        new_obj = User(data['username'], password, data['parametrs'])
         new_obj.user_id = data['user_id']
-        new_obj.parametrs = data['parametrs']
         return new_obj
 
     def add_achievement(self, coord: tuple) -> None:
@@ -110,6 +126,11 @@ class User:
             self.parametrs['achievements'] = []
         self.parametrs['achievements'].append(coord)
         self.save_user()
+
+    def restart_happy_day(self):
+        self.happy_days = self.HAPPY_DAYS
+
+
 
 
 

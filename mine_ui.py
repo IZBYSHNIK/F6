@@ -19,7 +19,7 @@ from UserManager import UserManager
 
 
 
-VERSION = '1.1.8'
+VERSION = '1.1.9'
 LANGUAGES = ManagerStudents.crate_eternal_iter(['english', 'china', 'russia'])
 CURRENT_LANGUAGE = None
 IS_CHANGE = False
@@ -101,15 +101,16 @@ class LicenseWindow(QtWidgets.QWidget):
         self.verticalLayout_2.addWidget(self.logo, QtCore.Qt.AlignmentFlag.AlignVCenter,QtCore.Qt.AlignmentFlag.AlignHCenter)
         self.label = QtWidgets.QLabel(self)
         font = QtGui.QFont()
-        font.setPointSize(16)
+        font.setPointSize(16+ADD_FONT_SIZE)
         self.label.setFont(font)
         self.label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.label.setObjectName("label")
         self.verticalLayout_2.addWidget(self.label)
         self.textBrowser = QtWidgets.QTextBrowser(self)
         font = QtGui.QFont()
-        font.setPointSize(9)
+        font.setPointSize(14 + ADD_FONT_SIZE)
         self.textBrowser.setFont(font)
+        self.textBrowser.setStyleSheet('border: none; background-color: rgba(0, 0, 0, 0)')
         self.textBrowser.setObjectName("textBrowser")
         self.verticalLayout_2.addWidget(self.textBrowser)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -126,6 +127,9 @@ class LicenseWindow(QtWidgets.QWidget):
         self.pushButton.clicked.connect(self.click_OK)
         self.init_license(os.path.join(BASE_PATH, 'license.txt'))
 
+        self.gw = GratutudeWindow()
+        self.logo.mousePressEvent = self.click_logo
+
     def retranslateUi(self):
         self.setWindowTitle(self.tr("Лицензия"))
         self.label.setText(self.tr("Лицензионное соглашение"))
@@ -139,6 +143,57 @@ class LicenseWindow(QtWidgets.QWidget):
     def init_license(self, file_puth=None):
         with open(file_puth, 'r', encoding='Windows-1251') as f:
             self.textBrowser.setText(''.join(f.readlines()))
+
+    def click_logo(self, e):
+        self.gw.show()
+
+
+class GratutudeWindow(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        super(GratutudeWindow, self).__init__(parent=parent)
+        self.setObjectName("Form")
+        self.resize(600, 700)
+        self.setWindowIcon(QtGui.QIcon('media\\logo.svg'))
+        self.setFixedSize(QtCore.QSize(600, 700))
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self)
+        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.logo = QtSvgWidgets.QSvgWidget(os.path.join(BASE_PATH, 'media', 'heart.svg'))
+        self.logo.setFixedSize(QtCore.QSize(50, 50))
+
+        self.logo.setObjectName("label_2")
+        self.verticalLayout_2.addWidget(self.logo, QtCore.Qt.AlignmentFlag.AlignVCenter,QtCore.Qt.AlignmentFlag.AlignHCenter)
+
+        self.textBrowser = QtWidgets.QTextBrowser(self)
+        font = QtGui.QFont()
+        font.setPointSize(14+ADD_FONT_SIZE)
+        self.textBrowser.setFont(font)
+        self.textBrowser.setObjectName("textBrowser")
+        self.textBrowser.setHtml(self.tr('<h1 style="text-align: center; color: red;">Благодарность</h1> <p style="text-align: center;">Выражаю огромную благодарность всем тем, кто постоянно окружал все это время.</p><p style="text-align: center;">Отдельная благодарность: <br>куратору работы – <b>Кузьминой Ирине Александровне</b>, <br>моему соседу – <b>Амангильдину Рамису</b>, <br>тестировщикам – <b>Кубагушеву Искандер</b> <br>и <b>Александрову Александру</b> <br>и в целом всей группе 1ПКС-20. Вы лучшие!</p>'))
+        self.textBrowser.setStyleSheet('border: none; background-color: rgba(0, 0, 0, 0)')
+        self.verticalLayout_2.addWidget(self.textBrowser)
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setContentsMargins(-1, 8, -1, -1)
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.pushButton = QtWidgets.QPushButton(self)
+        self.pushButton.setObjectName("pushButton")
+        self.horizontalLayout.addWidget(self.pushButton)
+        self.verticalLayout_2.addLayout(self.horizontalLayout)
+
+        self.retranslateUi()
+        QtCore.QMetaObject.connectSlotsByName(self)
+
+        self.pushButton.clicked.connect(self.click_OK)
+        self.logo.mousePressEvent = self.click_OK
+
+    def retranslateUi(self):
+        self.setWindowTitle(self.tr("Благодарность"))
+
+        self.pushButton.setText(self.tr("ОК"))
+
+    def click_OK(self, e=None):
+        global is_click_license
+        is_click_license = 1
+        self.close()
 
 
 class Regist(QtWidgets.QWidget):
@@ -1158,6 +1213,9 @@ class StudentsTab(QtWidgets.QWidget):
         self.add_function()
         self.retranslateUi()
 
+        self.del_push.setEnabled(0)
+        self.save_push.setEnabled(0)
+
     def retranslateUi(self):
         self.fio_label.setText(self.tr("ФИО"))
         self.del_push.setText(self.tr("Удалить"))
@@ -1194,6 +1252,8 @@ class StudentsTab(QtWidgets.QWidget):
                     self.parent.F6.tableWidget.update_table_students()
                 MANAGER_STUDENTS.save_students()
                 self.parent.get_down_message(self.tr('Изменения сохранены'))
+                self.del_push.setEnabled(0)
+                self.save_push.setEnabled(0)
             else:
                 self.message_students.setText(self.tr('ФИО должно состоять только из букв и быть из 3 частей, каждая из которых не менее 2 символов'))
 
@@ -1211,14 +1271,21 @@ class StudentsTab(QtWidgets.QWidget):
                 self.listWidget.removeItemWidget(self.listWidget.currentItem())
                 self.update_list_students()
                 USER_MANAGER.save_users()
+                self.parent.get_down_message(self.tr('Студент отчислен'))
+                self.del_push.setEnabled(0)
+                self.save_push.setEnabled(0)
+
 
         if len(MANAGER_STUDENTS.students) == 0:
             self.parent.group.removeTab(self.parent.group.indexOf(self))
             self.update_list_students()
 
     def click_list(self, listwidget):
+        self.del_push.setEnabled(1)
+        self.save_push.setEnabled(1)
         self.fio_edit.setText(' '.join(listwidget.currentItem().text().split()[1:]))
         self.fio_edit.setEnabled(1)
+
 
 
 class ArchiveTab(QtWidgets.QWidget):
@@ -1412,6 +1479,14 @@ class SettingsTab(QtWidgets.QWidget):
         self.del_work_day_link_button.setCheckable(False)
         self.del_work_day_link_button.setObjectName("del_work_day_link_button")
         self.verticalLayout_9.addWidget(self.del_work_day_link_button)
+        self.restart_weekend_link_button = QtWidgets.QCommandLinkButton(self.scrollAreaWidgetContents)
+        self.restart_weekend_link_button.setTabletTracking(True)
+        self.restart_weekend_link_button.setObjectName("restart_weekend_link_button")
+        self.verticalLayout_9.addWidget(self.restart_weekend_link_button)
+        self.show_weekend_link_button = QtWidgets.QCommandLinkButton(self.scrollAreaWidgetContents)
+        self.show_weekend_link_button.setTabletTracking(True)
+        self.show_weekend_link_button.setObjectName("show_weekend_link_button")
+        self.verticalLayout_9.addWidget(self.show_weekend_link_button)
 
         line = QtWidgets.QFrame(self.scrollAreaWidgetContents)
         line.setFrameShape(QtWidgets.QFrame.Shape.HLine)
@@ -1472,9 +1547,7 @@ class SettingsTab(QtWidgets.QWidget):
         line.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
         line.setObjectName("line")
         self.verticalLayout_9.addWidget(line)
-
         self.language_label = QtWidgets.QLabel(self.scrollAreaWidgetContents)
-
         self.language_label.setObjectName("language_label")
         self.verticalLayout_9.addWidget(self.language_label)
         self.set_language_link_button = QtWidgets.QCommandLinkButton(self.scrollAreaWidgetContents)
@@ -1500,6 +1573,8 @@ class SettingsTab(QtWidgets.QWidget):
         self.add_work_day_link_button.setText(self.tr("Добавить рабочий день"))
         self.set_data_table_link_button.setText(self.tr("Изменить месяц и год"))
         self.del_work_day_link_button.setText(self.tr("Удалить рабочий день"))
+        self.restart_weekend_link_button.setText(self.tr('Сброс праздников'))
+        self.show_weekend_link_button.setText(self.tr('Просмотреть список праздничных дней'))
 
         self.set_data_table_label.setText(self.tr('Период'))
         self.language_label.setText(self.tr('Язык'))
@@ -1511,8 +1586,12 @@ class SettingsTab(QtWidgets.QWidget):
         self.on_off_table_marks_link_button.setText(self.tr('Включить/выключить таблицу оценок'))
         self.on_off_statistics_link_button.setText(self.tr('Включить/выключить статистику'))
 
+
+
         self.setings1_label.setFont(QtGui.QFont(NAME_FONT, 16 + ADD_FONT_SIZE))
         self.add_work_day_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
+        self.restart_weekend_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
+        self.show_weekend_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
         self.set_data_table_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
         self.del_work_day_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
         self.set_data_table_label.setFont(QtGui.QFont(NAME_FONT, 16 + ADD_FONT_SIZE))
@@ -1535,10 +1614,38 @@ class SettingsTab(QtWidgets.QWidget):
         self.on_off_table_marks_link_button.clicked.connect(self.on_off_table)
         self.on_off_statistics_link_button.clicked.connect(self.on_off_statistics)
         self.set_language_link_button.clicked.connect(self.set_language)
+        self.restart_weekend_link_button.clicked.connect(self.restart_weekend)
+        self.show_weekend_link_button.clicked.connect(self.show_weekend)
 
     def set_language(self):
         global set_language
         set_language()
+
+    def restart_weekend(self):
+        message = QtWidgets.QMessageBox.question(self, self.tr('Сброс'),
+                                                 self.tr('Вы точно хотите "сбросить" все праздники?'),
+                                                 QtWidgets.QMessageBox.StandardButton.Yes,
+                                                 QtWidgets.QMessageBox.StandardButton.No)
+        if message == QtWidgets.QMessageBox.StandardButton.Yes:
+            USER_MANAGER.user.restart_happy_day()
+            MANAGER_STUDENTS.days = MANAGER_STUDENTS.generate_work_days(month=MANAGER_STUDENTS.period[0], year=MANAGER_STUDENTS.period[1], happy_days=USER_MANAGER.user.happy_days)
+            self.parent.F6.tableWidget.update_table_students()
+            self.parent.F6.update_statistics()
+
+    def show_weekend(self):
+        self.list_weekend = QtWidgets.QTextBrowser()
+        self.list_weekend.setWindowIcon(QtGui.QIcon('media\\logo.svg'))
+        self.list_weekend.setWindowTitle(self.tr('Список выходных дней'))
+        self.list_weekend.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
+
+        resalt = '<table>'
+        for k, v in USER_MANAGER.user.happy_days.items():
+            resalt += f'<tr><td>{MANAGER_STUDENTS.MONTHS[int(k)-1]}</td><td>{str(v)[1:-1]}</td></tr>'
+        resalt += '</table>'
+        self.list_weekend.setText(resalt)
+
+        self.list_weekend.show()
+
 
     def add_work_day(self):
         deal = SettingsWindows(self)
@@ -1557,6 +1664,7 @@ class SettingsTab(QtWidgets.QWidget):
         deal.exec()
         if not (deal.result is None):
             MANAGER_STUDENTS.off_day(deal.result)
+
             self.parent.F6.tableWidget.update_table_students()
             self.parent.F6.update_statistics()
             self.is_del_work_day = 1
@@ -1941,8 +2049,9 @@ class ProfileTab(QtWidgets.QWidget):
         }
         if CONDITION.get(tuple(key)):
             if USER_MANAGER.user.parametrs:
-                if not list(key) in USER_MANAGER.user.parametrs.get('achievements'):
-                    return eval(CONDITION[tuple(key)])
+                if USER_MANAGER.user.parametrs.get('achievements'):
+                    if not list(key) in USER_MANAGER.user.parametrs.get('achievements'):
+                        return eval(CONDITION[tuple(key)])
 
 
 class StatisticTab(QtWidgets.QWidget):
@@ -2141,7 +2250,9 @@ class StatisticTab(QtWidgets.QWidget):
         self.draw_graph(*args, **kwargs)
 
     def draw_circle_graph(self, *args, **kwargs):
-        self.__add_legend(*self.grafic_group.draw_circle_graph(*args, **kwargs))
+       self.__add_legend(*self.grafic_group.draw_circle_graph(*args, **kwargs))
+
+
 
     def draw_graph(self,*args, **kwargs):
         self.__add_legend2(*self.grafic_period.draw_graph(*args, **kwargs))
@@ -3155,6 +3266,7 @@ windows.show()
 
 
 status = app.exec()
-
+if USER_MANAGER.user:
+    USER_MANAGER.user.save_user()
 print(status, '-')
 sys.exit(status)

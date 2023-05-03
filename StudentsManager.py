@@ -147,28 +147,20 @@ class ManagerStudents:
         'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
         'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
     )
-    HAPPY_DAYS = {
-        10: [4, ],
-        1: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ],
-        12: [30, 31, ],
-        2: [23, ],
-        3: [8, ],
-        5: [1, 9],
-
-    }
 
     def __init__(self, period: tuple,  user=None, days=None, students=None):
         self.user = user
-        self.period = period
-        self.days = days if days else self.generate_work_days(month=self.period[0], year=self.period[1])
+        self.period = period # (month, year)
+        self.days = days if days else self.generate_work_days(month=self.period[0], year=self.period[1], happy_days=user.happy_days)
         self.__students = [] if not students else students
         self.date = datetime.datetime.now().timetuple()
         self.parametrs = {}
         self.couples = {}
         self.is_archive = False
 
+
     @classmethod
-    def generate_work_days(cls, month: int, year: int) -> dict:
+    def generate_work_days(cls, month: int, year: int, happy_days=None) -> dict:
         """
         Генерирует рабочие дни с учетом праздников и выходных
         Возвращает словарь в виде
@@ -177,13 +169,14 @@ class ManagerStudents:
         "day": "hours"
         }
         """
+        if not happy_days:
+            happy_days = {}
         month = cls.check_month(month)
         year = cls.check_year(year)
-
         work_days = {}
         for week in calendar.monthcalendar(month=month, year=year):
             for day in range(7):
-                if day > 4 or week[day] in cls.HAPPY_DAYS.get(month, []):
+                if day > 4 or week[day] in happy_days.get(str(month), []):
                     continue
                 elif week[day] != 0 and week[day]:
                     work_days[week[day]] = 0
@@ -218,6 +211,7 @@ class ManagerStudents:
                     del st.sick_days[day]
                 elif st.absence_days.get(day):
                     del st.absence_days[day]
+            self.user.happy_days[str(self.period[0])] = self.user.happy_days.get(str(self.period[0]), []) + [day]
 
             del self.days[day]
 
@@ -226,6 +220,12 @@ class ManagerStudents:
         self.CLASS_STUDENT.check_day(day)
         self.CLASS_STUDENT.check_hours(hours)
         self.days[day] = hours
+
+        if day in self.user.happy_days.get(str(self.period[0])):
+            self.user.happy_days[str(self.period[0])].remove(day)
+
+
+
 
     def add_day(self, student, number_day, hours, type_day='a'):
         type_day = type_day.lower()
@@ -256,7 +256,7 @@ class ManagerStudents:
     def set_period(self, month: int, year: int):
         '''Изменяет месяц и год таблицы'''
         self.period = self.check_period((month, year))
-        self.days = self.generate_work_days(month, year)
+        self.days = self.generate_work_days(month, year, self.user.happy_days)
 
     def add_hours_by_day(self, day, hours: int=0) -> None:
         """Добавляет значение времени в словарь по ключу day"""
@@ -502,6 +502,8 @@ class ManagerStudents:
         if 1 <= self.period[0] < 12:
             month = self.period[0] + 1
             year = self.period[1]
+            if month == 7 or month == 8:
+                month = 9
         else:
             month = 1
             year = self.period[1] + 1
