@@ -556,6 +556,7 @@ class ManagerStudents:
 
     def get_statistics_for_group(self) -> dict:
         statistics_resalt = {}
+
         for i in self.students:
             statistics = i.get_statistic_for_student()
             resalt = statistics['Sick_days'][1]+statistics['Absence_days'][1]
@@ -565,7 +566,6 @@ class ManagerStudents:
 
         statistics_resalt = dict(sorted(statistics_resalt.items(), key=lambda item: item[1], reverse=True))
         return statistics_resalt
-
     def get_total_statistic_period(self) -> dict:
         """
         Генерирует статистику за все месяцы в виде словаря

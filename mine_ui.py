@@ -9,13 +9,16 @@ from PySide6.QtCore import QTranslator, QLocale, QLibraryInfo
 # from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PySide6.QtCore import QUrl
 from PySide6 import QtSvgWidgets
-from matplotlib import pyplot as plt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+from PySide6.QtCore import QTimer
 
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+import matplotlib
+matplotlib.use('Qt5Agg')
 
 from StudentsManager import ManagerStudents
 from UserManager import UserManager
+
 
 
 
@@ -2054,6 +2057,18 @@ class ProfileTab(QtWidgets.QWidget):
                         return eval(CONDITION[tuple(key)])
 
 
+
+class MplCanvas(FigureCanvas):
+
+    def __init__(self, parent=None, width=5, height=4, dpi=100):
+        fig = Figure(figsize=(width, height), dpi=dpi)
+        self.axes = fig.add_subplot()
+        super(MplCanvas, self).__init__(fig)
+
+
+
+
+
 class StatisticTab(QtWidgets.QWidget):
     STYLE = ['Solarize_Light2', '_classic_test_patch', '_mpl-gallery', '_mpl-gallery-nogrid', 'bmh', 'seaborn-v0_8', 'seaborn-v0_8-bright',
              'seaborn-v0_8-colorblind', 'seaborn-v0_8-dark', 'seaborn-v0_8-dark-palette', 'seaborn-v0_8-darkgrid',
@@ -2065,62 +2080,31 @@ class StatisticTab(QtWidgets.QWidget):
         self.setObjectName(u"tab_2")
         self.setStyleSheet(
             """
-            #update_statistic_push_button {
+            #get_month_statistic {
                font-size: 16px;
                color: black;
-               background-color: YellowGreen;
+               background-color: Black;
                border: none;
                padding: 5px;
                color: white;
-               }
+               margin: 0px;
                
-            #save_diagram_push_button {
-               font-size: 16px;
-               color: black;
-               background-color: Navy;
-               border: none;
-               padding: 5px;
-               color: white;
                }
-               
-            #set_style_diagrams {
-               font-size: 16px;
-               color: black;
-               background-color: Peru;
-               border: none;
-               padding: 5px;
-               color: white;
-               }
-               
-            #set_mod_view_push_button {
-               font-size: 16px;
-               color: black;
-               background-color: Indigo;
-               border: none;
-               padding: 5px;
-               color: white;
-               }
-            
 
-            #update_statistic_push_button:hover {
-               font: 18px;
-               border: 2px solid OliveDrab;
-               }
+            
                
-            #save_diagram_push_button:hover {
-               font: 18px;
-               border: 2px solid MidnightBlue;
-               }
+            #get_more_statistic {
+               font-size: 16px;
+               color: black;
+               background-color: Black;
+               border: none;
+               padding: 5px;
+               color: white;
+               margin: 0px;
                
-            #set_style_diagrams:hover {
-               font: 18px;
-               border: 2px solid Chocolate;
                }
-               
-            #set_mod_view_push_button:hover {
-               font: 18px;
-               border: 2px solid DarkSlateBlue;
-               }
+
+          
 
             #button_before {
                 background-color: green;
@@ -2131,8 +2115,10 @@ class StatisticTab(QtWidgets.QWidget):
             
             #scrollAreaWidgetContents_2 {background-color:white; background-color:white}
             QTableWidget {border: none; background-color:white;}
+         
         )"""
         )
+
         self.verticalLayout_14 = QtWidgets.QVBoxLayout(self)
         self.verticalLayout_14.setObjectName(u"verticalLayout_14")
 
@@ -2151,153 +2137,134 @@ class StatisticTab(QtWidgets.QWidget):
         self.button_before.clicked.connect(self.clicked_before)
         self.verticalLayout_14.addWidget(self.button_before, QtCore.Qt.AlignmentFlag.AlignVCenter, QtCore.Qt.AlignmentFlag.AlignHCenter)
 
+
     def retranslateUi(self):
         self.button_before.setText(self.tr("Создать статистику"))
 
-        if hasattr(self, 'horizontalLayout_11'):
-            self.retranslate()
+        # if hasattr(self, 'horizontalLayout_11'):
+        #     # self.retranslate()
 
 
     def init_statistic(self):
-        self.scrollArea_2 = QtWidgets.QScrollArea(self)
+        self.scrollArea_2 = QtWidgets.QScrollArea()
         self.scrollArea_2.setObjectName(u"scrollArea_2")
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollAreaWidgetContents_2 = QtWidgets.QWidget()
         self.scrollAreaWidgetContents_2.setObjectName(u"scrollAreaWidgetContents_2")
-        self.horizontalLayout_10 = QtWidgets.QHBoxLayout(self.scrollAreaWidgetContents_2)
-        self.horizontalLayout_10.setObjectName(u"horizontalLayout_10")
 
-        self.verticalLayout_16 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_16.setObjectName(u"verticalLayout_16")
-        self.grafic_group = Grafics(self.scrollAreaWidgetContents_2)
-        self.verticalLayout_16.addWidget(self.grafic_group)
+        self.verticalLayout_0 = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents_2)
 
-        self.horizontalLayout_10.addLayout(self.verticalLayout_16)
-        self.verticalLayout_17 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_17.setObjectName(u"verticalLayout_17")
-        self.grafic_period = Grafics(self.scrollAreaWidgetContents_2)
-        self.verticalLayout_17.addWidget(self.grafic_period)
 
-        self.horizontalLayout_10.addLayout(self.verticalLayout_17)
-        spacerItem2 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum,
-                                            QtWidgets.QSizePolicy.Policy.Expanding)
-        self.verticalLayout_17.addItem(spacerItem2)
-        self.scrollArea_2.setWidget(self.scrollAreaWidgetContents_2)
-        self.verticalLayout_14.addWidget(self.scrollArea_2)
-        self.horizontalLayout_11 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_11.setObjectName(u"horizontalLayout_11")
-        self.horizontalLayout_11.setContentsMargins(-1, 4, -1, -1)
-        self.update_statistic_push_button = QtWidgets.QPushButton(self)
-        self.update_statistic_push_button.setObjectName(u"update_statistic_push_button")
-        self.horizontalLayout_11.addWidget(self.update_statistic_push_button)
-        self.save_diagram_push_button = QtWidgets.QPushButton(self)
-        self.save_diagram_push_button.setObjectName(u"save_diagram_push_button")
-        self.horizontalLayout_11.addWidget(self.save_diagram_push_button)
-        self.set_style_diagrams_push_button = QtWidgets.QPushButton(self)
-        self.set_style_diagrams_push_button.setObjectName(u"set_style_diagrams")
-        self.horizontalLayout_11.addWidget(self.set_style_diagrams_push_button)
-        self.set_mod_view_push_button = QtWidgets.QPushButton(self)
-        self.set_mod_view_push_button.setObjectName(u"set_mod_view_push_button")
-        self.horizontalLayout_11.addWidget(self.set_mod_view_push_button)
-        self.verticalLayout_14.addLayout(self.horizontalLayout_11)
+        self.horizontalLayout_buttons_up = QtWidgets.QHBoxLayout()
+
+        self.get_month_statistic = QtWidgets.QPushButton()
+        self.get_month_statistic.setObjectName(u'get_month_statistic')
+        self.get_month_statistic.setText(self.tr('Статистика за месяц'))
+        self.horizontalLayout_buttons_up.addWidget(self.get_month_statistic)
+
+        self.get_more_statistic = QtWidgets.QPushButton()
+        self.get_more_statistic.setText(self.tr('Статистика за месяцы'))
+        self.get_more_statistic.setObjectName(u'get_more_statistic')
+        self.horizontalLayout_buttons_up.addWidget(self.get_more_statistic)
+
+        self.verticalLayout_0.addLayout(self.horizontalLayout_buttons_up)
+        self.message_none = QtWidgets.QLabel(self.tr('Недостаточно данных для отображения графика'))
+        self.message_none.hide()
+        self.message_none.setStyleSheet('color: red;')
+        self.message_none.setAlignment(QtCore.Qt.AlignCenter)
+        self.message_none.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
+        self.verticalLayout_0.addWidget(self.message_none)
+        # self.verticalLayout_16 = QtWidgets.QVBoxLayout()
+        # self.verticalLayout_16.setObjectName(u"verticalLayout_16")
+        # # self.grafic_group = Grafics()
+        # # self.grafic_group.draw_circle_graph(is_number=False)
+
+        self.canvas = MplCanvas(self, width=15, height=5, dpi=100)
+        self.clicked_get_month_statistic()
+
+
+
+        # Setup a timer to trigger the redraw by calling update_plot.
+        # self.timer = QTimer()
+        # self.timer.setInterval(100)
+        # self.timer.timeout.connect(self.update_plot)
+        # self.timer.start()
+        # self.timer = QTimer()
+        # self.timer.setInterval(100)
+        # self.timer.timeout.connect(self.update_plot)
+        # self.timer.start()
+
+
+        # self.verticalLayout_16.addWidget(self.canvas)
+
+
         self.add_function()
+        self.verticalLayout_0.addWidget(self.canvas)
+
 
         self.retranslate()
+        self.scrollArea_2.setWidget(self.scrollAreaWidgetContents_2)
+        self.verticalLayout_14.addWidget(self.scrollArea_2)
 
     def retranslate(self):
-        self.update_statistic_push_button.setText(self.tr('Обновить статистику'))
-        self.set_style_diagrams_push_button.setText(self.tr('Изменить стиль диаграмм'))
-        self.set_mod_view_push_button.setText(self.tr('Изменить отображение'))
-        self.save_diagram_push_button.setText(self.tr('Сохранить диаграмм'))
+        pass
 
+    def update_plot(self, is_circle=True):
+        self.canvas.axes.cla()
+        is_draw = 1
+        if is_circle:
+            stat = MANAGER_STUDENTS.get_statistics_for_group()
+            if stat:
+                self.xdata = list(stat.keys())
+                self.ydata = list(stat.values())
+                self.canvas.axes.pie(self.ydata, labels=self.xdata, autopct='%1.2f%%')
+            else:
+                is_draw = 0
+
+        else:
+            statistic = MANAGER_STUDENTS.get_total_statistic_period()
+            if len(statistic)>1:
+                labels = statistic.keys()
+                labels = list(map(lambda x: f'{x[0]!r} {ManagerStudents.MONTHS[x[1]]}', labels))
+                data = list(map(lambda x: x[0], statistic.values()))
+                data1 = list(map(lambda x: x[1], statistic.values()))
+                data2 = list(map(lambda x: x[2], statistic.values()))
+                self.canvas.axes.plot([len(labels[0])*20*i for i in range(len(labels))], data,
+                             label=self.tr('ПОУВ'))
+                self.canvas.axes.plot([len(labels[0])*20*i for i in range(len(labels))], data1, label=self.tr('НЕУВ'))
+                self.canvas.axes.plot([len(labels[0])*20*i for i in range(len(labels))], data2, label=self.tr('Всего'))
+                self.canvas.axes.set_xticks([len(labels[0])*20*i for i in range(len(labels))], labels, rotation = 45)
+                self.canvas.axes.legend()
+            else:
+                is_draw = 0
+
+
+        if is_draw:
+            self.message_none.hide()
+            self.canvas.draw()
+        else:
+            self.message_none.show()
 
 
     def add_function(self):
-        self.update_statistic_push_button.clicked.connect(self.update_statistic)
-        self.set_style_diagrams_push_button.clicked.connect(self.set_style_diagrams)
-        self.set_mod_view_push_button.clicked.connect(self.set_mod_view)
-        self.save_diagram_push_button.clicked.connect(self.save_diagram)
+        self.get_month_statistic.clicked.connect(self.clicked_get_month_statistic)
+        self.get_more_statistic.clicked.connect(self.clicked_get_period_statistics)
 
 
-    def save_diagram(self):
-        path = QtWidgets.QFileDialog.getExistingDirectory()
-        if path:
-            self.grafic_period.figure.savefig(os.path.join(path, 'period.svg'), transparent=True)
-            self.grafic_group.figure.savefig(os.path.join(path, 'group.svg'), transparent=True)
+    def clicked_get_month_statistic(self):
+        self.get_month_statistic.setStyleSheet('color: black; background-color: white; border: 2px solid black')
+        self.get_more_statistic.setStyleSheet('color: white; background-color: black;')
+        self.update_plot(True)
 
-
+    def clicked_get_period_statistics(self):
+        self.get_more_statistic.setStyleSheet('color: black; background-color: white; border: 2px solid black')
+        self.get_month_statistic.setStyleSheet('color: white; background-color: black;')
+        self.update_plot(False)
 
 
     def clicked_before(self):
         self.init_statistic()
-        self.update_statistic()
         self.button_before.hide()
-
-    def set_style_diagrams(self):
-        self.update_statistic(next(self.styles_diagram))
-
-    def set_mod_view(self):
-        if not hasattr(self, 'is_number'):
-            self.is_number = False
-            self.update_statistic(is_number=self.is_number)
-        else:
-            self.update_statistic(is_number=True)
-            del self.is_number
-
-
-    def update_statistic(self, *args, **kwargs):
-        self.draw_circle_graph(*args, **kwargs)
-        self.draw_graph(*args, **kwargs)
-
-    def draw_circle_graph(self, *args, **kwargs):
-       self.__add_legend(*self.grafic_group.draw_circle_graph(*args, **kwargs))
-
-
-
-    def draw_graph(self,*args, **kwargs):
-        self.__add_legend2(*self.grafic_period.draw_graph(*args, **kwargs))
-
-    def __add_legend(self, *args):
-        if hasattr(self, 'table_layout'):
-            self.verticalLayout_16.removeWidget(self.table_layout)
-            self.table_layout.hide()
-
-        self.table_layout = QtWidgets.QTableWidget()
-        self.table_layout.setObjectName('table_layout')
-
-        self.table_layout.setRowCount(len(args[0]))
-        self.table_layout.setColumnCount(2)
-        fios, fractions = map(lambda x: list(x), args)
-
-        for row in range(len(args[0])):
-            self.table_layout.setItem(row, 0, QTableWidgetItem(fios[row]))
-            self.table_layout.setItem(row, 1, QTableWidgetItem(str(round(fractions[row]*100, 2))+'%'))
-
-        self.table_layout.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
-        self.table_layout.setHorizontalHeaderLabels([self.tr('ФИО'), self.tr('Процент на студента')])
-        self.verticalLayout_16.addWidget(self.table_layout)
-
-    def __add_legend2(self, *args):
-        if hasattr(self, 'table_layout2'):
-            self.verticalLayout_17.removeWidget(self.table_layout2)
-            self.table_layout2.hide()
-
-        self.table_layout2 = QtWidgets.QTableWidget()
-
-
-        self.table_layout2.setRowCount(len(args[0]))
-        self.table_layout2.setColumnCount(4)
-        month, sike_days, abcense_days, all_days = map(lambda x: list(x), args)
-        for row in range(len(args[0])):
-            self.table_layout2.setItem(row, 0, QTableWidgetItem(str(month[row])))
-            self.table_layout2.setItem(row, 1, QTableWidgetItem(str(sike_days[row])))
-            self.table_layout2.setItem(row, 2, QTableWidgetItem(str(abcense_days[row])))
-            self.table_layout2.setItem(row, 3, QTableWidgetItem(str(all_days[row])))
-
-
-        self.table_layout2.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
-        self.table_layout2.setHorizontalHeaderLabels([self.tr('Месяц'), self.tr('ПОУВ'), self.tr('НЕУВ'), self.tr('Всего')])
-        self.verticalLayout_17.addWidget(self.table_layout2)
 
 
 class Grafics(QtWidgets.QWidget):
@@ -2306,7 +2273,20 @@ class Grafics(QtWidgets.QWidget):
         super(Grafics, self).__init__(parent=parent)
         self.figure = plt.figure()
         self.canvas = FigureCanvas(self.figure)
-        # self.toolbar = NavigationToolbar(self.canvas, self)
+        NavigationToolbar.toolitems = [
+            ('Home', 'Сбросить исходный вид', 'home', 'home'),
+            ('Back', 'Вернуться к предыдущему просмотру', 'back', 'back'),
+            ('Forward', 'Перейти к следующему просмотру', 'forward', 'forward'),
+            #(None, None, None, None), - создает разделитель
+            (None, None, None, None),
+            ('Pan', 'Левая кнопка перемещает изображение, правая кнопка увеличивает масштаб \nx/ y фиксирует ось, CTRL фиксирует аспект', 'move', 'pan'),
+            ('Zoom', 'Масштабирование до прямоугольника\nx/y фиксирует ось', 'zoom_to_rect', 'zoom'),
+            (None, None, None, None),
+            # ('Subplots', 'Configure subplots', 'subplots', 'configure_subplots'),
+            # ('Customize', 'Edit axis, curve and image parameters', 'qt4_editor_options', 'edit_parameters'),
+            ('Save', 'Сохраните рисунок', 'filesave', 'save_figure')]
+
+        self.toolbar = NavigationToolbar(self.canvas, self)
         self.layout = QtWidgets.QVBoxLayout()
         # self.layout.addWidget(self.toolbar)
 
@@ -2314,6 +2294,9 @@ class Grafics(QtWidgets.QWidget):
         plt.style.use('seaborn-v0_8-whitegrid')
 
         self.layout.addWidget(self.canvas)
+        self.layout.addWidget(self.toolbar)
+
+
         self.setLayout(self.layout)
 
     def draw_graph(self, style=None, is_number=True):
@@ -2336,7 +2319,7 @@ class Grafics(QtWidgets.QWidget):
 
 
         self.figure.clear()
-        self.ax = self.figure.add_subplot()
+        self.ax = self.figure.add_subplot(111)
         self.ax.plot(list(map(str, range(1, len(labels)+1))) if is_number else labels, data, label =self.tr('ПОУВ'))
         self.ax.plot(data1, label=self.tr('НЕУВ'))
         self.ax.plot(data2, label=self.tr('Всего'))
@@ -2353,6 +2336,8 @@ class Grafics(QtWidgets.QWidget):
         self.ax.legend(loc='upper left')
         self.ax.set_title(self.tr('Тенденция прогулов по месяцам'))
         self.canvas.draw()
+        plt.close(self.figure)
+
         return labels, data, data1, data2
 
     def draw_circle_graph(self, style=None, is_number=True):
@@ -2364,17 +2349,23 @@ class Grafics(QtWidgets.QWidget):
             else:
                 plt.rc('font', family='Arial')
         try:
-            labels = MANAGER_STUDENTS.get_statistics_for_group().keys()
+            statistic = MANAGER_STUDENTS.get_statistics_for_group()
+            print(statistic)
+            labels = list(map(lambda x: ManagerStudents.CLASS_STUDENT.create_shorts_fio(x) + f' ({str(statistic[x])})', statistic.keys()))
             all_abcense = sum(MANAGER_STUDENTS.get_statistics_for_group().values())
-            values = list(map(lambda x: x/all_abcense,MANAGER_STUDENTS.get_statistics_for_group().values()))
+            values = list(map(lambda x: x/all_abcense, statistic.values()))
         except ZeroDivisionError:
             print('Ltktybt yf yjkm')
         else:
             self.figure.clear()
-            self.ax = self.figure.add_subplot()
-            self.ax.pie(values, labels=list(range(1, len(labels)+1)) if is_number else labels)
-            self.ax.set_title(self.tr('Доля прогулов на студента за месяц'))
+            if not hasattr(self, 'ax'):
+                self.ax = self.figure.add_subplot(111)
+            else:
+                self.ax.clear()
+            self.ax.pie(values, labels=list(range(1, len(labels)+1)) if is_number else labels, autopct='%1.1f%%')
+            self.ax.set_title(self.tr('Доля прогулов на студента за ') + MANAGER_STUDENTS.MONTHS[MANAGER_STUDENTS.period[0]-1] + ' ' + str(MANAGER_STUDENTS.period[1]))
             self.canvas.draw()
+            plt.close(self.figure)
             return labels, values
 
 
