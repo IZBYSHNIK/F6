@@ -14,6 +14,7 @@ from PySide6.QtCore import QTimer
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib
+import matplotlib.font_manager as font_manager
 matplotlib.use('Qt5Agg')
 
 from StudentsManager import ManagerStudents
@@ -22,7 +23,7 @@ from UserManager import UserManager
 
 
 
-VERSION = '1.1.9'
+VERSION = '1.1.9ex'
 LANGUAGES = ManagerStudents.crate_eternal_iter(['english', 'china', 'russia'])
 CURRENT_LANGUAGE = None
 IS_CHANGE = False
@@ -123,20 +124,23 @@ class LicenseWindow(QtWidgets.QWidget):
         self.pushButton.setObjectName("pushButton")
         self.horizontalLayout.addWidget(self.pushButton)
         self.verticalLayout_2.addLayout(self.horizontalLayout)
+        self.gw = GratutudeWindow()
 
         self.retranslateUi()
         QtCore.QMetaObject.connectSlotsByName(self)
 
         self.pushButton.clicked.connect(self.click_OK)
         self.init_license(os.path.join(BASE_PATH, 'license.txt'))
-
-        self.gw = GratutudeWindow()
         self.logo.mousePressEvent = self.click_logo
+
+
 
     def retranslateUi(self):
         self.setWindowTitle(self.tr("Лицензия"))
         self.label.setText(self.tr("Лицензионное соглашение"))
         self.pushButton.setText(self.tr("ОК"))
+
+        self.gw.retranslateUi()
 
     def click_OK(self):
         global is_click_license
@@ -171,7 +175,6 @@ class GratutudeWindow(QtWidgets.QWidget):
         font.setPointSize(14+ADD_FONT_SIZE)
         self.textBrowser.setFont(font)
         self.textBrowser.setObjectName("textBrowser")
-        self.textBrowser.setHtml(self.tr('<h1 style="text-align: center; color: red;">Благодарность</h1> <p style="text-align: center;">Выражаю огромную благодарность всем тем, кто постоянно окружал все это время.</p><p style="text-align: center;">Отдельная благодарность: <br>куратору работы – <b>Кузьминой Ирине Александровне</b>, <br>моему соседу – <b>Амангильдину Рамису</b>, <br>тестировщикам – <b>Кубагушеву Искандер</b> <br>и <b>Александрову Александру</b> <br>и в целом всей группе 1ПКС-20. Вы лучшие!</p>'))
         self.textBrowser.setStyleSheet('border: none; background-color: rgba(0, 0, 0, 0)')
         self.verticalLayout_2.addWidget(self.textBrowser)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -190,7 +193,7 @@ class GratutudeWindow(QtWidgets.QWidget):
 
     def retranslateUi(self):
         self.setWindowTitle(self.tr("Благодарность"))
-
+        self.textBrowser.setHtml(self.tr('<h1 style="text-align: center; color: red;">Благодарность</h1> <p style="text-align: center;">Выражаю огромную благодарность всем тем, кто постоянно окружал все это время.</p><p style="text-align: center;">Отдельная благодарность: <br>куратору работы – <b>Кузьминой Ирине Александровне</b>, <br>моему соседу – <b>Амангильдину Рамису</b>, <br>тестировщикам – <b>Кубагушеву Искандер</b> <br>и <b>Александрову Александру</b> <br>и в целом всей группе 1ПКС-20. Вы лучшие!</p>'))
         self.pushButton.setText(self.tr("ОК"))
 
     def click_OK(self, e=None):
@@ -354,6 +357,12 @@ class Regist(QtWidgets.QWidget):
         self.message_regist.setStyleSheet(
             'border: none; color: red; font: 14px; background-color: rgba(249, 248, 244, 0);')
 
+        self.logo = QtSvgWidgets.QSvgWidget(self)
+        self.logo.load(os.path.join(BASE_PATH, 'media', 'language.svg'))
+        self.logo.setFixedSize(QtCore.QSize(50, 50))
+        self.logo.move(362, 100)
+        self.logo.mousePressEvent = set_language
+
         self.retranslateUi()
         self.add_functions()
         QtCore.QMetaObject.connectSlotsByName(self)
@@ -495,6 +504,12 @@ class Auth(QtWidgets.QWidget):
         self.message_auth = QtWidgets.QTextBrowser(self)
         self.message_auth.setGeometry(60, 351 + 20, 351, 41)
 
+        self.eye = QtSvgWidgets.QSvgWidget(self)
+        self.eye.load(os.path.join(BASE_PATH, 'media', 'eye_open.svg'))
+        self.eye.setFixedSize(QtCore.QSize(40, 40))
+        self.eye.move(365, 300)
+
+
         self.licensewindow = LicenseWindow()
 
         self.license_link = QtWidgets.QCommandLinkButton(self)
@@ -518,6 +533,8 @@ class Auth(QtWidgets.QWidget):
         self.regist_push.clicked.connect(self.click_regis_push)
         self.license_link.clicked.connect(self.click_license)
         self.logo.mousePressEvent = set_language
+        self.eye.mousePressEvent = self.set_show_password
+        self.is_open = 0
 
 
 
@@ -533,6 +550,17 @@ class Auth(QtWidgets.QWidget):
         self.licensewindow.retranslateUi()
 
 
+
+    def set_show_password(self, e):
+        if not self.is_open:
+            self.password_edit.setEchoMode(QtWidgets.QLineEdit.EchoMode.Normal)
+            self.is_open = 1
+            self.eye.load(os.path.join(BASE_PATH, 'media', 'eye_close.svg'))
+        else:
+            self.password_edit.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
+            self.is_open = 0
+            self.eye.load(os.path.join(BASE_PATH, 'media', 'eye_open.svg'))
+
     def keyPressEvent(self, e):
         k = e.key()
         super().keyPressEvent(e)
@@ -541,8 +569,14 @@ class Auth(QtWidgets.QWidget):
 
     def update_users(self):
         self.spin_box.clear()
-        for i in USER_MANAGER.users_id:
-            self.spin_box.addItem(QtGui.QIcon('0'), USER_MANAGER.users_id[i])
+        list_user = list(USER_MANAGER.users_id.values())
+        if USER_MANAGER.parametrs.get('LastUser'):
+            username = USER_MANAGER.users_id[USER_MANAGER.parametrs.get('LastUser')]
+            if username in list_user:
+                list_user.remove(username)
+                list_user.insert(0, username)
+        for i in list_user:
+            self.spin_box.addItem(QtGui.QIcon(os.path.join(BASE_PATH, 'media', 'student_icon.svg')), i)
 
     def checking_log_password(self):
 
@@ -2066,9 +2100,6 @@ class MplCanvas(FigureCanvas):
         super(MplCanvas, self).__init__(fig)
 
 
-
-
-
 class StatisticTab(QtWidgets.QWidget):
     STYLE = ['Solarize_Light2', '_classic_test_patch', '_mpl-gallery', '_mpl-gallery-nogrid', 'bmh', 'seaborn-v0_8', 'seaborn-v0_8-bright',
              'seaborn-v0_8-colorblind', 'seaborn-v0_8-dark', 'seaborn-v0_8-dark-palette', 'seaborn-v0_8-darkgrid',
@@ -2141,8 +2172,8 @@ class StatisticTab(QtWidgets.QWidget):
     def retranslateUi(self):
         self.button_before.setText(self.tr("Создать статистику"))
 
-        # if hasattr(self, 'horizontalLayout_11'):
-        #     # self.retranslate()
+        if hasattr(self, 'scrollArea_2'):
+            self.retranslate()
 
 
     def init_statistic(self):
@@ -2159,16 +2190,16 @@ class StatisticTab(QtWidgets.QWidget):
 
         self.get_month_statistic = QtWidgets.QPushButton()
         self.get_month_statistic.setObjectName(u'get_month_statistic')
-        self.get_month_statistic.setText(self.tr('Статистика за месяц'))
+
         self.horizontalLayout_buttons_up.addWidget(self.get_month_statistic)
 
         self.get_more_statistic = QtWidgets.QPushButton()
-        self.get_more_statistic.setText(self.tr('Статистика за месяцы'))
+
         self.get_more_statistic.setObjectName(u'get_more_statistic')
         self.horizontalLayout_buttons_up.addWidget(self.get_more_statistic)
 
         self.verticalLayout_0.addLayout(self.horizontalLayout_buttons_up)
-        self.message_none = QtWidgets.QLabel(self.tr('Недостаточно данных для отображения графика'))
+        self.message_none = QtWidgets.QLabel()
         self.message_none.hide()
         self.message_none.setStyleSheet('color: red;')
         self.message_none.setAlignment(QtCore.Qt.AlignCenter)
@@ -2207,7 +2238,10 @@ class StatisticTab(QtWidgets.QWidget):
         self.verticalLayout_14.addWidget(self.scrollArea_2)
 
     def retranslate(self):
-        pass
+        self.message_none.setText(self.tr('Недостаточно данных для отображения графика'))
+        self.get_month_statistic.setText(self.tr('Статистика за месяц'))
+        self.get_more_statistic.setText(self.tr('Статистика за месяцы'))
+
 
     def update_plot(self, is_circle=True):
         self.canvas.axes.cla()
@@ -2215,13 +2249,24 @@ class StatisticTab(QtWidgets.QWidget):
         if is_circle:
             stat = MANAGER_STUDENTS.get_statistics_for_group()
             if stat:
-                self.xdata = list(stat.keys())
+                self.xdata = list(map(lambda x: MANAGER_STUDENTS.CLASS_STUDENT.create_shorts_fio(x)+f'({stat[x]!r})', list(stat.keys())))
                 self.ydata = list(stat.values())
                 self.canvas.axes.pie(self.ydata, labels=self.xdata, autopct='%1.2f%%')
+                self.canvas.axes.set_title(self.tr('Доля прогулов на студента'))
             else:
                 is_draw = 0
 
         else:
+            if CURRENT_LANGUAGE:
+                if CURRENT_LANGUAGE == 'china':
+                    font = font_manager.FontProperties(family='Microsoft JhengHei',
+                                                       weight='bold',
+                                                       style='normal', size=12+ADD_FONT_SIZE)
+                else:
+                    font = font_manager.FontProperties( family='Arial',
+                                                       weight='bold',
+                                                       style='normal', size=12 + ADD_FONT_SIZE)
+
             statistic = MANAGER_STUDENTS.get_total_statistic_period()
             if len(statistic)>1:
                 labels = statistic.keys()
@@ -2229,12 +2274,25 @@ class StatisticTab(QtWidgets.QWidget):
                 data = list(map(lambda x: x[0], statistic.values()))
                 data1 = list(map(lambda x: x[1], statistic.values()))
                 data2 = list(map(lambda x: x[2], statistic.values()))
-                self.canvas.axes.plot([len(labels[0])*20*i for i in range(len(labels))], data,
+                xs = [len(labels[0])*20*i for i in range(len(labels))]
+                self.canvas.axes.plot(xs, data,
                              label=self.tr('ПОУВ'))
-                self.canvas.axes.plot([len(labels[0])*20*i for i in range(len(labels))], data1, label=self.tr('НЕУВ'))
-                self.canvas.axes.plot([len(labels[0])*20*i for i in range(len(labels))], data2, label=self.tr('Всего'))
+                self.canvas.axes.plot(xs, data1, label=self.tr('НЕУВ'))
+                self.canvas.axes.plot(xs, data2, label=self.tr('Всего'))
+
+                for i, v in zip(xs, data):
+                    self.canvas.axes.text(i, v + 25, "%d" % v, ha="center")
+                for i, v in zip(xs, data1):
+                    self.canvas.axes.text(i, v + 25, "%d" % v, ha="center")
+                for i, v in zip(xs, data2):
+                    self.canvas.axes.text(i, v + 25, "%d" % v, ha="center")
+
                 self.canvas.axes.set_xticks([len(labels[0])*20*i for i in range(len(labels))], labels, rotation = 45)
-                self.canvas.axes.legend()
+                self.canvas.axes.legend(prop=font)
+                self.canvas.axes.set_ylabel(self.tr('Количество прогулов'))
+                self.canvas.axes.set_xlabel(self.tr('Месяцы'))
+                self.canvas.axes.set_title(self.tr('Тенденция прогулов'))
+
             else:
                 is_draw = 0
 

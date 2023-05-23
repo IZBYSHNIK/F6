@@ -194,8 +194,10 @@ class UserManager:
         if bcrypt.checkpw(ps.encode(), password):
             self.user = type(self).USER_CLASS('None', '12345678').load_user(data, ps)
             self.user.path = user_directory
+            self.parametrs['LastUser'] = self.user.user_id
             if self.user.user_id not in self.users_id:
                 self.users_id[self.user.user_id] = self.user.username
+            self.save_users()
         else:
             raise ValueError('Неверный пароль')
 
@@ -221,6 +223,7 @@ class UserManager:
             json.dump(data, f)
 
     def load_user_manager(self, file_name: str='USERS.json') -> dict:
+
         file_name = os.path.join(self.path, file_name)
         if os.path.exists(file_name):
             with open(file_name, 'r', encoding='UTF-16') as f:
@@ -228,11 +231,23 @@ class UserManager:
         else:
             return {}
 
+        new_list_id_users = list(map(lambda x: '_'.join(x.split('_')[1:]), [i for i in list(os.walk(self.path))[0][1] if i.startswith('user_#')]))
+        if not(set(new_list_id_users) == set(data['Users'].keys())):
+
+            for id_ in set(new_list_id_users) - set(data['Users'].keys()):
+                user_directory = os.path.join(self.path, f'user_{id_}')
+                with open(os.path.join(user_directory, 'user.json'), 'r') as u:
+                    data1 = json.load(u)
+                data['Users'][id_] = data1['username']
+
+
+
         result = {}
         for _id in data['Users']:
             if os.path.isdir(os.path.join(self.path, f'user_{_id}')):
                 result[_id] = data['Users'][_id]
         self.parametrs = data['Parametrs']
+
         return result
 
     def update_user_id(self) -> None:
