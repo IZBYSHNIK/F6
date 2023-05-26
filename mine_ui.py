@@ -1,3 +1,17 @@
+# Copyright 2022 Degtyarev Ivan
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import datetime
 import os
 import random
@@ -23,7 +37,7 @@ from UserManager import UserManager
 
 
 
-VERSION = '1.1.9ex'
+VERSION = '1.1.9f'
 LANGUAGES = ManagerStudents.crate_eternal_iter(['english', 'china', 'russia'])
 CURRENT_LANGUAGE = None
 IS_CHANGE = False
@@ -130,7 +144,7 @@ class LicenseWindow(QtWidgets.QWidget):
         QtCore.QMetaObject.connectSlotsByName(self)
 
         self.pushButton.clicked.connect(self.click_OK)
-        self.init_license(os.path.join(BASE_PATH, 'license.txt'))
+        self.init_license(os.path.join(BASE_PATH, 'LICENSE'))
         self.logo.mousePressEvent = self.click_logo
 
 
@@ -193,7 +207,7 @@ class GratutudeWindow(QtWidgets.QWidget):
 
     def retranslateUi(self):
         self.setWindowTitle(self.tr("Благодарность"))
-        self.textBrowser.setHtml(self.tr('<h1 style="text-align: center; color: red;">Благодарность</h1> <p style="text-align: center;">Выражаю огромную благодарность всем тем, кто постоянно окружал все это время.</p><p style="text-align: center;">Отдельная благодарность: <br>куратору работы – <b>Кузьминой Ирине Александровне</b>, <br>моему соседу – <b>Амангильдину Рамису</b>, <br>тестировщикам – <b>Кубагушеву Искандер</b> <br>и <b>Александрову Александру</b> <br>и в целом всей группе 1ПКС-20. Вы лучшие!</p>'))
+        self.textBrowser.setHtml(self.tr('<h1 style="text-align: center; color: red;">Благодарность</h1> <p style="text-align: center;">Выражаю огромную благодарность всем тем, кто постоянно окружал все это время.</p><p style="text-align: center;">Отдельная благодарность: <br>моей маме - <b>Макаровой Наталье Алексеевне</b>, <br>куратору работы – <b>Кузьминой Ирине Александровне</b>, <br>лучшему педагогу -  <b>Поповой Наталии Евгеньевне</b>,<br>моему соседу – <b>Амангильдину Рамису</b>, <br>тестировщикам – <b>Кубагушеву Искандер</b> <br>и <b>Александрову Александру</b>.'))
         self.pushButton.setText(self.tr("ОК"))
 
     def click_OK(self, e=None):
@@ -545,7 +559,7 @@ class Auth(QtWidgets.QWidget):
         self.regist_push.setText(self.tr("Регистрация"))
         self.login_lable.setText(self.tr("Логин"))
         self.password_lable.setText(self.tr("Пароль"))
-        self.license_link.setText('©2022DegtyarevIvan')
+        self.license_link.setText('© 2022 Degtyarev Ivan')
 
         self.licensewindow.retranslateUi()
 
@@ -2325,106 +2339,6 @@ class StatisticTab(QtWidgets.QWidget):
         self.button_before.hide()
 
 
-class Grafics(QtWidgets.QWidget):
-
-    def __init__(self, parent=None):
-        super(Grafics, self).__init__(parent=parent)
-        self.figure = plt.figure()
-        self.canvas = FigureCanvas(self.figure)
-        NavigationToolbar.toolitems = [
-            ('Home', 'Сбросить исходный вид', 'home', 'home'),
-            ('Back', 'Вернуться к предыдущему просмотру', 'back', 'back'),
-            ('Forward', 'Перейти к следующему просмотру', 'forward', 'forward'),
-            #(None, None, None, None), - создает разделитель
-            (None, None, None, None),
-            ('Pan', 'Левая кнопка перемещает изображение, правая кнопка увеличивает масштаб \nx/ y фиксирует ось, CTRL фиксирует аспект', 'move', 'pan'),
-            ('Zoom', 'Масштабирование до прямоугольника\nx/y фиксирует ось', 'zoom_to_rect', 'zoom'),
-            (None, None, None, None),
-            # ('Subplots', 'Configure subplots', 'subplots', 'configure_subplots'),
-            # ('Customize', 'Edit axis, curve and image parameters', 'qt4_editor_options', 'edit_parameters'),
-            ('Save', 'Сохраните рисунок', 'filesave', 'save_figure')]
-
-        self.toolbar = NavigationToolbar(self.canvas, self)
-        self.layout = QtWidgets.QVBoxLayout()
-        # self.layout.addWidget(self.toolbar)
-
-        # self.setMaximumSize(900, 600)
-        plt.style.use('seaborn-v0_8-whitegrid')
-
-        self.layout.addWidget(self.canvas)
-        self.layout.addWidget(self.toolbar)
-
-
-        self.setLayout(self.layout)
-
-    def draw_graph(self, style=None, is_number=True):
-        if style:
-            plt.style.use(style)
-        if CURRENT_LANGUAGE:
-            if CURRENT_LANGUAGE == 'china':
-                plt.rc('font', family='Microsoft JhengHei')
-            else:
-                plt.rc('font', family='Arial')
-
-        statistic = MANAGER_STUDENTS.get_total_statistic_period()
-
-        labels = statistic.keys()
-
-        labels = list(map(lambda x: f'{x[0]!r} {ManagerStudents.MONTHS[x[1]]}', labels))
-        data = list(map(lambda x: x[0], statistic.values()))
-        data1 = list(map(lambda x: x[1], statistic.values()))
-        data2 = list(map(lambda x: x[2], statistic.values()))
-
-
-        self.figure.clear()
-        self.ax = self.figure.add_subplot(111)
-        self.ax.plot(list(map(str, range(1, len(labels)+1))) if is_number else labels, data, label =self.tr('ПОУВ'))
-        self.ax.plot(data1, label=self.tr('НЕУВ'))
-        self.ax.plot(data2, label=self.tr('Всего'))
-        plt.xticks(rotation = 45)
-
-
-
-
-        # ax.scatter(list(map(str, range(1, len(labels)+1))), data, s=5)
-        # ax.scatter(list(map(str, range(1, len(labels) + 1))), data1, s=5)
-        # ax.scatter(list(map(str, range(1, len(labels) + 1))), data2, s=5)
-
-
-        self.ax.legend(loc='upper left')
-        self.ax.set_title(self.tr('Тенденция прогулов по месяцам'))
-        self.canvas.draw()
-        plt.close(self.figure)
-
-        return labels, data, data1, data2
-
-    def draw_circle_graph(self, style=None, is_number=True):
-        if style:
-            plt.style.use(style)
-        if CURRENT_LANGUAGE:
-            if CURRENT_LANGUAGE == 'china':
-                plt.rc('font', family='Microsoft JhengHei')
-            else:
-                plt.rc('font', family='Arial')
-        try:
-            statistic = MANAGER_STUDENTS.get_statistics_for_group()
-            print(statistic)
-            labels = list(map(lambda x: ManagerStudents.CLASS_STUDENT.create_shorts_fio(x) + f' ({str(statistic[x])})', statistic.keys()))
-            all_abcense = sum(MANAGER_STUDENTS.get_statistics_for_group().values())
-            values = list(map(lambda x: x/all_abcense, statistic.values()))
-        except ZeroDivisionError:
-            print('Ltktybt yf yjkm')
-        else:
-            self.figure.clear()
-            if not hasattr(self, 'ax'):
-                self.ax = self.figure.add_subplot(111)
-            else:
-                self.ax.clear()
-            self.ax.pie(values, labels=list(range(1, len(labels)+1)) if is_number else labels, autopct='%1.1f%%')
-            self.ax.set_title(self.tr('Доля прогулов на студента за ') + MANAGER_STUDENTS.MONTHS[MANAGER_STUDENTS.period[0]-1] + ' ' + str(MANAGER_STUDENTS.period[1]))
-            self.canvas.draw()
-            plt.close(self.figure)
-            return labels, values
 
 
 class MainWindow(QtWidgets.QMainWindow):
