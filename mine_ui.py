@@ -585,7 +585,7 @@ class Auth(QtWidgets.QWidget):
         self.spin_box.clear()
         list_user = list(USER_MANAGER.users_id.values())
         if USER_MANAGER.parametrs.get('LastUser'):
-            username = USER_MANAGER.users_id[USER_MANAGER.parametrs.get('LastUser')]
+            username = USER_MANAGER.users_id.get(USER_MANAGER.parametrs.get('LastUser'))
             if username in list_user:
                 list_user.remove(username)
                 list_user.insert(0, username)
@@ -958,7 +958,7 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
         if not only_show:
             self.tableWidget.cellChanged.connect(lambda: self.clicked_table(self.tableWidget))
             self.tableWidget.currentCellChanged.connect(self.cellPressed)
-            self.tableWidget.selectionModel().selectionChanged.connect(self.index)
+            # self.tableWidget.selectionModel().selectionChanged.connect(self.index)
 
 
     def cellPressed(self, row, column):
@@ -2447,7 +2447,8 @@ class MainWindow(QtWidgets.QMainWindow):
         k = e.key()
         super().keyPressEvent(e)
         if k == 83:
-            self.F6.save_table()
+            if not self.only_show:
+                self.F6.save_table()
         global IS_CHANGE
         IS_CHANGE = False
 
@@ -2476,6 +2477,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
     def init_students_manager(self, path=None, only_show=False, period=None):
+        self.only_show = only_show
 
         self.profile.cod = [3, 4]
         self.profile.cod = [2, 0]
@@ -2491,9 +2493,11 @@ class MainWindow(QtWidgets.QMainWindow):
             except BaseException as message:
                 if 'archive' in path:
                     raise FileNotFoundError
-                print(120, repr(message))
+
                 MANAGER_STUDENTS = ManagerStudents((datetime.date.today().month, datetime.date.today().year),
                                                    USER_MANAGER.user)
+
+
         else:
             students = []
             if not MANAGER_STUDENTS is None:
