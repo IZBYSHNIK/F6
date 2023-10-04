@@ -25,7 +25,7 @@ class User:
     UPPER_CASE = ascii_lowercase.upper()
     NUMBERS = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
     HAPPY_DAYS = {
-        '10': [4, ],
+        '10': [11, ],
         '1': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ],
         '12': [30, 31, ],
         '2': [23, ],

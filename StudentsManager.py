@@ -428,9 +428,9 @@ class ManagerStudents:
             'man_hours': man_hours,
         }
         if man_hours > 0:
-            total_attendance = (man_hours-absence_days_hours)/man_hours
-            quality_attendance = (man_hours - all_absence)/man_hours
-            absences_by_student = all_absence/len(self.students)
+            total_attendance = (man_hours-(absence_days_hours + sack_days_hours))/man_hours
+            quality_attendance = (man_hours - absence_days_hours)/man_hours
+            absences_by_student = absence_days_hours/len(self.students)
 
             statisitcs['total_attendance'] = total_attendance
             statisitcs["quality_attendance"] = quality_attendance
