@@ -25,12 +25,12 @@ class User:
     UPPER_CASE = ascii_lowercase.upper()
     NUMBERS = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
     HAPPY_DAYS = {
-        '10': [11, ],
-        '1': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ],
-        '12': [30, 31, ],
-        '2': [23, ],
-        '3': [8, ],
-        '5': [1, 9, ],
+        '10': {11, },
+        '1': {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, },
+        '12': {30, 31, },
+        '2': {23, },
+        '3': {8, },
+        '5': {1, 9, },
 
 
 
@@ -109,8 +109,34 @@ class User:
             result += str(random.choice(list(cls.LOWER_CASE+cls.UPPER_CASE)+list(cls.NUMBERS)))
         return result
 
+    def save_happy_days(self, file_name='happy_days.json'):
+        user_path = os.path.join(self.path, file_name)
+        result = {}
+        if self.happy_days:
+            for k, v in self.happy_days.items():
+                result[k] = list(v)
+
+        with open(user_path, 'w') as f:
+            json.dump(result, f)
+        del result
+
+    @staticmethod
+    def load_happy_days(user_directory, file_name='happy_days.json'):
+        user_path = os.path.join(user_directory, file_name)
+        result = {}
+        try:
+            with open(user_path, 'r') as f:
+                date = json.load(f)
+                for k, v in date.items():
+                    result[k] = set(v)
+            del date
+        except FileNotFoundError:
+            print(user_path)
+        return result
+
     def save_user(self, file_name='user.json') -> None:
-        self.parametrs['happy_days'] = self.happy_days
+        #self.save_happy_days(self.happy_days)
+        # self.parametrs['happy_days'] = self.happy_days
         date = {
             "username": self.username,
             "user_id": self.user_id,
@@ -125,10 +151,11 @@ class User:
 
 
     @staticmethod
-    def load_user(data: dict, password: str):
+    def load_user(data: dict, password: str, path_file=None):
         '''Создает новый экземпляр класса'''
         new_obj = User(data['username'], password, data['parametrs'])
         new_obj.user_id = data['user_id']
+        new_obj.happy_days = new_obj.load_happy_days(path_file)
         return new_obj
 
     def add_achievement(self, coord: tuple) -> None:
@@ -145,10 +172,6 @@ class User:
         self.happy_days = self.HAPPY_DAYS
 
 
-
-
-
-
 class UserManager:
     USER_CLASS = User
 
@@ -158,8 +181,6 @@ class UserManager:
         self.user = None
         self.parametrs = {} if not parametrs else parametrs
         self.users_id = self.load_user_manager(self.base_file)
-
-
 
     def link_user_by_obj(self, obj: User) -> None:
         if isinstance(obj, type(self).USER_CLASS):
@@ -206,7 +227,7 @@ class UserManager:
             password = data['password'].encode()
 
         if bcrypt.checkpw(ps.encode(), password):
-            self.user = type(self).USER_CLASS('None', '12345678').load_user(data, ps)
+            self.user = type(self).USER_CLASS('None', '12345678').load_user(data, ps, user_directory)
             self.user.path = user_directory
             self.parametrs['LastUser'] = self.user.user_id
             if self.user.user_id not in self.users_id:
@@ -235,6 +256,7 @@ class UserManager:
             os.mkdir(self.path)
         with open(file_name, 'w', encoding='UTF-16') as f:
             json.dump(data, f)
+
 
     def load_user_manager(self, file_name: str='USERS.json') -> dict:
 

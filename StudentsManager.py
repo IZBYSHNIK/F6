@@ -216,7 +216,7 @@ class ManagerStudents:
     def is_valud_year(year: int) -> bool:
         return isinstance(year, int) and 1700 <= year
 
-    def off_day(self, day: int) -> None:
+    def off_day(self, day: int, is_happy_day=False) -> None:
         """Удаляет рабочий день из переменной self.days"""
         self.CLASS_STUDENT.check_day(day)
         if day in self.days:
@@ -225,18 +225,19 @@ class ManagerStudents:
                     del st.sick_days[day]
                 elif st.absence_days.get(day):
                     del st.absence_days[day]
-            self.user.happy_days[str(self.period[0])] = self.user.happy_days.get(str(self.period[0]), []) + [day]
-
             del self.days[day]
+        if is_happy_day:
+            self.user.happy_days[str(self.period[0])] = self.user.happy_days.get(str(self.period[0]), set()) | {day}
 
-    def on_day(self, day: int, hours: int=0) -> None:
+    def on_day(self, day: int, hours: int=0, is_happy_day=False) -> None:
         """Добавляет рабочий день из переменной self.days"""
         self.CLASS_STUDENT.check_day(day)
         self.CLASS_STUDENT.check_hours(hours)
         self.days[day] = hours
 
-        if day in self.user.happy_days.get(str(self.period[0])):
-            self.user.happy_days[str(self.period[0])].remove(day)
+        if is_happy_day:
+            if day in self.user.happy_days.get(str(self.period[0])):
+                self.user.happy_days[str(self.period[0])].remove(day)
 
 
 

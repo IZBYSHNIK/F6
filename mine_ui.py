@@ -33,11 +33,12 @@ matplotlib.use('Qt5Agg')
 
 from StudentsManager import ManagerStudents
 from UserManager import UserManager
+import math, calendar
 
 
 
 
-VERSION = '1.1.9f'
+VERSION = '1.2.0'
 LANGUAGES = ManagerStudents.crate_eternal_iter(['english', 'china', 'russia'])
 CURRENT_LANGUAGE = None
 IS_CHANGE = False
@@ -79,10 +80,12 @@ class SplashScreen(QtWidgets.QSplashScreen):
         self.progressBar.setTextVisible(False)
         self.progressBar.setObjectName("progressBar")
         self.version = QtWidgets.QLabel(self)
-        self.version.setGeometry(QtCore.QRect(330, 400, 61, 41))
+
+        self.version.setGeometry(QtCore.QRect(379-61-10, 443-41, 61, 41))
         font = QtGui.QFont()
         font.setItalic(True)
         self.version.setFont(font)
+        self.version.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight|QtCore.Qt.AlignmentFlag.AlignVCenter)
         self.version.setLayoutDirection(QtCore.Qt.LayoutDirection.RightToLeft)
         self.version.setObjectName("version")
         self.message = QtWidgets.QLabel(self)
@@ -465,6 +468,8 @@ class Auth(QtWidgets.QWidget):
         super(Auth, self).__init__()
         self.setWindowIcon(QtGui.QIcon('media\\logo.svg'))
         self.setFixedSize(442, 580)
+
+
         self.setStyleSheet("QPushButton{font: 18px; border: none; color: white; padding: 0px; margin: 0px}\n"
                            "QPushButton:hover {font-size: 21px;}\n"
                            "Form {background: #f9f8f4;}\n"
@@ -523,13 +528,10 @@ class Auth(QtWidgets.QWidget):
         self.eye.setFixedSize(QtCore.QSize(40, 40))
         self.eye.move(365, 300)
 
-
         self.licensewindow = LicenseWindow()
-
-        self.license_link = QtWidgets.QCommandLinkButton(self)
-
-        self.license_link.setIcon(QtGui.QIcon(''))
-        self.license_link.setGeometry(QtCore.QRect(125, 540, 442, 100))
+        self.license_link = QtWidgets.QPushButton(self)
+        self.license_link.setStyleSheet("color: #0A5F38;")
+        self.license_link.setGeometry(QtCore.QRect(0, 540, 442, 40))
 
         self.message_auth.setStyleSheet(
             'border: none; color: red; font: 14px; background-color: rgba(249, 248, 244, 0);')
@@ -559,7 +561,7 @@ class Auth(QtWidgets.QWidget):
         self.regist_push.setText(self.tr("Регистрация"))
         self.login_lable.setText(self.tr("Логин"))
         self.password_lable.setText(self.tr("Пароль"))
-        self.license_link.setText('© 2022 Degtyarev Ivan')
+        self.license_link.setText('©2022-2023 Degtyarev Ivan')
 
         self.licensewindow.retranslateUi()
 
@@ -606,6 +608,7 @@ class Auth(QtWidgets.QWidget):
             username, password = self.checking_log_password()
         except BaseException as message:
             self.message_auth.setText(str(message))
+
         else:
             try:
                 USER_MANAGER.link_user_by_username(username, password)
@@ -621,17 +624,19 @@ class Auth(QtWidgets.QWidget):
         self.close()
 
     def click_license(self):
+        self.license_link.setStyleSheet("color: #2F4538;")
         self.licensewindow.show()
 
 
 class BaseTable:
+    SHOW_COUNT_ROWS = 15
     def save_table(self):
         try:
             MANAGER_STUDENTS.save_students()
             global IS_CHANGE
             IS_CHANGE = False
         except BaseException:
-            self.parent.get_down_message(self.tr('Не удалось сохранить файл'))
+            self.parent.get_down_message(self.tr('НЕ удалось сохранить файл'))
         else:
             self.parent.get_down_message(self.tr('Успешное сохранение'))
 
@@ -640,6 +645,7 @@ class BaseTable:
 class AbsenceTab(QtWidgets.QWidget, BaseTable):
     def __init__(self, parent):
         super(AbsenceTab, self).__init__(parent=parent)
+
         self.parent = parent
         self.setObjectName("F6")
         self.verticalLayout = QtWidgets.QVBoxLayout(self)
@@ -720,18 +726,84 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
         self.save_to_exel_push.setObjectName("save_to_exel_push")
         self.horizontalLayout_2.addWidget(self.save_to_exel_push)
         self.horizontalLayout_3.addLayout(self.horizontalLayout_2)
+
+        #_______________Кнопки после таблицы___________________________________
+
+        self.properties_table_view_horizontalLayout = QtWidgets.QHBoxLayout()
+
+        self.pages_message_1 = QtWidgets.QLabel("Страница ")
+        self.properties_table_view_horizontalLayout.addWidget(self.pages_message_1)
+        self.current_page = QtWidgets.QLabel("0")
+        self.properties_table_view_horizontalLayout.addWidget(self.current_page)
+        self.pages_message_2 = QtWidgets.QLabel("из")
+        self.properties_table_view_horizontalLayout.addWidget(self.pages_message_2)
+        self.total_pages = QtWidgets.QLabel("1")
+        self.properties_table_view_horizontalLayout.addWidget(self.total_pages)
+        spacerItem = QtWidgets.QSpacerItem(100, 1, QtWidgets.QSizePolicy.Policy.Expanding,
+                                           QtWidgets.QSizePolicy.Policy.Minimum)
+        self.properties_table_view_horizontalLayout.addItem(spacerItem)
+
+
+        self.section_first = QtWidgets.QHBoxLayout()
+        self.labe1_show_items_layout = QtWidgets.QLabel("Выводить ")
+        self.labe1_show_items_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
+        self.section_first.addWidget(self.labe1_show_items_layout)
+
+        self.count_rows_edit = QtWidgets.QLineEdit()
+        self.count_rows_edit.setText(str(self.SHOW_COUNT_ROWS))
+        self.count_rows_edit.setValidator(QtGui.QIntValidator(bottom=0))
+        self.count_rows_edit.setMaximumWidth(100)
+        self.section_first.addWidget(self.count_rows_edit)
+
+        self.section_second = QtWidgets.QHBoxLayout()
+        self.all_rows_checkbox = QtWidgets.QCheckBox()
+        self.section_second.addWidget(self.all_rows_checkbox)
+        self.labe2_show_items_layout = QtWidgets.QLabel("Вывести всё ")
+        self.section_second.addWidget(self.labe2_show_items_layout)
+
+
+        self.properties_table_view_horizontalLayout.addLayout(self.section_first)
+        self.properties_table_view_horizontalLayout.addLayout(self.section_second)
+
+        self.arrow_narrow_top_push = Push(self.properties_table_view_horizontalLayout, 25, 25, 5,
+                                    icon_path=os.path.join('media', 'arrow_narrow_top.svg'))
+        self.arrow_narrow_top_push.setObjectName("arrow_narrow_top_push")
+        self.properties_table_view_horizontalLayout.addWidget(self.arrow_narrow_top_push)
+
+        self.arrow_narrow_down_push = Push(self.properties_table_view_horizontalLayout, 25, 25, 5,
+                                          icon_path=os.path.join('media', 'arrow_narrow_down.svg'))
+        self.arrow_narrow_down_push.setObjectName("arrow_narrow_down_push")
+        self.properties_table_view_horizontalLayout.addWidget(self.arrow_narrow_down_push)
+
+        self.update_table_push = Push(self.properties_table_view_horizontalLayout, 25, 25, 5,
+                                           icon_path=os.path.join('media', 'update.svg'))
+        self.update_table_push.setObjectName("update_table_push")
+        self.properties_table_view_horizontalLayout.addWidget(self.update_table_push)
+
         self.verticalLayout_3.addWidget(self.frame)
+
         self.verticalLayout.addLayout(self.verticalLayout_3)
+        self.table_layout = QtWidgets.QVBoxLayout(self)
+        self.verticalLayout.addLayout(self.table_layout)
+        self.verticalLayout.addLayout(self.properties_table_view_horizontalLayout)
 
         self.retranslateUi()
         self.add_function()
 
 
         self.is_click_end_period = 0
+        self.number_page = 0
     def add_function(self):
         self.save_to_exel_push.clicked.connect(self.save_to_exel)
         self.save_table_push.clicked.connect(self.save_table)
         self.game_over_push.clicked.connect(self.click_end_period)
+        self.all_rows_checkbox.stateChanged.connect(self.click_all_rows_checkbox)
+        self.count_rows_edit.textChanged.connect(self.change_count_rows_edit)
+        self.arrow_narrow_top_push.clicked.connect(self.click_arrow_narrow_top_push)
+        self.arrow_narrow_down_push.clicked.connect(self.click_arrow_narrow_down_push)
+        self.update_table_push.clicked.connect(self.click_update_table_push)
+
+
 
 
     def index(self, selected, deselected):
@@ -804,15 +876,16 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
                 self.parent.get_down_message(self.tr('Файл успешно сохранен в директории: ') + path, time=3000)
 
 
-    def set_size_font(self, table, is_posetiv=True):
-        if is_posetiv and table.mod_size < 25:
-            table.update_table_students(size=table.mod_size + 2)
-        elif is_posetiv and table.mod_size > 25:
+    def set_size_font(self, is_posetiv=True):
+        # print(id(self.tableWidget))
+        if is_posetiv and self.tableWidget.mod_size < 25:
+            self.tableWidget.update_table_students(size=self.tableWidget.mod_size + 2)
+        elif is_posetiv and self.tableWidget.mod_size > 25:
             self.parent.profile.cod = [1, 4]
-        elif table.mod_size < -7:
+        elif self.tableWidget.mod_size < -7:
             self.parent.profile.cod = [1, 3]
-        elif table.mod_size > -8:
-            table.update_table_students(size=table.mod_size - 2)
+        elif self.tableWidget.mod_size > -8:
+            self.tableWidget.update_table_students(size=self.tableWidget.mod_size - 2)
 
     def clicked_table(self, tablewidget):
         global IS_CHANGE
@@ -905,7 +978,9 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
                                                  self.tr('После завершения рабочего месяца, таблицы будут сохранены в архиве, но изменение данных в них будет уже не доступно. Продолжить?'),
                                                  QtWidgets.QMessageBox.StandardButton.No | QtWidgets.QMessageBox.StandardButton.Yes)
         if message.Yes == message:
+            self.save_table()
             MANAGER_STUDENTS.save_students()
+
             try:
                 MANAGER_STUDENTS.push_archive()#
             except FileExistsError:
@@ -924,9 +999,10 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
                 print('Отстутствует активный файл')
 
             MANAGER_STUDENTS.create_new_table()
-            self.update_statistics()
-            self.parent.marks.update_statistics_2()
-            self.tableWidget.update_table_students()
+            # self.update_statistics()
+            # self.parent.marks.update_statistics_2()
+            #self.tableWidget.update_table_students() было
+            self.init_table_absence()
             self.parent.marks.tableWidget_3.update_table_students()
             self.parent.archive.init_archive()
             self.parent.profile.cod = [3, 2]
@@ -934,32 +1010,114 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
         if self.parent.group.indexOf(self.parent.archive) == -1 and len(self.parent.archive.files_archive) != 0:
             self.parent.group.insertTab(3, self.parent.archive,  self.tr('Архив'))
 
+    def change_count_rows_edit(self):
+        try:
+            count = int(self.count_rows_edit.text())
+        except ValueError:
+            count = self.SHOW_COUNT_ROWS
+
+        self.number_page = 0
+        self.show_select_row(end=count)
+
+        self.total_pages.setText(
+            str(math.ceil((self.tableWidget.rowCount() - 3) / (int(self.count_rows_edit.text())))))
+        self.current_page.setText(str(1))
+
+
+    def click_arrow_narrow_top_push(self):
+        if self.number_page > 0:
+            self.number_page -= 1
+        start = self.number_page * (int(self.count_rows_edit.text()))
+        end = (self.number_page + 1) * (int(self.count_rows_edit.text()))
+        self.show_select_row(start=start, end=end)
+        self.current_page.setText(str(self.number_page+1))
+        self.total_pages.setText(
+            str(math.ceil((self.tableWidget.rowCount() - 3) / (int(self.count_rows_edit.text())))))
+
+
+    def click_arrow_narrow_down_push(self):
+        if self.number_page + 1 < math.ceil((self.tableWidget.rowCount()-3)/(int(self.count_rows_edit.text()))):
+            self.number_page += 1
+        start = self.number_page*(int(self.count_rows_edit.text()))
+        end = (self.number_page+1)*(int(self.count_rows_edit.text()))
+        self.show_select_row(start=start, end=end)
+        self.current_page.setText(str(self.number_page+1))
+        self.total_pages.setText(
+            str(math.ceil((self.tableWidget.rowCount() - 3) / (int(self.count_rows_edit.text())))))
+
+
+    def click_all_rows_checkbox(self):
+        if self.all_rows_checkbox.isChecked():
+            self.show_select_row()
+            self.count_rows_edit.setReadOnly(True)
+            self.pages_message_1.hide()
+            self.pages_message_2.hide()
+            self.total_pages.hide()
+            self.current_page.hide()
+
+        else:
+            self.show_select_row(end=int(self.count_rows_edit.text()))
+            self.count_rows_edit.setReadOnly(False)
+
+            self.pages_message_1.show()
+            self.pages_message_2.show()
+            self.total_pages.show()
+            self.current_page.show()
+
+            self.total_pages.setText(
+                str(math.ceil((self.tableWidget.rowCount() - 3) / (int(self.count_rows_edit.text())))))
+            self.current_page.setText(str(1))
+
+
+    def click_update_table_push(self):
+        self.init_table_absence()
+
     def init_table_absence(self, only_show=False):
         if hasattr(self, 'tableWidget'):
-            self.tableWidget.hide()
-            self.verticalLayout.removeWidget(self.tableWidget)
+
+            # self.tableWidget.hide()
+            self.table_layout.removeWidget(self.tableWidget)
+            self.tableWidget.deleteLater()
+            self.tableWidget = None
 
 
         self.tableWidget = TableAbsence()
+
+
         self.tableWidget.setStyleSheet("""QTableWidget {border: none;}""")
         self.tableWidget.setObjectName("tableView")
 
-        self.verticalLayout.addWidget(self.tableWidget)
+
+        self.table_layout.addWidget(self.tableWidget)
+        # self.verticalLayout.addLayout(self.table_layout)
         self.verticalLayout.addItem(
             QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum))
 
-        self.set_size_negativ_font_push.clicked.connect(lambda: self.set_size_font(self.tableWidget, False))
-        self.set_size_posetiv_font_push.clicked.connect(lambda: self.set_size_font(self.tableWidget))
+        self.set_size_negativ_font_push.clicked.connect(lambda: self.set_size_font(False))
+        self.set_size_posetiv_font_push.clicked.connect(lambda: self.set_size_font())
         self.tableWidget.update_table_students()
 
         self.update_statistics()
+
+        self.click_all_rows_checkbox()
 
 
         if not only_show:
             self.tableWidget.cellChanged.connect(lambda: self.clicked_table(self.tableWidget))
             self.tableWidget.currentCellChanged.connect(self.cellPressed)
+            self.update_table_push.hide()
             # self.tableWidget.selectionModel().selectionChanged.connect(self.index)
+        else:
+            self.update_table_push.hide()
 
+    def show_select_row(self, start=0, end=0, count_head_rows=3):
+        if not end:
+            end = self.tableWidget.rowCount()
+        for row in range(0, self.tableWidget.rowCount()):
+            if start + count_head_rows <= row < end + count_head_rows or row < count_head_rows:
+                self.tableWidget.setRowHidden(row, False)
+            else:
+                self.tableWidget.setRowHidden(row, True)
 
     def cellPressed(self, row, column):
         if self.tableWidget.hasFocus():
@@ -1033,10 +1191,68 @@ class MarksTab(QtWidgets.QWidget, BaseTable):
         self.save_to_exel_marks_push.setObjectName("pushButton_10")
         self.horizontalLayout_19.addWidget(self.save_to_exel_marks_push)
         self.horizontalLayout_17.addLayout(self.horizontalLayout_19)
+
+        #____________________После таблицы_____________________________
+        self.properties_table_view_horizontalLayout = QtWidgets.QHBoxLayout()
+
+        self.pages_message_1 = QtWidgets.QLabel("Страница ")
+        self.properties_table_view_horizontalLayout.addWidget(self.pages_message_1)
+        self.current_page = QtWidgets.QLabel("0")
+        self.properties_table_view_horizontalLayout.addWidget(self.current_page)
+        self.pages_message_2 = QtWidgets.QLabel("из")
+        self.properties_table_view_horizontalLayout.addWidget(self.pages_message_2)
+        self.total_pages = QtWidgets.QLabel("1")
+        self.properties_table_view_horizontalLayout.addWidget(self.total_pages)
+        spacerItem = QtWidgets.QSpacerItem(100, 1, QtWidgets.QSizePolicy.Policy.Expanding,
+                                           QtWidgets.QSizePolicy.Policy.Minimum)
+        self.properties_table_view_horizontalLayout.addItem(spacerItem)
+
+        self.section_first = QtWidgets.QHBoxLayout()
+        self.labe1_show_items_layout = QtWidgets.QLabel("Выводить ")
+        self.labe1_show_items_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
+        self.section_first.addWidget(self.labe1_show_items_layout)
+
+        self.count_rows_edit = QtWidgets.QLineEdit()
+        self.count_rows_edit.setText(str(self.SHOW_COUNT_ROWS))
+        self.count_rows_edit.setValidator(QtGui.QIntValidator(bottom=0))
+        self.count_rows_edit.setMaximumWidth(100)
+        self.section_first.addWidget(self.count_rows_edit)
+
+        self.section_second = QtWidgets.QHBoxLayout()
+        self.all_rows_checkbox = QtWidgets.QCheckBox()
+        self.section_second.addWidget(self.all_rows_checkbox)
+        self.labe2_show_items_layout = QtWidgets.QLabel("Вывести всё ")
+        self.section_second.addWidget(self.labe2_show_items_layout)
+
+        self.properties_table_view_horizontalLayout.addLayout(self.section_first)
+        self.properties_table_view_horizontalLayout.addLayout(self.section_second)
+
+        self.arrow_narrow_top_push = Push(self.properties_table_view_horizontalLayout, 25, 25, 5,
+                                          icon_path=os.path.join('media', 'arrow_narrow_top.svg'))
+        self.arrow_narrow_top_push.setObjectName("arrow_narrow_top_push")
+        self.properties_table_view_horizontalLayout.addWidget(self.arrow_narrow_top_push)
+
+        self.arrow_narrow_down_push = Push(self.properties_table_view_horizontalLayout, 25, 25, 5,
+                                           icon_path=os.path.join('media', 'arrow_narrow_down.svg'))
+        self.arrow_narrow_down_push.setObjectName("arrow_narrow_down_push")
+        self.properties_table_view_horizontalLayout.addWidget(self.arrow_narrow_down_push)
+
+        # self.update_table_push = Push(self.properties_table_view_horizontalLayout, 25, 25, 5,
+        #                               icon_path=os.path.join('media', 'update.svg'))
+        # self.update_table_push.setObjectName("update_table_push")
+        # self.properties_table_view_horizontalLayout.addWidget(self.update_table_push)
+
         self.verticalLayout_24.addWidget(self.frame_3)
         self.verticalLayout_25.addLayout(self.verticalLayout_24)
+        self.table_layout = QtWidgets.QVBoxLayout(self)
+        self.verticalLayout_25.addLayout(self.table_layout)
+        self.verticalLayout_25.addLayout(self.properties_table_view_horizontalLayout)
+
+
         self.retranslateUi()
         self.add_function()
+
+        self.number_page = 0
 
     def retranslateUi(self):
         self.set_size_posetiv_font_push.setToolTip(self.tr('Увеличить размер текста'))
@@ -1056,6 +1272,11 @@ class MarksTab(QtWidgets.QWidget, BaseTable):
         self.pushButton_9.clicked.connect(self.save_table)
         self.save_to_exel_marks_push.clicked.connect(self.save_to_exel_marks)
 
+        self.all_rows_checkbox.stateChanged.connect(self.click_all_rows_checkbox)
+        self.count_rows_edit.textChanged.connect(self.change_count_rows_edit)
+        self.arrow_narrow_top_push.clicked.connect(self.click_arrow_narrow_top_push)
+        self.arrow_narrow_down_push.clicked.connect(self.click_arrow_narrow_down_push)
+
     def update_statistics_2(self):
         statistics = MANAGER_STUDENTS.get_statistics_marks()
         if statistics.get('is_ready') == 1:
@@ -1067,22 +1288,90 @@ class MarksTab(QtWidgets.QWidget, BaseTable):
             self.statustic3.clear()
             self.statustic4.clear()
 
+    def change_count_rows_edit(self):
+        try:
+            count = int(self.count_rows_edit.text())
+        except ValueError:
+            count = self.SHOW_COUNT_ROWS
 
+        self.number_page = 0
+        self.show_select_row(end=count)
+
+        self.total_pages.setText(
+            str(math.ceil((self.tableWidget_3.rowCount() - 3) / (int(self.count_rows_edit.text())))))
+        self.current_page.setText(str(1))
+
+    def show_select_row(self, start=0, end=0, count_head_rows=3):
+        if not end:
+            end = self.tableWidget_3.rowCount()
+        for row in range(0, self.tableWidget_3.rowCount()):
+            if start + count_head_rows <= row < end + count_head_rows or row < count_head_rows:
+                self.tableWidget_3.setRowHidden(row, False)
+            else:
+                self.tableWidget_3.setRowHidden(row, True)
+
+    def click_arrow_narrow_top_push(self):
+        if self.number_page > 0:
+            self.number_page -= 1
+        start = self.number_page * (int(self.count_rows_edit.text()))
+        end = (self.number_page + 1) * (int(self.count_rows_edit.text()))
+        self.show_select_row(start=start, end=end)
+        self.current_page.setText(str(self.number_page+1))
+        self.total_pages.setText(
+            str(math.ceil((self.tableWidget_3.rowCount() - 3) / (int(self.count_rows_edit.text())))))
+
+
+    def click_arrow_narrow_down_push(self):
+        if self.number_page + 1 < math.ceil((self.tableWidget_3.rowCount()-3)/(int(self.count_rows_edit.text()))):
+            self.number_page += 1
+        start = self.number_page*(int(self.count_rows_edit.text()))
+        end = (self.number_page+1)*(int(self.count_rows_edit.text()))
+        self.show_select_row(start=start, end=end)
+        self.current_page.setText(str(self.number_page+1))
+        self.total_pages.setText(
+            str(math.ceil((self.tableWidget_3.rowCount() - 3) / (int(self.count_rows_edit.text())))))
+
+
+    def click_all_rows_checkbox(self):
+        if self.all_rows_checkbox.isChecked():
+            self.show_select_row()
+            self.count_rows_edit.setReadOnly(True)
+            self.pages_message_1.hide()
+            self.pages_message_2.hide()
+            self.total_pages.hide()
+            self.current_page.hide()
+
+        else:
+            self.show_select_row(end=int(self.count_rows_edit.text()))
+            self.count_rows_edit.setReadOnly(False)
+
+            self.pages_message_1.show()
+            self.pages_message_2.show()
+            self.total_pages.show()
+            self.current_page.show()
+
+            self.total_pages.setText(
+                str(math.ceil((self.tableWidget_3.rowCount() - 3) / (int(self.count_rows_edit.text())))))
+            self.current_page.setText(str(1))
 
     def init_table_marks(self, only_show=False):
         if hasattr(self, 'tableWidget_3'):
-            self.tableWidget_3.hide()
-            self.verticalLayout_25.removeWidget(self.tableWidget_3)
+            # self.tableWidget.hide()
+            self.table_layout.removeWidget(self.tableWidget_3)
+            self.tableWidget_3.deleteLater()
+            self.tableWidget_3 = None
 
         self.tableWidget_3 = TableMarks(only_show=only_show)
         self.tableWidget_3.setObjectName("tableWidget_3")
-        self.verticalLayout_25.addWidget(self.tableWidget_3)
+        self.table_layout.addWidget(self.tableWidget_3)
         self.verticalLayout_25.addItem(
             QtWidgets.QSpacerItem(0, 0, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum))
 
         self.set_size_negativ_font_push.clicked.connect(lambda: self.set_size_font(False))
         self.set_size_posetiv_font_push.clicked.connect(lambda: self.set_size_font())
         self.tableWidget_3.update_table_students()
+
+        self.click_all_rows_checkbox()
 
         if not only_show:
             self.tableWidget_3.currentCellChanged.connect(self.cellPressed)
@@ -1522,13 +1811,14 @@ class SettingsTab(QtWidgets.QWidget):
 
         self.setings1_label.setObjectName("setings1_label")
         self.verticalLayout_9.addWidget(self.setings1_label)
-        self.add_work_day_link_button = QtWidgets.QCommandLinkButton(self.scrollAreaWidgetContents)
-        self.add_work_day_link_button.setTabletTracking(True)
-        self.add_work_day_link_button.setObjectName("add_work_day_link_button")
-        self.verticalLayout_9.addWidget(self.add_work_day_link_button)
+        self.show_current_month_link_button = QtWidgets.QCommandLinkButton(self.scrollAreaWidgetContents)
+        self.show_current_month_link_button.setTabletTracking(True)
+        self.show_current_month_link_button.setObjectName("show_current_month_link_button")
+        self.verticalLayout_9.addWidget(self.show_current_month_link_button)
         self.del_work_day_link_button = QtWidgets.QCommandLinkButton(self.scrollAreaWidgetContents)
         self.del_work_day_link_button.setCheckable(False)
         self.del_work_day_link_button.setObjectName("del_work_day_link_button")
+        self.del_work_day_link_button.hide()
         self.verticalLayout_9.addWidget(self.del_work_day_link_button)
         self.restart_weekend_link_button = QtWidgets.QCommandLinkButton(self.scrollAreaWidgetContents)
         self.restart_weekend_link_button.setTabletTracking(True)
@@ -1621,7 +1911,7 @@ class SettingsTab(QtWidgets.QWidget):
     def retranslateUi(self):
 
         self.setings1_label.setText(self.tr("Рабочие/нерабочие дни"))
-        self.add_work_day_link_button.setText(self.tr("Добавить рабочий день"))
+        self.show_current_month_link_button.setText(self.tr("Текущий месяц"))
         self.set_data_table_link_button.setText(self.tr("Изменить месяц и год"))
         self.del_work_day_link_button.setText(self.tr("Удалить рабочий день"))
         self.restart_weekend_link_button.setText(self.tr('Сброс праздников'))
@@ -1640,7 +1930,7 @@ class SettingsTab(QtWidgets.QWidget):
 
 
         self.setings1_label.setFont(QtGui.QFont(NAME_FONT, 16 + ADD_FONT_SIZE))
-        self.add_work_day_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
+        self.show_current_month_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
         self.restart_weekend_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
         self.show_weekend_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
         self.set_data_table_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
@@ -1657,8 +1947,8 @@ class SettingsTab(QtWidgets.QWidget):
         self.on_off_statistics_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
 
     def add_function(self):
-        self.add_work_day_link_button.clicked.connect(self.add_work_day)
-        self.del_work_day_link_button.clicked.connect(self.del_work_day)
+        self.show_current_month_link_button.clicked.connect(self.show_current_month)
+        self.del_work_day_link_button.clicked.connect(self.show_academic_year)
         self.set_data_table_link_button.clicked.connect(self.set_data_table)
         self.clear_table_marks_link_button.clicked.connect(self.clear_table_marks)
         self.clear_table_abcense_link_button.clicked.connect(self.clear_table_abcense)
@@ -1698,6 +1988,30 @@ class SettingsTab(QtWidgets.QWidget):
         self.list_weekend.show()
 
 
+    def show_current_month(self):
+        month = MonthCalendarView(MANAGER_STUDENTS, self.parent)
+        month.show()
+        month.exec()
+        try:
+            MANAGER_STUDENTS.user.save_happy_days()
+        except BaseException as f:
+            print(f)
+        else:
+            try:
+                MANAGER_STUDENTS.save_students()
+                global IS_CHANGE
+                IS_CHANGE = False
+            except BaseException:
+                self.parent.get_down_message(self.tr('НЕ удалось сохранить файл'))
+            else:
+                self.parent.get_down_message(self.tr('Успешное сохранение'))
+
+
+
+    def show_academic_year(self):
+        pass
+
+
     def add_work_day(self):
         deal = SettingsWindows(self)
         deal.show()
@@ -1708,6 +2022,7 @@ class SettingsTab(QtWidgets.QWidget):
             self.parent.F6.update_statistics()
             self.is_add_work_day = 1
         self.parent.profile.cod = [1, 0]
+
 
     def del_work_day(self):
         deal = SettingsWindows(self)
@@ -1776,9 +2091,6 @@ class SettingsTab(QtWidgets.QWidget):
 
 
 class ProfileTab(QtWidgets.QWidget):
-
-
-
     def __init__(self, parent):
         super(ProfileTab, self).__init__(parent=parent)
         self.setStyleSheet("""
@@ -1956,11 +2268,6 @@ class ProfileTab(QtWidgets.QWidget):
         self.teamleader_label.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
         self.group_label.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
         self.specialization_label.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-
-
-
-
-
 
 
 
@@ -2339,8 +2646,6 @@ class StatisticTab(QtWidgets.QWidget):
         self.button_before.hide()
 
 
-
-
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         self.status = 0
@@ -2554,8 +2859,6 @@ class MainWindow(QtWidgets.QMainWindow):
         global  is_click_license
         is_click_license = 0
         self.group.currentIndex()
-        print(IS_CHANGE)
-
 
 
 
@@ -2572,8 +2875,6 @@ class BaseTable(QtWidgets.QTableWidget):
         if len(MANAGER_STUDENTS.students) >= 25:
             if not [0, 1] in USER_MANAGER.user.parametrs.get('achievements', []):
                 USER_MANAGER.user.add_achievement([0, 1])
-
-
 
 
 
@@ -2849,6 +3150,94 @@ class TableMarks(BaseTable, QtWidgets.QTableWidget):
             MANAGER_STUDENTS.couples[str(number)] = [couple if couple else '', fio if fio else '']
 
 
+class MonthCalendarView(QtWidgets.QDialog):
+    def __init__(self, manager, parent=None, size=0):
+        super(MonthCalendarView, self).__init__(parent)
+        self.setStyleSheet("* {border: none;}")
+        self.setObjectName("ControlDays")
+        self.setWindowTitle(self.tr("Месяц")+" "+str(manager.period)[1:-1])
+
+        self.setModal(True)
+        self.manager = manager
+        self.parent = parent
+
+        self.vertical_layout = QtWidgets.QVBoxLayout(self)
+
+        if LANGUAGES == 'rassia':
+            self.name_month = QtWidgets.QLabel(f'{str(manager.MONTHS[manager.period[0]-1])} {str(manager.period[1])}')
+        else:
+            self.name_month = QtWidgets.QLabel(self.tr("Месяц")+" "+str(manager.period)[1:-1])
+        self.name_month.setFont(QtGui.QFont(NAME_FONT, 16 + ADD_FONT_SIZE))
+        self.name_month.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.vertical_layout.addWidget(self.name_month)
+
+        self.table = QtWidgets.QTableWidget(self)
+        self.table.setMinimumSize(450, 250)
+
+        self.table.setColumnCount(7)
+
+        self.table.setRowCount(len(list(calendar.monthcalendar(month=manager.period[0], year=manager.period[1]))))
+        row_id = 0
+
+
+        for week in calendar.monthcalendar(month=manager.period[0], year=manager.period[1]):
+            for i in range(len(week)):
+                if not week[i]:
+                    self.table.setItem(row_id, i, QTableWidgetItem(str('✖')))
+                elif (not (week[i] in manager.days)) and (manager.user.happy_days.get(str(manager.period[0])) and
+                                                          week[i] in manager.user.happy_days.get(str(manager.period[0]))):
+                    self.table.setItem(row_id, i, QTableWidgetItem(str(week[i])))
+                    self.table.item(row_id, i).setBackground(QtGui.QColor(181, 71, 71))
+                elif not (week[i] in manager.days):
+                    self.table.setItem(row_id, i, QTableWidgetItem(str(week[i])))
+                    self.table.item(row_id, i).setBackground(QtGui.QColor(60, 170, 60))
+
+                elif week[i] in manager.days:
+                    self.table.setItem(row_id, i, QTableWidgetItem(str(week[i])))
+                    self.table.item(row_id, i).setBackground(QtGui.QColor(0, 0, 0, 0))
+
+
+                self.table.item(row_id, i).setFont(QtGui.QFont('Calibri', 14 + size))
+                self.table.item(row_id, i).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+                self.table.item(row_id, i).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
+            row_id += 1
+
+        self.table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
+        self.table.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
+        self.table.setHorizontalHeaderLabels([self.tr('ПН'), self.tr("ВТ"), self.tr('СР'), self.tr('ЧТ'), self.tr('ПТ'),
+                                              self.tr('СБ'), self.tr('ВС'),])
+
+        self.table.cellClicked.connect(self.click_cell)
+        self.table.cellDoubleClicked.connect(self.click_double_cell)
+
+        self.vertical_layout.addWidget(self.table)
+
+    def click_cell(self, row, column):
+        if self.table.item(row, column).text().isnumeric():
+            if self.table.item(row, column).background() == QtGui.QColor(0, 0, 0, 0):
+                self.manager.off_day(int(self.table.item(row, column).text()))
+                self.table.item(row, column).setBackground(QtGui.QColor(60, 170, 60))
+                self.parent.F6.init_table_absence()
+            elif self.table.item(row, column).background() == QtGui.QColor(60, 170, 60):
+                self.manager.on_day(int(self.table.item(row, column).text()))
+                self.table.item(row, column).setBackground(QtGui.QColor(0, 0, 0, 0))
+                self.parent.F6.init_table_absence()
+
+    def click_double_cell(self, row, column):
+        if self.table.item(row, column).text().isnumeric():
+            if not(self.table.item(row, column).background() == QtGui.QColor(181, 71, 71)):
+                self.manager.off_day(int(self.table.item(row, column).text()), is_happy_day=True)
+                self.table.item(row, column).setBackground(QtGui.QColor(181, 71, 71))
+                self.parent.F6.init_table_absence()
+            else:
+                self.manager.on_day(int(self.table.item(row, column).text()), is_happy_day=True)
+                self.table.item(row, column).setBackground(QtGui.QColor(0, 0, 0, 0))
+                self.parent.F6.init_table_absence()
+
+
+
+
+
 class SettingsWindows(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super(SettingsWindows, self).__init__(parent)
@@ -2950,6 +3339,8 @@ class SettingsData(QtWidgets.QDialog):
         self.create_new_table_pushButton = QtWidgets.QPushButton(self)
         self.create_new_table_pushButton.setObjectName("create_new_table_pushButton")
         self.horizontalLayout.addWidget(self.create_new_table_pushButton)
+
+
         self.cancel_pushButton = QtWidgets.QPushButton(self)
         self.cancel_pushButton.setMinimumSize(QtCore.QSize(0, 0))
         self.cancel_pushButton.setMaximumSize(QtCore.QSize(16777215, 16777215))
