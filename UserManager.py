@@ -1,4 +1,4 @@
-# Copyright 2022 Degtyarev Ivan
+# Copyright 2024 Degtyarev Ivan
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,8 +32,6 @@ class User:
         '3': {8, },
         '5': {1, 9, },
 
-
-
     }
 
     @staticmethod
@@ -53,7 +51,6 @@ class User:
         else:
             self.happy_days = self.HAPPY_DAYS
 
-
         self.user_id = self.generate_user_id() + '_' + username
         self.__password = self.check_password(password)
 
@@ -63,7 +60,8 @@ class User:
         if not fio is None:
             if cls.is_valid_fio(fio):
                 return fio
-            raise ValueError('ФИО должно состоять только из букв и быть из 3 частей, каждая из которых не менее 2 символов')
+            raise ValueError(
+                'ФИО должно состоять только из букв и быть из 3 частей, каждая из которых не менее 2 символов')
 
     @staticmethod
     def is_valid_fio(fio: str) -> bool:
@@ -102,11 +100,11 @@ class User:
         return isinstance(username, str) and 20 >= len(username) >= 3 and username.isalnum()
 
     @classmethod
-    def generate_user_id(cls, len_id: int=8) -> str:
+    def generate_user_id(cls, len_id: int = 8) -> str:
         """Генерирует уникальный идентификатор для пользователя"""
         result = '#'
         for i in range(len_id):
-            result += str(random.choice(list(cls.LOWER_CASE+cls.UPPER_CASE)+list(cls.NUMBERS)))
+            result += str(random.choice(list(cls.LOWER_CASE + cls.UPPER_CASE) + list(cls.NUMBERS)))
         return result
 
     def save_happy_days(self, file_name='happy_days.json'):
@@ -131,11 +129,11 @@ class User:
                     result[k] = set(v)
             del date
         except FileNotFoundError:
-            print(user_path)
+            print('#No file happy_days.json')
         return result
 
     def save_user(self, file_name='user.json') -> None:
-        #self.save_happy_days(self.happy_days)
+        # self.save_happy_days(self.happy_days)
         # self.parametrs['happy_days'] = self.happy_days
         date = {
             "username": self.username,
@@ -148,7 +146,6 @@ class User:
             os.mkdir(self.path)
         with open(user_path, 'w') as f:
             json.dump(date, f)
-
 
     @staticmethod
     def load_user(data: dict, password: str, path_file=None):
@@ -175,7 +172,7 @@ class User:
 class UserManager:
     USER_CLASS = User
 
-    def __init__(self, path: str, parametrs: dict=None):
+    def __init__(self, path: str, parametrs: dict = None):
         self.base_file = 'USERS.json'
         self.path = path
         self.user = None
@@ -245,7 +242,7 @@ class UserManager:
     def del_user_by_pk(self, pk: int) -> None:
         del self.users_id[pk]
 
-    def save_users(self, file_name: str='USERS.json') -> None:
+    def save_users(self, file_name: str = 'USERS.json') -> None:
         '''Сохраняет файл конфигурации всех пользователей'''
         data = {
             'Users': self.users_id,
@@ -257,18 +254,22 @@ class UserManager:
         with open(file_name, 'w', encoding='UTF-16') as f:
             json.dump(data, f)
 
-
-    def load_user_manager(self, file_name: str='USERS.json') -> dict:
+    def load_user_manager(self, file_name: str = 'USERS.json') -> dict:
 
         file_name = os.path.join(self.path, file_name)
+
         if os.path.exists(file_name):
             with open(file_name, 'r', encoding='UTF-16') as f:
-                data = json.load(f)
+                try:
+                    data = json.load(f)
+                except:
+                    return {i: i.split('_')[-1] for i in list(os.walk(self.path))[0][1] if i.startswith('user_#')}
         else:
             return {}
 
-        new_list_id_users = list(map(lambda x: '_'.join(x.split('_')[1:]), [i for i in list(os.walk(self.path))[0][1] if i.startswith('user_#')]))
-        if not(set(new_list_id_users) == set(data['Users'].keys())):
+        new_list_id_users = list(map(lambda x: '_'.join(x.split('_')[1:]),
+                                     [i for i in list(os.walk(self.path))[0][1] if i.startswith('user_#')]))
+        if not (set(new_list_id_users) == set(data['Users'].keys())):
 
             for id_ in set(new_list_id_users) - set(data['Users'].keys()):
                 user_directory = os.path.join(self.path, f'user_{id_}')
@@ -276,18 +277,14 @@ class UserManager:
                     data1 = json.load(u)
                 data['Users'][id_] = data1['username']
 
-
-
         result = {}
         for _id in data['Users']:
             if os.path.isdir(os.path.join(self.path, f'user_{_id}')):
                 result[_id] = data['Users'][_id]
         self.parametrs = data['Parametrs']
 
+
         return result
 
     def update_user_id(self) -> None:
         self.users_id = self.load_user_manager(self.base_file)
-
-
-
