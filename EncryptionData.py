@@ -11,31 +11,52 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pyAesCrypt
+import io, json
+
+
 class EncryptionData:
+    SECURITY_LEVEL = 1
     SEP = '!'
-    def __init__(self, key1, key2):
+
+    def __init__(self, key1, key2=''):
         self.key1 = key1
         self.key2 = key2
 
+    def encode(self, data: str | bytes) -> tuple:
+        if self.SECURITY_LEVEL == 1:
+            table, psc, R = self.crate_encryption_table(data)
+            result = ''
+            for i in data:
+                result += table.get(i, '')
+            return result, psc, R
+        elif self.SECURITY_LEVEL == 2:
+            sequence_byte = io.BytesIO()
+            file_content = io.BytesIO(data)
+            pyAesCrypt.encryptStream(file_content, sequence_byte, self.key1)
+            return (sequence_byte, None, None)
+        else:
+            return (data, None, None)
 
-    def encode(self, data: str) -> tuple:
-        """
-        """
-        table, psc, R = self.crate_encryption_table(data)
-        result = ''
-        for i in data:
-            result += table.get(i, '')
-        return result, psc, R
+    def decode(self, data: str , psc: list = None) -> str:
+        if psc is None:
+            psc = []
 
-    def decode(self, data: str, psc: list) -> str:
-        table, psc, R = self.crate_encryption_table(data, psc)
-        result = ''
-        for i in self.share_data(data, R):
-            result += table.get(i, '')
-        return result
+        if self.SECURITY_LEVEL == 1:
+            table, psc, R = self.crate_encryption_table(data, psc)
+            result = ''
+            for i in self.share_data(data, R):
+                result += table.get(i, '')
+            return result
+        elif self.SECURITY_LEVEL == 2:
+            sequence_byte = io.BytesIO()
+            pyAesCrypt.decryptStream(data, sequence_byte, self.key1)
+            return json.loads(sequence_byte.getvalue().decode('UTF-16'))
+        else:
+            return data
 
     @classmethod
-    def convert_list_to_str(cls, data:list):
+    def convert_list_to_str(cls, data: list):
         '''
         Преобразует данные в специальный фармат:
         "#!data[0]!data[1]!data[2]!data[3]! ... ... ... data[n]!data[n+1]!data[n+2]!data[n+3]!#"
@@ -59,7 +80,6 @@ class EncryptionData:
         for i in range(0, len(data), sep):
             result.append(data[i:i + sep])
         return result
-
 
     def crate_encryption_table(self, data: str, _psc=None):
         """Создает позиционную таблицу сопоставления прежнему значению, со смещенеием на UNICODE-значение символа из пороля"""
@@ -150,14 +170,8 @@ if __name__ == "__main__":
     print(data)
     print(parser.convert_list_to_str(data))
 
-    h_text, psc,*_ = parser.encode(EncryptionData.convert_list_to_str(data))
+    h_text, psc, *_ = parser.encode(EncryptionData.convert_list_to_str(data))
     print(h_text)
 
     print(parser.decode(h_text, psc))
     print(parser.convert_str_to_list(parser.decode(h_text, psc)))
-
-
-
-
-
-

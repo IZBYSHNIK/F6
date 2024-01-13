@@ -2077,84 +2077,122 @@ class ProfileTab(QtWidgets.QWidget):
                                    """)
         self.parent = parent
         self.setObjectName("profile")
-        self.horizontalLayout_8 = QtWidgets.QHBoxLayout(self)
-        self.horizontalLayout_8.setObjectName("horizontalLayout_8")
-        self.verticalLayout_8 = QtWidgets.QVBoxLayout()
-        self.verticalLayout_8.setObjectName("verticalLayout_8")
-        self.accaunt_label = QtWidgets.QLabel(self)
+        self.center_layout = QtWidgets.QHBoxLayout(self)
+        self.center_layout.setObjectName("center_layout")
+        self.center_layout.addItem(QtWidgets.QSpacerItem(5000, 0, QtWidgets.QSizePolicy.Policy.Maximum,
+                                                         QtWidgets.QSizePolicy.Policy.Expanding))
+        self.left_layout = QtWidgets.QVBoxLayout()
+        self.left_layout.setSizeConstraint(QtWidgets.QLayout.SizeConstraint.SetMinimumSize)
+        self.left_layout.setObjectName("left_layout")
 
+        self.information_user_layout = QtWidgets.QVBoxLayout()
+
+        self.accaunt_label = QtWidgets.QLabel()
         self.accaunt_label.setObjectName("accaunt_label")
-        self.verticalLayout_8.addWidget(self.accaunt_label)
-        self.username_label = QtWidgets.QLabel(self)
+        self.information_user_layout.addWidget(self.accaunt_label)
 
+        self.username_label = QtWidgets.QLabel()
         self.username_label.setObjectName("username_label")
-        self.verticalLayout_8.addWidget(self.username_label)
-        self.username_edit = QtWidgets.QLabel(self)
+        self.information_user_layout.addWidget(self.username_label)
 
-        self.username_edit.setMinimumSize(QtCore.QSize(0, 30))
-        self.username_edit.setMaximumSize(QtCore.QSize(400, 16777215))
+        self.username_edit = QtWidgets.QLabel()
+        self.username_edit.setFixedSize(QtCore.QSize(400, 30))
         self.username_edit.setObjectName("username_edit")
-        self.verticalLayout_8.addWidget(self.username_edit)
-        self.fio_user_label = QtWidgets.QLabel(self)
+        self.information_user_layout.addWidget(self.username_edit)
+
+        self.fio_user_label = QtWidgets.QLabel()
         self.fio_user_label.setObjectName("fio_user_label")
-        self.verticalLayout_8.addWidget(self.fio_user_label)
-        self.fio_user_edit = QtWidgets.QLineEdit(self)
-        self.fio_user_edit.setMinimumSize(QtCore.QSize(0, 30))
-        self.fio_user_edit.setMaximumSize(QtCore.QSize(400, 16777215))
+        self.information_user_layout.addWidget(self.fio_user_label)
+
+        self.fio_user_edit = QtWidgets.QLineEdit()
+        self.fio_user_edit.setFixedSize(QtCore.QSize(400, 30))
         self.fio_user_edit.setObjectName("fio_user_edit")
-        self.verticalLayout_8.addWidget(self.fio_user_edit)
-        self.teamleader_label = QtWidgets.QLabel(self)
+        self.information_user_layout.addWidget(self.fio_user_edit)
+
+        self.teamleader_label = QtWidgets.QLabel()
         self.teamleader_label.setObjectName("teamleader_label")
-        self.verticalLayout_8.addWidget(self.teamleader_label)
-        self.fio_teamleader_edit = QtWidgets.QLineEdit(self)
-        self.fio_teamleader_edit.setMinimumSize(QtCore.QSize(0, 30))
-        self.fio_teamleader_edit.setMaximumSize(QtCore.QSize(400, 16777215))
+        self.information_user_layout.addWidget(self.teamleader_label)
+
+        self.fio_teamleader_edit = QtWidgets.QLineEdit()
+        self.fio_teamleader_edit.setFixedSize(QtCore.QSize(400, 30))
         self.fio_teamleader_edit.setObjectName("fio_teamleader_edit")
-        self.verticalLayout_8.addWidget(self.fio_teamleader_edit)
-        self.group_label = QtWidgets.QLabel(self)
+        self.information_user_layout.addWidget(self.fio_teamleader_edit)
+
+        self.group_label = QtWidgets.QLabel()
         self.group_label.setObjectName("group_label")
-        self.verticalLayout_8.addWidget(self.group_label)
-        self.group_edit = QtWidgets.QLineEdit(self)
-        self.group_edit.setMinimumSize(QtCore.QSize(0, 30))
-        self.group_edit.setMaximumSize(QtCore.QSize(400, 16777215))
+        self.information_user_layout.addWidget(self.group_label)
+
+        self.group_edit = QtWidgets.QLineEdit()
+        self.group_edit.setFixedSize(QtCore.QSize(400, 30))
         self.group_edit.setObjectName("group_edit")
-        self.verticalLayout_8.addWidget(self.group_edit)
-        self.specialization_label = QtWidgets.QLabel(self)
+        self.information_user_layout.addWidget(self.group_edit)
+
+        self.specialization_label = QtWidgets.QLabel()
         self.specialization_label.setObjectName("specialization_label")
-        self.verticalLayout_8.addWidget(self.specialization_label)
-        self.specialization_edit = QtWidgets.QLineEdit(self)
-        self.specialization_edit.setMinimumSize(QtCore.QSize(0, 30))
-        self.specialization_edit.setMaximumSize(QtCore.QSize(400, 16777215))
+        self.information_user_layout.addWidget(self.specialization_label)
+
+        self.specialization_edit = QtWidgets.QLineEdit()
+        self.specialization_edit.setFixedSize(QtCore.QSize(400, 30))
         self.specialization_edit.setObjectName("specialization_edit")
-        self.verticalLayout_8.addWidget(self.specialization_edit)
-        self.message_profile = QtWidgets.QTextBrowser(self)
-        self.message_profile.setFixedSize(400, 400)
+        self.information_user_layout.addWidget(self.specialization_edit)
+
+        self.message_profile = QtWidgets.QTextBrowser()
+        self.message_profile.setFixedWidth(400)
         self.message_profile.setStyleSheet(
             'border: none; color: red; font: 14px; background-color: rgba(249, 248, 244, 0);')
-        self.verticalLayout_8.addWidget(self.message_profile)
-        spacerItem2 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum,
-                                            QtWidgets.QSizePolicy.Policy.Expanding)
-        self.verticalLayout_8.addItem(spacerItem2)
+        self.information_user_layout.addWidget(self.message_profile)
+
+        self.left_layout.addLayout(self.information_user_layout)
+        self.left_layout.addItem(QtWidgets.QSpacerItem(20, 2000, QtWidgets.QSizePolicy.Policy.Maximum,
+                                                       QtWidgets.QSizePolicy.Policy.Expanding))
+
+        self.security_level_layout = QtWidgets.QVBoxLayout()
+        # self.security_level_layout.addItem(QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Maximum,
+        #                                                      QtWidgets.QSizePolicy.Policy.Expanding))
+        self.security_leve_label = QtWidgets.QLabel()
+        self.security_leve_label.setObjectName("security_leve_label")
+        self.security_level_layout.addWidget(self.security_leve_label)
+
+        self.security_level_photo_layout = QtWidgets.QVBoxLayout()
+        self.update_photo_security_level()
+        self.security_level_layout.addLayout(self.security_level_photo_layout)
+        self.security_level_layout.addItem(QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Maximum,
+                                                                 QtWidgets.QSizePolicy.Policy.Expanding))
+        self.security_level_slider = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
+        self.security_level_slider.setTickPosition(QtWidgets.QSlider.TickPosition.TicksBelow)
+        self.security_level_slider.setTickInterval(50)
+        self.security_level_slider.setMaximum(100)
+        self.security_level_slider.setPageStep(50)
+        self.security_level_layout.addWidget(self.security_level_slider)
+
+        self.left_layout.addLayout(self.security_level_layout)
+
         self.horizontalLayout_7 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_7.setContentsMargins(0, 65, 0, 0)
         self.horizontalLayout_7.setObjectName("horizontalLayout_7")
-        self.save_user_push = Push(self, 35, 35, 5,
+        self.save_user_push = Push(self.horizontalLayout_7, 35, 35, 5,
                                    icon_path=os.path.join('media', 'buttons', 'save.svg'))
         self.save_user_push.setObjectName("save_user_push")
         self.horizontalLayout_7.addWidget(self.save_user_push)
-        self.set_password_push = Push(self, 35, 35, 5,
+        self.set_password_push = Push(self.horizontalLayout_7, 35, 35, 5,
                                       icon_path=os.path.join('media', 'buttons', 'set_password.svg'))
         self.set_password_push.setObjectName("set_password_push")
         self.horizontalLayout_7.addWidget(self.set_password_push)
-        self.del_user_push = Push(self, 35, 35, 5,
+        self.del_user_push = Push(self.horizontalLayout_7, 35, 35, 5,
                                   icon_path=os.path.join('media', 'buttons', 'del_user.svg'))
         self.del_user_push.setObjectName("del_user_push")
         self.horizontalLayout_7.addWidget(self.del_user_push)
-        self.logout_push = Push(self, 35, 35, 5,
+        self.logout_push = Push(self.horizontalLayout_7, 35, 35, 5,
                                 icon_path=os.path.join('media', 'buttons', 'logout.svg'))
         self.logout_push.setObjectName("logout_push")
         self.horizontalLayout_7.addWidget(self.logout_push)
-        self.verticalLayout_8.addLayout(self.horizontalLayout_7)
-        self.horizontalLayout_8.addLayout(self.verticalLayout_8)
+
+        self.left_layout.addLayout(self.horizontalLayout_7)
+
+        self.center_layout.addLayout(self.left_layout)
+        self.center_layout.addItem(QtWidgets.QSpacerItem(5000, 0, QtWidgets.QSizePolicy.Policy.Maximum,
+                                                         QtWidgets.QSizePolicy.Policy.Expanding))
+
         self.verticalLayout_7 = QtWidgets.QVBoxLayout()
         self.verticalLayout_7.setObjectName("verticalLayout_7")
         self.verticalLayout_12 = QtWidgets.QVBoxLayout()
@@ -2176,7 +2214,9 @@ class ProfileTab(QtWidgets.QWidget):
         self.verticalLayout_13.setObjectName("verticalLayout_13")
 
         self.verticalLayout_7.addLayout(self.verticalLayout_13)
-        self.horizontalLayout_8.addLayout(self.verticalLayout_7)
+        self.center_layout.addLayout(self.verticalLayout_7)
+        self.center_layout.addItem(QtWidgets.QSpacerItem(5000, 0, QtWidgets.QSizePolicy.Policy.Maximum,
+                                                         QtWidgets.QSizePolicy.Policy.Expanding))
 
         self.setObjectName("profile")
 
@@ -2216,6 +2256,9 @@ class ProfileTab(QtWidgets.QWidget):
         self.del_user_push.clicked.connect(self.del_user)
         self.logout_push.clicked.connect(self.logout)
         self.photo.mousePressEvent = self.click_profile
+        self.security_level_slider.sliderReleased.connect(self.click_slider)
+        self.security_level_slider.valueChanged.connect(self.chaged_slider)
+        self.security_level_slider.keyPressEvent = self.slider_key_pressEvent
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
@@ -2225,6 +2268,8 @@ class ProfileTab(QtWidgets.QWidget):
         self.teamleader_label.setText(self.tr("ФИО Кл.руководителя"))
         self.group_label.setText(self.tr("Группа"))
         self.specialization_label.setText(self.tr("Специальность"))
+
+        self.security_leve_label.setText(self.tr('Уровень защиты данных'))
 
         self.save_user_push.setToolTip(self.tr('Сохранить изменения'))
         self.set_password_push.setToolTip(self.tr('Изменить пароль'))
@@ -2238,6 +2283,8 @@ class ProfileTab(QtWidgets.QWidget):
         self.teamleader_label.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
         self.group_label.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
         self.specialization_label.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
+
+        self.security_leve_label.setFont(QtGui.QFont(NAME_FONT, 16 + ADD_FONT_SIZE))
 
     def click_profile(self, *args, **kwargs):
         photo = QtSvgWidgets.QSvgWidget(os.path.join('media', 'profile', f'{str(random.randint(1, 15))}.svg'))
@@ -2340,12 +2387,18 @@ class ProfileTab(QtWidgets.QWidget):
         window_password.show()
 
     def update_user_info(self):
+        self.username_edit.setText(USER_MANAGER.user.username)
+        self.fio_teamleader_edit.setText(USER_MANAGER.user.parametrs.get('teamleader', ''))
+        self.fio_user_edit.setText(USER_MANAGER.user.parametrs.get('offical_name', ''))
+        self.group_edit.setText(USER_MANAGER.user.parametrs.get('group', ''))
+        self.specialization_edit.setText(USER_MANAGER.user.parametrs.get('specialization', ''))
+
+    def user_information_load(self):
         if not USER_MANAGER.user is None:
-            self.username_edit.setText(USER_MANAGER.user.username)
-            self.fio_teamleader_edit.setText(USER_MANAGER.user.parametrs.get('teamleader', ''))
-            self.fio_user_edit.setText(USER_MANAGER.user.parametrs.get('offical_name', ''))
-            self.group_edit.setText(USER_MANAGER.user.parametrs.get('group', ''))
-            self.specialization_edit.setText(USER_MANAGER.user.parametrs.get('specialization', ''))
+            self.update_photo_security_level(USER_MANAGER.user.security_level)
+            self.security_level_slider.setValue(USER_MANAGER.user.security_level * 50)
+            self.update_user_info()
+            self.init_atchivments()
 
     def checking_condition(self, key):
         CONDITION = {
@@ -2376,6 +2429,62 @@ class ProfileTab(QtWidgets.QWidget):
                 if USER_MANAGER.user.parametrs.get('achievements'):
                     if not list(key) in USER_MANAGER.user.parametrs.get('achievements'):
                         return eval(CONDITION[tuple(key)])
+
+    def click_slider(self):
+        value = self.security_level_slider.value()
+        if not value in [0, 50, 100]:
+            if value > 50:
+                if value > 75:
+                    self.security_level_slider.setValue(100)
+                else:
+                    self.security_level_slider.setValue(50)
+                self.click_slider()
+            else:
+                if value > 25:
+                    self.security_level_slider.setValue(50)
+                else:
+                    self.security_level_slider.setValue(0)
+                self.click_slider()
+
+    def slider_key_pressEvent(self, event):
+        if event.key() == QtCore.Qt.Key.Key_Right:
+            if self.security_level_slider.value() + 50 <= 100:
+                self.security_level_slider.setValue(self.security_level_slider.value() + 50)
+        elif event.key() == QtCore.Qt.Key.Key_Left:
+            if self.security_level_slider.value() - 50 >= 0:
+                self.security_level_slider.setValue(self.security_level_slider.value() - 50)
+        else:
+            QtWidgets.QWidget.keyPressEvent(self, event)
+
+    def chaged_slider(self):
+        value = self.security_level_slider.value()
+        if value in [0, 50, 100]:
+            self.security_level_photo.deleteLater()
+            self.security_level_photo = QtSvgWidgets.QSvgWidget(
+                os.path.join('media', 'security_level', f'security_level_{str(value // 50)}.svg'))
+            self.security_level_photo.setFixedSize(100, 100)
+
+            self.security_level_photo_layout.addWidget(self.security_level_photo, QtCore.Qt.AlignmentFlag.AlignVCenter,
+                                                       QtCore.Qt.AlignmentFlag.AlignHCenter)
+
+            if value // 50 != MANAGER_STUDENTS.user.security_level:
+                MANAGER_STUDENTS.user.security_level = value // 50
+                USER_MANAGER.user.save_user()
+                MANAGER_STUDENTS.save_students()
+
+    def update_photo_security_level(self, level=None):
+        if hasattr(self, 'security_level_photo'):
+            self.security_level_photo.deleteLater()
+        if isinstance(level, int) and 0 <= level <= 2:
+            self.security_level_photo = QtSvgWidgets.QSvgWidget(
+                os.path.join('media', 'security_level', f'security_level_{str(level)}.svg'))
+        else:
+            self.security_level_photo = QtSvgWidgets.QSvgWidget(
+                os.path.join('media', 'security_level', 'security_level_none.svg'))
+
+        self.security_level_photo.setFixedSize(100, 100)
+        self.security_level_photo_layout.addWidget(self.security_level_photo, QtCore.Qt.AlignmentFlag.AlignVCenter,
+                                                   QtCore.Qt.AlignmentFlag.AlignHCenter)
 
 
 class MplCanvas(FigureCanvas):
@@ -2773,18 +2882,19 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.students.update_list_students()
 
-        self.profile.update_user_info()
-
         self.archive.init_archive()
 
-        self.profile.init_atchivments()
+        self.profile.user_information_load()
+
         if [0, 4] not in (USER_MANAGER.user.parametrs.get('achievements') or []):
             self.group.tabBarClicked.connect(self.click_tab)
 
-        if USER_MANAGER.user.parametrs.get('table_marks') == False:
-            self.group.removeTab(self.group.indexOf(self.marks))
-        if USER_MANAGER.user.parametrs.get('statistic') == False:
-            self.group.removeTab(self.group.indexOf(self.statistics))
+        if USER_MANAGER.user.parametrs:
+            if USER_MANAGER.user.parametrs.get('table_marks') == False:
+                self.group.removeTab(self.group.indexOf(self.marks))
+
+            if USER_MANAGER.user.parametrs.get('statistic') == False:
+                self.group.removeTab(self.group.indexOf(self.statistics))
 
         if len(self.archive.files_archive) == 0 and self.group.indexOf(self.archive) != -1:
             self.group.removeTab(self.group.indexOf(self.archive))
@@ -3201,7 +3311,6 @@ class UpdateManager(QtWidgets.QDialog):
         self.load_link.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.buttons_layout.addWidget(self.load_link)
 
-
         self.vertical_layout.addWidget(self.title)
         self.vertical_layout.addWidget(self.message)
         self.vertical_layout.addLayout(self.buttons_layout)
@@ -3240,7 +3349,7 @@ class UpdateManager(QtWidgets.QDialog):
 
     @staticmethod
     def check_new_version(old, new):
-        if old[:-1] <= new[:-1]:
+        if old <= new:
             return True
         return False
 

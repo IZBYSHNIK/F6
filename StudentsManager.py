@@ -16,7 +16,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Border, Font, Side, Alignment, PatternFill
 from openpyxl.styles.numbers import BUILTIN_FORMATS
 import json
-import os
+import os, io
 import datetime
 import calendar
 
@@ -44,10 +44,9 @@ class Student:
         if not isinstance(days, dict):
             raise ValueError('Функция работает только с данными типа словарь')
         for day, hours in days.items():
-            if not(cls.is_valud_day(day) and cls.is_valud_hours(hours)):
+            if not (cls.is_valud_day(day) and cls.is_valud_hours(hours)):
                 raise ValueError('Словарь с днями поврежден')
         return days
-
 
     @classmethod
     def check_fio(cls, fio: str) -> str:
@@ -59,7 +58,8 @@ class Student:
     @staticmethod
     def is_valud_fio(fio: str) -> bool:
         '''Проверяет правильность ФИО, возвращает булевое значение'''
-        return isinstance(fio.replace(' ', ''), str) and sum([item.isalpha() and len(item) >= 2 for item in fio.split()]) == 3
+        return isinstance(fio.replace(' ', ''), str) and sum(
+            [item.isalpha() and len(item) >= 2 for item in fio.split()]) == 3
 
     @classmethod
     def check_day(cls, day: int) -> int:
@@ -72,7 +72,6 @@ class Student:
     def is_valud_day(day: int) -> bool:
         """Проверяет правильность дня, возвращает булевое значение"""
         return isinstance(day, int) and 1 <= day <= 31
-
 
     @classmethod
     def check_hours(cls, hours: int) -> int:
@@ -111,13 +110,13 @@ class Student:
     def absence_days(self) -> list:
         return self.__absence_days
 
-    def add_sick_day(self, day:int, hours:int) -> None:
+    def add_sick_day(self, day: int, hours: int) -> None:
         """Добавляет пару: ключ - день и значение - время в словарь с прогулами по болезни"""
         day = self.check_day(day)
         hours = self.check_hours(hours)
         self.__sick_days[day] = hours
 
-    def add_absence_day(self, day:int, hours:int) -> None:
+    def add_absence_day(self, day: int, hours: int) -> None:
         """Добавляет пару: ключ - день и значение - время в словарь с прогулами по неуважительной причине"""
         day = self.check_day(day)
         hours = self.check_hours(hours)
@@ -152,8 +151,6 @@ class Student:
             raise ValueError("Неверно указан тип дня")
 
 
-
-
 class ManagerStudents:
     ENCRYPTION_CLASS = EncryptionData
     CLASS_STUDENT = Student
@@ -162,16 +159,16 @@ class ManagerStudents:
         'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
     )
 
-    def __init__(self, period: tuple,  user=None, days=None, students=None):
+    def __init__(self, period: tuple, user=None, days=None, students=None):
         self.user = user
-        self.period = period # (month, year)
-        self.days = days if days else self.generate_work_days(month=self.period[0], year=self.period[1], happy_days=user.happy_days)
+        self.period = period  # (month, year)
+        self.days = days if days else self.generate_work_days(month=self.period[0], year=self.period[1],
+                                                              happy_days=user.happy_days)
         self.__students = [] if not students else students
         self.date = datetime.datetime.now().timetuple()
         self.parametrs = {}
         self.couples = {}
         self.is_archive = False
-
 
     @classmethod
     def generate_work_days(cls, month: int, year: int, happy_days=None) -> dict:
@@ -229,7 +226,7 @@ class ManagerStudents:
         if is_happy_day:
             self.user.happy_days[str(self.period[0])] = self.user.happy_days.get(str(self.period[0]), set()) | {day}
 
-    def on_day(self, day: int, hours: int=0, is_happy_day=False) -> None:
+    def on_day(self, day: int, hours: int = 0, is_happy_day=False) -> None:
         """Добавляет рабочий день из переменной self.days"""
         self.CLASS_STUDENT.check_day(day)
         self.CLASS_STUDENT.check_hours(hours)
@@ -238,9 +235,6 @@ class ManagerStudents:
         if is_happy_day:
             if day in self.user.happy_days.get(str(self.period[0])):
                 self.user.happy_days[str(self.period[0])].remove(day)
-
-
-
 
     def add_day(self, student, number_day, hours, type_day='a'):
         type_day = type_day.lower()
@@ -260,20 +254,21 @@ class ManagerStudents:
     @staticmethod
     def is_valud_period(period: tuple) -> bool:
         return isinstance(period, tuple) and len(period) == 2 and \
-        isinstance(period[0], int) and isinstance(period[1], int) and 1 <= period[0] <= 12 and 1700 <= period[1]
+            isinstance(period[0], int) and isinstance(period[1], int) and 1 <= period[0] <= 12 and 1700 <= period[1]
 
     @classmethod
     def check_period(cls, period: tuple) -> tuple:
         if cls.is_valud_period(period):
             return period
-        raise ValueError('Период должен быть катрежем из двух чисел: месяц (int) и год (int), которые находятся в диапазоне от 1 до 12 (month) и от 1700 (year) соответственно ')
+        raise ValueError(
+            'Период должен быть катрежем из двух чисел: месяц (int) и год (int), которые находятся в диапазоне от 1 до 12 (month) и от 1700 (year) соответственно ')
 
     def set_period(self, month: int, year: int):
         '''Изменяет месяц и год таблицы'''
         self.period = self.check_period((month, year))
         self.days = self.generate_work_days(month, year, self.user.happy_days)
 
-    def add_hours_by_day(self, day, hours: int=0) -> None:
+    def add_hours_by_day(self, day, hours: int = 0) -> None:
         """Добавляет значение времени в словарь по ключу day"""
         if day in self.days and 0 < hours <= 10:
             self.days[day] = hours
@@ -282,68 +277,88 @@ class ManagerStudents:
         """Врзвращает эксезмпляр студента из списка студентов"""
         return self.students[indx]
 
-    def __setitem__(self, indx:int, student: Student) -> None:
+    def __setitem__(self, indx: int, student: Student) -> None:
         """Изменяет экземпляр студента по его индеку с списке"""
         self.__students[indx] = student
 
-    def __delitem__(self, key:int) -> None:
+    def __delitem__(self, key: int) -> None:
         self.remove_student_id(key)
 
     @property
     def students(self) -> list:
         return self.__students
 
-
     def add_student(self, student: Student) -> None:
         self.__students.append(student)
 
-    def remove_student_id(self, id_s:int) -> None:
+    def remove_student_id(self, id_s: int) -> None:
         del self.__students[id_s]
 
-    def remove_student_obj(self, obj:Student) -> None:
+    def remove_student_obj(self, obj: Student) -> None:
         self.__students.remove(obj)
 
     def save_students(self, file_name='students.json', path_file=None) -> None:
         """
         Сохраняет данные о студентах
         """
-
+        self.ENCRYPTION_CLASS.SECURITY_LEVEL = self.user.security_level
+        parser = self.ENCRYPTION_CLASS(self.user.password, self.user.user_id)
+        
         if path_file is None:
             path_file = self.user.path
         date = self.__serialization()
+
         if not os.path.isdir(self.user.path):
             os.mkdir(self.user.path)
-        with open(os.path.join(path_file, file_name), 'w') as f:
-            json.dump(date, f)
 
-    def load_students(self, file_name='students.json', user_path=None) -> dict:
+        if self.user.security_level == 0 or self.user.security_level == 1:
+            liststudents, psc, R = parser.encode(date['Liststudents'])
+            date['Liststudents'] = liststudents
+            date['PSC'] = psc
+            date['Rang'] = R
+            
+            with open(os.path.join(path_file, file_name), 'w') as f:
+                json.dump(date, f)
+        else:
+            date = json.dumps(date).encode('UTF-16')
+            sequence_byte, psc, R = parser.encode(date)
+            with open(os.path.join(path_file, file_name), 'wb') as f:
+                f.write(sequence_byte.getvalue())
+            
+
+    def load_students(self, file_name='students.json', user_path=None) -> dict | bytes:
         """Читает данные из файла и возвращает из них словарь"""
         if user_path is None:
             user_path = self.user.path
-        with open(os.path.join(user_path, file_name), 'r') as f:
-            data = json.load(f)
-        return data
 
+        if self.user.security_level == 0 or self.user.security_level == 1:
+            with open(os.path.join(user_path, file_name), 'r') as f:
+                data = json.load(f)
+            return data
+        else:
+            with open(os.path.join(user_path, file_name), 'rb') as f:
+                file_content = io.BytesIO(f.read())
+
+            return file_content
 
     def __serialization(self) -> dict:
         """Преобразует данные для сохранения в Json"""
-        parser = self.ENCRYPTION_CLASS(self.user.password, self.user.user_id)
+        liststudents, psc, R = self.ENCRYPTION_CLASS.convert_list_to_str(self.__convert()), '', ''
 
-        liststudents, psc, R = parser.encode(parser.convert_list_to_str(self.__convert()))
         data = {
             "Period": self.period,
             "Liststudents": liststudents,
             "Couples": self.couples,
             'Days': self.days,
             "Parametrs": self.parametrs,
-            'PSC': psc,
-            'Rang': R,
+            'PSC': '',
+            'Rang': '',
         }
+
         return data
 
-
     @staticmethod
-    def crate_eternal_iter(data: str, indx: int=0) -> str:
+    def crate_eternal_iter(data: str, indx: int = 0) -> str:
         """Создает из итерируемого объекта бесконечный итератор"""
         while True:
             yield data[indx]
@@ -351,33 +366,34 @@ class ManagerStudents:
             if indx == len(data):
                 indx = 0
 
-
     def __convert(self) -> list:
         result = []
         for st in self.__students:
-            result.extend([st.fio, ''.join([str(i).rjust(2, '0') + str(st.sick_days[i]).rjust(2, '0') for i in st.sick_days]), ''.join([str(i).rjust(2, '0') + str(st.absence_days[i]).rjust(2, '0') for i in st.absence_days]), ''.join([str(k).rjust(2, '0') + str(st.marks[k]).rjust(2, '0') for k in st.marks])])
+            result.extend(
+                [st.fio, ''.join([str(i).rjust(2, '0') + str(st.sick_days[i]).rjust(2, '0') for i in st.sick_days]),
+                 ''.join([str(i).rjust(2, '0') + str(st.absence_days[i]).rjust(2, '0') for i in st.absence_days]),
+                 ''.join([str(k).rjust(2, '0') + str(st.marks[k]).rjust(2, '0') for k in st.marks])])
         return result
 
-
     @staticmethod
-    def convert_str_to_list(date: str, sep: str='!'):
+    def convert_str_to_list(date: str, sep: str = '!'):
         """Преобразует данные из строки в экземпляры класса Student"""
 
         def convert_data(data: str):
             result = {}
             for i in range(len(data) // 4):
-                day = int(data[i*4] + data[i*4+1])
-                hours = int(data[i*4+2] + data[i*4+3])
+                day = int(data[i * 4] + data[i * 4 + 1])
+                hours = int(data[i * 4 + 2] + data[i * 4 + 3])
 
                 result[day] = hours
             return result
 
         date = date[2:-2].split(sep)
         students = []
-        for i in range(len(date)//4):
-            fio = date[i*4]
-            s_d = date[i*4+1]
-            a_d = date[i*4+2]
+        for i in range(len(date) // 4):
+            fio = date[i * 4]
+            s_d = date[i * 4 + 1]
+            a_d = date[i * 4 + 2]
             marks = date[i * 4 + 3]
             s = Student(fio, convert_data(s_d), convert_data(a_d))
 
@@ -390,17 +406,30 @@ class ManagerStudents:
 
         return students
 
-
     @classmethod
     def load_manager_students(cls, user, data=None, file_name='students.json'):
+
         if data is None:
             user_path = user.path
-            with open(os.path.join(user_path, file_name), 'r') as f:
-                data = json.load(f)
+            if user.security_level == 1 or user.security_level == 0:
+                with open(os.path.join(user_path, file_name), 'r') as f:
+                    data = json.load(f)
+            else:
+                with open(os.path.join(user_path, file_name), 'rb') as f:
+                    data = io.BytesIO(f.read())
+
+        cls.ENCRYPTION_CLASS.SECURITY_LEVEL = user.security_level
+        parser = cls.ENCRYPTION_CLASS(user.password, user.user_id)
+
+        if user.security_level == 0 or user.security_level == 1:
+            liststudents = parser.decode(data['Liststudents'], data['PSC'])
+        else:
+            data = parser.decode(data)
+            liststudents = data['Liststudents']
 
         new_obj = ManagerStudents(data['Period'], user, {int(k): int(v) for k, v in data['Days'].items()})
-        parser = cls.ENCRYPTION_CLASS(user.password, user.user_id)
-        liststudents = parser.decode(data['Liststudents'], data['PSC'])
+
+
         students = cls.convert_str_to_list(liststudents)
         students = list(sorted(students, key=lambda item: item.fio))
         for student in students:
@@ -429,9 +458,9 @@ class ManagerStudents:
             'man_hours': man_hours,
         }
         if man_hours > 0:
-            total_attendance = (man_hours-(absence_days_hours + sack_days_hours))/man_hours
-            quality_attendance = (man_hours - absence_days_hours)/man_hours
-            absences_by_student = absence_days_hours/len(self.students)
+            total_attendance = (man_hours - (absence_days_hours + sack_days_hours)) / man_hours
+            quality_attendance = (man_hours - absence_days_hours) / man_hours
+            absences_by_student = absence_days_hours / len(self.students)
 
             statisitcs['total_attendance'] = total_attendance
             statisitcs["quality_attendance"] = quality_attendance
@@ -479,13 +508,11 @@ class ManagerStudents:
             os.makedirs(os.path.join(self.user.path, "archive"))
         file_path, file_name = self.creat_file_path_in_archive(*args, **kargs)
 
-
         self.replace_file(os.path.join(self.user.path, 'students.json'),
-                   os.path.join(self.user.path, 'archive', 'students.json'))
+                          os.path.join(self.user.path, 'archive', 'students.json'))
         self.rename_file(os.path.join(self.user.path, 'archive', 'students.json'), file_path)
 
-
-    def creat_file_path_in_archive(self, file_name=None, auto: bool=False) -> tuple:
+    def creat_file_path_in_archive(self, file_name=None, auto: bool = False) -> tuple:
         '''Сделает путь для текущий активный фалй students.json в архив,
         при этом если атрибут auto=False, но файл уже сеть в директории, то выдаст ошибку FileExistsError.
         Иначе будет автоматически измененно имя файла, который будет перемещен в архив.
@@ -504,13 +531,12 @@ class ManagerStudents:
 
         return os.path.join(self.user.path, 'archive', file_name), file_name
 
-    def create_archive_file_name(self, level:int ='') -> str:
+    def create_archive_file_name(self, level: int = '') -> str:
         '''Создает имя для архивного файла'''
         if level or level == 0:
             level = ' (' + str(level) + ')'
         return str(self.period[1]) + '_' + str(self.period[0]).rjust(2, '0') + self.MONTHS[
-                self.period[0] - 1] + level + '.json'
-
+            self.period[0] - 1] + level + '.json'
 
     def create_new_table(self) -> None:
         """Преобразует текущий экземпляр класса в месяц следующий по году и сохраняет новую таблицу в students.json"""
@@ -555,7 +581,8 @@ class ManagerStudents:
     def load_archive_file(self, file_name: str, file_path=None):
         '''Возвращает экземпляр архивного месяца'''
         if file_name in self.name_files:
-            return self.load_manager_students(self.user, self.load_students(file_name=file_name, user_path=file_path), file_name)
+            return self.load_manager_students(self.user, self.load_students(file_name=file_name, user_path=file_path),
+                                              file_name)
         return self
 
     def clear_marks(self) -> None:
@@ -574,13 +601,13 @@ class ManagerStudents:
 
         for i in self.students:
             statistics = i.get_statistic_for_student()
-            resalt = statistics['Sick_days'][1]+statistics['Absence_days'][1]
+            resalt = statistics['Sick_days'][1] + statistics['Absence_days'][1]
             if resalt > 0:
                 statistics_resalt[statistics['FIO']] = resalt
 
-
         statistics_resalt = dict(sorted(statistics_resalt.items(), key=lambda item: item[1], reverse=True))
         return statistics_resalt
+
     def get_total_statistic_period(self) -> dict:
         """
         Генерирует статистику за все месяцы в виде словаря
@@ -595,11 +622,11 @@ class ManagerStudents:
         for i in name_files:
             month = self.load_archive_file(i, path_archive_files)
             statistic = month.get_statistics()
-            months[(month.period[1], month.period[0]-1)] = (statistic['sack_days_hours'], statistic['absence_days_hours'], statistic['all_absence'])
+            months[(month.period[1], month.period[0] - 1)] = (
+            statistic['sack_days_hours'], statistic['absence_days_hours'], statistic['all_absence'])
 
         months = dict(sorted(months.items(), key=lambda item: item))
         return months
-
 
     def del_file_archive(self, file_name: str) -> None:
         '''Удаляет файл из архиа по его названию генерируя путь к архиву'''
@@ -883,7 +910,8 @@ class ManagerStudents:
             name_call1 = self.get_number_by_chars(i + BASE_COORDS[0]) + str(3 + BASE_COORDS[1])
             name_cell2 = self.get_number_by_chars(i + BASE_COORDS[0]) + str(4 + BASE_COORDS[1])
             ws[name_call1] = self.couples.get(str(i - 2))[0] if self.couples.get(str(i - 2)) else ''
-            ws[name_cell2] = self.CLASS_STUDENT.create_shorts_fio(self.couples.get(str(i - 2))[1]) if self.couples.get(str(i - 2)) else ''
+            ws[name_cell2] = self.CLASS_STUDENT.create_shorts_fio(self.couples.get(str(i - 2))[1]) if self.couples.get(
+                str(i - 2)) else ''
             ws.column_dimensions[self.get_number_by_chars(i + BASE_COORDS[0])].width = 15
 
         for name, value in CELLS_INIT.items():
@@ -918,13 +946,6 @@ class ManagerStudents:
 
         wb.save(file_name)
         return file_name
-
-
-
-
-
-
-
 
 
 if __name__ == '__main__':

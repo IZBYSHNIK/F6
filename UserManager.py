@@ -51,6 +51,11 @@ class User:
         else:
             self.happy_days = self.HAPPY_DAYS
 
+        if not self.parametrs.get('security_level') is None:
+            self.security_level = self.parametrs.get('security_level')
+        else:
+            self.security_level = 1
+
         self.user_id = self.generate_user_id() + '_' + username
         self.__password = self.check_password(password)
 
@@ -135,6 +140,7 @@ class User:
     def save_user(self, file_name='user.json') -> None:
         # self.save_happy_days(self.happy_days)
         # self.parametrs['happy_days'] = self.happy_days
+        self.parametrs['security_level'] = self.security_level
         date = {
             "username": self.username,
             "user_id": self.user_id,
