@@ -3349,7 +3349,7 @@ class UpdateManager(QtWidgets.QDialog):
 
     @staticmethod
     def check_new_version(old, new):
-        if old <= new:
+        if old < new:
             return True
         return False
 
