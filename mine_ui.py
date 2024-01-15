@@ -3335,7 +3335,7 @@ class UpdateManager(QtWidgets.QDialog):
             return data
 
         version = [int(i) if i.isnumeric() else i for i in
-                   update_massage['assets'][0]['name'].split('_')[-1][:-4].split('.')]
+                   update_massage['tag_name'][1:].split('.')]
 
         data = {
             'version': version,
