@@ -35,7 +35,7 @@ import math, calendar
 
 matplotlib.use('Qt5Agg')
 
-VERSION = '2.0.1'
+VERSION = '1.2.0'
 LANGUAGES = ManagerStudents.crate_eternal_iter(['english', 'china', 'russia'])
 CURRENT_LANGUAGE = None
 IS_CHANGE = False
