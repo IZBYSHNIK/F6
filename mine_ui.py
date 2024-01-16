@@ -3334,6 +3334,9 @@ class UpdateManager(QtWidgets.QDialog):
         except requests.exceptions.ConnectionError:
             return data
 
+        if not data:
+            return {}
+
         version = [int(i) if i.isnumeric() else i for i in
                    update_massage['tag_name'][1:].split('.')]
 
