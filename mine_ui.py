@@ -18,16 +18,20 @@ import os
 import random
 import requests
 import sys, platform
+import traceback
 
 import matplotlib
 import matplotlib.font_manager as font_manager
 from PySide6 import QtCore, QtGui, QtWidgets
 # from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
+from PySide6.QtCore import QRunnable, Slot, QThreadPool
 from PySide6 import QtSvgWidgets
-from PySide6.QtCore import QTranslator, QLibraryInfo
+from PySide6.QtCore import QTranslator, QLibraryInfo, Signal
 from PySide6.QtWidgets import QTableWidgetItem
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
+
+from docx import Document
 
 from StudentsManager import ManagerStudents
 from UserManager import UserManager
@@ -55,6 +59,61 @@ USER_MANAGER = UserManager(DOCUMENTS_PATH)
 MANAGER_STUDENTS = None
 
 is_click_license = 0
+
+class WorkerSignals(QtCore.QObject):
+    '''
+    Defines the signals available from a running worker thread.
+
+    Supported signals are:
+
+    finished
+        No data
+
+    error
+        tuple (exctype, value, traceback.format_exc() )
+
+    result
+        object data returned from processing, anything
+
+    progress
+        int indicating % progress
+
+    '''
+    finished = Signal()
+    error = Signal(tuple)
+    result = Signal(object)
+    progress = Signal(int)
+
+
+class Worker(QRunnable):
+    def __init__(self, fn, *args, **kwargs):
+        super(Worker, self).__init__()
+        # Store constructor arguments (re-used for processing)
+        self.fn = fn
+        self.args = args
+        self.kwargs = kwargs
+
+        self.signals = WorkerSignals()
+
+        self.kwargs['progress_callback'] = self.signals.progress
+
+    @Slot()  # QtCore.Slot
+    def run(self):
+        '''
+        Initialise the runner function with passed args, kwargs.
+        '''
+
+        # Retrieve args/kwargs here; and fire processing using them
+        try:
+            result = self.fn(*self.args, **self.kwargs)
+        except:
+            traceback.print_exc()
+            exctype, value = sys.exc_info()[:2]
+            self.signals.error.emit((exctype, value, traceback.format_exc()))
+        else:
+            self.signals.result.emit(result)  # Return the result of the processing
+        finally:
+            self.signals.finished.emit()
 
 
 class SplashScreen(QtWidgets.QSplashScreen):
@@ -621,6 +680,166 @@ class Auth(QtWidgets.QWidget):
         self.licensewindow.show()
 
 
+class ScheduleLoadWindow(QtWidgets.QDialog):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setObjectName(u"ScheduleLoadWindow")
+        self.setModal(True)
+        self.resize(389, 393)
+        self.verticalLayout_2 = QtWidgets.QVBoxLayout(self)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.verticalLayout = QtWidgets.QVBoxLayout()
+        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.search_label = QtWidgets.QLabel(self)
+        self.search_label.setObjectName(u"search_label")
+
+        self.verticalLayout.addWidget(self.search_label)
+
+        self.search_lineEdit = QtWidgets.QLineEdit(self)
+        self.search_lineEdit.setObjectName(u"search_lineEdit")
+
+        self.verticalLayout.addWidget(self.search_lineEdit)
+
+        self.path_label = QtWidgets.QLabel(self)
+        self.path_label.setObjectName(u"path_label")
+
+        self.verticalLayout.addWidget(self.path_label)
+
+        self.path_lineEdit = QtWidgets.QPushButton(self)
+        self.path_lineEdit.setObjectName(u"path_lineEdit")
+
+        self.verticalLayout.addWidget(self.path_lineEdit)
+
+        self.message = QtWidgets.QLabel(self)
+        self.message.setObjectName(u"message")
+
+        self.verticalLayout.addWidget(self.message)
+
+        self.verticalSpacer = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum,
+                                                    QtWidgets.QSizePolicy.Policy.Expanding)
+
+        self.verticalLayout.addItem(self.verticalSpacer)
+
+        self.progressBar = QtWidgets.QProgressBar(self)
+        self.progressBar.setObjectName(u"progressBar")
+        self.progressBar.setValue(0)
+        self.progressBar.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.progressBar.setTextVisible(True)
+
+        self.verticalLayout.addWidget(self.progressBar)
+
+        self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.pushButton_2 = QtWidgets.QPushButton()
+        self.pushButton_2.setObjectName(u"pushButton_2")
+
+        self.horizontalLayout.addWidget(self.pushButton_2)
+
+        self.search_button = QtWidgets.QPushButton()
+        self.search_button.setObjectName(u"search_button")
+
+        self.horizontalLayout.addWidget(self.search_button)
+
+        self.verticalLayout.addLayout(self.horizontalLayout)
+
+        self.verticalLayout_2.addLayout(self.verticalLayout)
+
+        self.threadpool = QThreadPool()
+
+        self.retranslateUi()
+        self.add_function()
+
+    def retranslateUi(self):
+        self.setWindowTitle(self.tr(u"Загрузить расписание"))
+        self.search_label.setText(self.tr(u"Искать"))
+        self.path_label.setText(self.tr(u"Путь"))
+        self.message.setText(self.tr(u"TextLabel"))
+        self.pushButton_2.setText(self.tr(u"PushButton"))
+        self.search_button.setText(self.tr(u"Поиск"))
+
+        self.search_lineEdit.setText(USER_MANAGER.user.parametrs.get('group'))
+
+    def add_function(self):
+        self.path_lineEdit.clicked.connect(self.click_load_path)
+        self.search_button.clicked.connect(self.click_search_button)
+
+    def click_load_path(self):
+        file_name = QtWidgets.QFileDialog.getExistingDirectoryUrl(self, self.tr(
+            "Выберите путь и имя файла для сохранения."))
+        self.path = QtCore.QUrl(file_name.url()).toLocalFile()
+        self.path_lineEdit.setText(self.path)
+
+    def set_progressBar(self, value):
+        self.progressBar.setValue(value)
+
+    def get_result(self):
+        print(self.w.signals.result)
+
+
+    def click_search_button(self):
+        self.w = Worker(self.load_files)
+        self.w.signals.progress.connect(self.set_progressBar)
+        self.w.signals.result.connect(self.get_result)
+
+        self.threadpool.start(self.w)
+
+    def load_files(self, progress_callback, period=None,):
+        search = self.search_lineEdit.text()
+        months = {}
+        period = [12, 2023]
+        path_folder_input, _, files = \
+            list(os.walk(self.path))[0]
+
+        files = list(filter(lambda x: x.endswith('.docx'), files))
+
+        for f in range(len(files)):
+            progress_callback.emit(f/len(files)*100)
+            try:
+                doc = Document(os.path.join(path_folder_input, files[f]))
+                for paragraph in doc.paragraphs:
+                    if len(paragraph.text) == 0:
+                        p = paragraph._element
+                        p.getparent().remove(p)
+                        p._p = p._element = None
+                month = doc.paragraphs[1].text.split()[1]
+                for i in range(len(doc.tables[0].rows)):
+
+                    for j in range(len(doc.tables[0].rows[i].cells)):
+                        if i <= 1:
+                            continue
+                        if j == 0:
+                            group = ''.join(doc.tables[0].rows[i].cells[j].text.strip().split(' ')).lower()
+                        else:
+                            r = doc.tables[0].rows[i].cells[j].text.split('\n')
+
+                            if len(r) == 1 and not r[0].startswith('---'):
+                                r = r[0].split()
+                                r1 = ''.join(r[:-3])
+                                r2 = ' '.join(r[-3:-1])
+                                r = [r1, r2]
+                            if len(r) > 2 and (r[-1].upper().startswith('АУД') or r[-1].upper().startswith('ДОТ')):
+                                del r[-1]
+
+                            if len(r) == 2 and (r[-1].upper().find('АУД.') != -1 or r[-1].upper().find('ДОТ') != -1):
+                                r[-1] = ' '.join(r[-1].split()[:-1])
+
+                            result = [i.strip() for i in r if i]
+                            if result:
+                                if not r[0].startswith('---'):
+                                    discipline = ''.join(result[0].split()).upper().strip()
+                                    if not discipline.startswith('КЛАССНЫЙ'):
+                                        if group.lower() == search.lower():
+                                            header = result[-1]
+                                            months[month] = months.get(month, {})
+                                            months[month][group] = months[month].get(group, {})
+                                            months[month][group][discipline + '_' + header] = months[month].get(group, {}).get(
+                                                discipline + '_' + header, 0) + 1
+            except BaseException:
+                pass
+
+        return months
+
+
 class BaseTable:
     SHOW_COUNT_ROWS = 15
 
@@ -638,6 +857,32 @@ class BaseTable:
 class AbsenceTab(QtWidgets.QWidget, BaseTable):
     def __init__(self, parent):
         super(AbsenceTab, self).__init__(parent=parent)
+        self.setStyleSheet('''QRadioButton::indicator {
+        width: 15px;
+        height: 15px;
+        }
+        QRadioButton::indicator::unchecked {
+            background-color: gray;
+        }
+        #is_sick_rb::indicator:unchecked:hover {
+            background-color: rgb(51, 153, 51);
+        }
+        #is_absen_rb::indicator:unchecked:hover {
+            background-color: rgb(255, 165, 0);
+        }
+        QRadioButton::indicator:unchecked:pressed {
+            background-color: gray;
+        }
+        #is_sick_rb::indicator::checked {
+            background-color: rgb(51, 153, 51);
+            border: 2px solid rgb(51, 153, 51);
+        }
+        #is_absen_rb::indicator::checked {
+            background-color: rgb(255, 165, 0);
+            border: 2px solid rgb(255, 165, 0);
+        }
+        
+        ''')
 
         self.parent = parent
         self.setObjectName("F6")
@@ -680,10 +925,11 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
         self.horizontalLayout_4.setContentsMargins(7, -1, -1, -1)
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
         self.is_sick_rb = QtWidgets.QRadioButton(self.frame)
+
         self.is_sick_rb.setObjectName("is_sick_rb")
         self.horizontalLayout_4.addWidget(self.is_sick_rb)
         self.radioButton_2 = QtWidgets.QRadioButton(self.frame)
-        self.radioButton_2.setObjectName("radioButton_2")
+        self.radioButton_2.setObjectName("is_absen_rb")
         self.radioButton_2.setChecked(True)
         self.horizontalLayout_4.addWidget(self.radioButton_2)
 
@@ -692,6 +938,11 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
         self.double_mod.hide()
 
         # ________________________________________
+        self.load_schedule_push = Push(self.frame, 40, 40, 5,
+                                       icon_path=os.path.join('media', 'buttons', 'load_schedule.svg'))
+        self.load_schedule_push.setObjectName("load_schedule_push")
+        self.horizontalLayout_2.addWidget(self.load_schedule_push)
+
         self.set_size_posetiv_font_push = Push(self.frame, 40, 40, 5,
                                                icon_path=os.path.join('media', 'posetive.svg'))
 
@@ -792,6 +1043,7 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
         self.arrow_narrow_top_push.clicked.connect(self.click_arrow_narrow_top_push)
         self.arrow_narrow_down_push.clicked.connect(self.click_arrow_narrow_down_push)
         self.update_table_push.clicked.connect(self.click_update_table_push)
+        self.load_schedule_push.clicked.connect(self.click_load_shedule_push)
 
     def index(self, selected, deselected):
         for ix in selected.indexes():
@@ -829,6 +1081,10 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
         if hasattr(self, 'tableWidget'):
             self.tableWidget.retranslateUi()
             self.update_statistics()
+
+    def click_load_shedule_push(self):
+        b = ScheduleLoadWindow(self)
+        b.show()
 
     def update_statistics(self):
         statistics = MANAGER_STUDENTS.get_statistics()
@@ -1781,101 +2037,123 @@ class SettingsTab(QtWidgets.QWidget):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 950, 712))
+        # self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 950, 712))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
-        self.verticalLayout_9 = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents)
-        self.verticalLayout_9.setObjectName("verticalLayout_9")
 
-        self.setings1_label = QtWidgets.QLabel(self.scrollAreaWidgetContents)
-
+        self.main_layout = QtWidgets.QHBoxLayout(self.scrollAreaWidgetContents)
+        self.left_layout = QtWidgets.QVBoxLayout()
+        self.left_layout.setObjectName("left_layout")
+        self.setings1_label = QtWidgets.QLabel()
         self.setings1_label.setObjectName("setings1_label")
-        self.verticalLayout_9.addWidget(self.setings1_label)
-        self.show_current_month_link_button = QtWidgets.QCommandLinkButton(self.scrollAreaWidgetContents)
+        self.left_layout.addWidget(self.setings1_label)
+        self.show_current_month_link_button = QtWidgets.QCommandLinkButton()
         self.show_current_month_link_button.setTabletTracking(True)
         self.show_current_month_link_button.setObjectName("show_current_month_link_button")
-        self.verticalLayout_9.addWidget(self.show_current_month_link_button)
-        self.del_work_day_link_button = QtWidgets.QCommandLinkButton(self.scrollAreaWidgetContents)
+        self.left_layout.addWidget(self.show_current_month_link_button)
+        self.del_work_day_link_button = QtWidgets.QCommandLinkButton()
         self.del_work_day_link_button.setCheckable(False)
         self.del_work_day_link_button.setObjectName("del_work_day_link_button")
         self.del_work_day_link_button.hide()
-        self.verticalLayout_9.addWidget(self.del_work_day_link_button)
-        self.restart_weekend_link_button = QtWidgets.QCommandLinkButton(self.scrollAreaWidgetContents)
+        self.left_layout.addWidget(self.del_work_day_link_button)
+        self.restart_weekend_link_button = QtWidgets.QCommandLinkButton()
         self.restart_weekend_link_button.setTabletTracking(True)
         self.restart_weekend_link_button.setObjectName("restart_weekend_link_button")
-        self.verticalLayout_9.addWidget(self.restart_weekend_link_button)
-        self.show_weekend_link_button = QtWidgets.QCommandLinkButton(self.scrollAreaWidgetContents)
+        self.left_layout.addWidget(self.restart_weekend_link_button)
+        self.show_weekend_link_button = QtWidgets.QCommandLinkButton()
         self.show_weekend_link_button.setTabletTracking(True)
         self.show_weekend_link_button.setObjectName("show_weekend_link_button")
-        self.verticalLayout_9.addWidget(self.show_weekend_link_button)
-
-        line = QtWidgets.QFrame(self.scrollAreaWidgetContents)
+        self.left_layout.addWidget(self.show_weekend_link_button)
+        line = QtWidgets.QFrame()
         line.setFrameShape(QtWidgets.QFrame.Shape.HLine)
         line.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
         line.setObjectName("line")
-        self.verticalLayout_9.addWidget(line)
-
-        self.on_off_table_marks_label = QtWidgets.QLabel(self.scrollAreaWidgetContents)
-
+        self.left_layout.addWidget(line)
+        self.on_off_table_marks_label = QtWidgets.QLabel()
         self.on_off_table_marks_label.setObjectName("on_off_table_marks_label")
-        self.verticalLayout_9.addWidget(self.on_off_table_marks_label)
-        self.on_off_table_marks_link_button = QtWidgets.QCommandLinkButton(self.scrollAreaWidgetContents)
+        self.left_layout.addWidget(self.on_off_table_marks_label)
+        self.on_off_table_marks_link_button = QtWidgets.QCommandLinkButton()
         self.on_off_table_marks_link_button.setTabletTracking(True)
         self.on_off_table_marks_link_button.setObjectName("on_off_table_marks_link_button")
-        self.verticalLayout_9.addWidget(self.on_off_table_marks_link_button)
-        self.on_off_statistics_link_button = QtWidgets.QCommandLinkButton(self.scrollAreaWidgetContents)
+        self.left_layout.addWidget(self.on_off_table_marks_link_button)
+        self.on_off_statistics_link_button = QtWidgets.QCommandLinkButton()
         self.on_off_statistics_link_button.setTabletTracking(True)
         self.on_off_statistics_link_button.setObjectName("on_off_table_marks_link_button")
-        self.verticalLayout_9.addWidget(self.on_off_statistics_link_button)
-
-        line = QtWidgets.QFrame(self.scrollAreaWidgetContents)
+        self.left_layout.addWidget(self.on_off_statistics_link_button)
+        line = QtWidgets.QFrame()
         line.setFrameShape(QtWidgets.QFrame.Shape.HLine)
         line.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
         line.setObjectName("line")
-        self.verticalLayout_9.addWidget(line)
-        self.clear_table_label = QtWidgets.QLabel(self.scrollAreaWidgetContents)
-
+        self.left_layout.addWidget(line)
+        self.clear_table_label = QtWidgets.QLabel()
         self.clear_table_label.setObjectName("clear_table_label")
-        self.verticalLayout_9.addWidget(self.clear_table_label)
-        self.clear_table_abcense_link_button = QtWidgets.QCommandLinkButton(self.scrollAreaWidgetContents)
+        self.left_layout.addWidget(self.clear_table_label)
+        self.clear_table_abcense_link_button = QtWidgets.QCommandLinkButton()
         self.clear_table_abcense_link_button.setCheckable(False)
         self.clear_table_abcense_link_button.setObjectName("clear_table_abcense_link_button")
-        self.verticalLayout_9.addWidget(self.clear_table_abcense_link_button)
-        self.clear_table_marks_link_button = QtWidgets.QCommandLinkButton(self.scrollAreaWidgetContents)
+        self.left_layout.addWidget(self.clear_table_abcense_link_button)
+        self.clear_table_marks_link_button = QtWidgets.QCommandLinkButton()
         self.clear_table_marks_link_button.setTabletTracking(True)
         self.clear_table_marks_link_button.setObjectName("clear_table_marks_link_button")
-        self.verticalLayout_9.addWidget(self.clear_table_marks_link_button)
-
+        self.left_layout.addWidget(self.clear_table_marks_link_button)
         line = QtWidgets.QFrame(self.scrollAreaWidgetContents)
         line.setFrameShape(QtWidgets.QFrame.Shape.HLine)
         line.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
         line.setObjectName("line")
-        self.verticalLayout_9.addWidget(line)
-
-        self.set_data_table_label = QtWidgets.QLabel(self.scrollAreaWidgetContents)
-
+        self.left_layout.addWidget(line)
+        self.set_data_table_label = QtWidgets.QLabel()
         self.set_data_table_label.setObjectName("set_data_table_label")
-        self.verticalLayout_9.addWidget(self.set_data_table_label)
-        self.set_data_table_link_button = QtWidgets.QCommandLinkButton(self.scrollAreaWidgetContents)
+        self.left_layout.addWidget(self.set_data_table_label)
+        self.set_data_table_link_button = QtWidgets.QCommandLinkButton()
         self.set_data_table_link_button.setCheckable(False)
         self.set_data_table_link_button.setObjectName("set_data_table_link_button")
-        self.verticalLayout_9.addWidget(self.set_data_table_link_button)
-
-        line = QtWidgets.QFrame(self.scrollAreaWidgetContents)
+        self.left_layout.addWidget(self.set_data_table_link_button)
+        line = QtWidgets.QFrame()
         line.setFrameShape(QtWidgets.QFrame.Shape.HLine)
         line.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
         line.setObjectName("line")
-        self.verticalLayout_9.addWidget(line)
-        self.language_label = QtWidgets.QLabel(self.scrollAreaWidgetContents)
+        self.left_layout.addWidget(line)
+        self.language_label = QtWidgets.QLabel()
         self.language_label.setObjectName("language_label")
-        self.verticalLayout_9.addWidget(self.language_label)
-        self.set_language_link_button = QtWidgets.QCommandLinkButton(self.scrollAreaWidgetContents)
+        self.left_layout.addWidget(self.language_label)
+        self.set_language_link_button = QtWidgets.QCommandLinkButton()
         self.set_language_link_button.setCheckable(False)
         self.set_language_link_button.setObjectName("set_language_link_button")
-        self.verticalLayout_9.addWidget(self.set_language_link_button)
+        self.left_layout.addWidget(self.set_language_link_button)
 
         spacerItem2 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum,
                                             QtWidgets.QSizePolicy.Policy.Expanding)
-        self.verticalLayout_9.addItem(spacerItem2)
+        self.left_layout.addItem(spacerItem2)
+
+        self.right_layout = QtWidgets.QVBoxLayout()
+        self.right_layout.setObjectName("right_layout")
+        self.setings1_label_test = QtWidgets.QLabel()
+        self.setings1_label_test.setObjectName("setings1_label")
+
+        self.right_layout.addWidget(self.setings1_label_test)
+        self.show_current_month_link_button_test = QtWidgets.QCommandLinkButton()
+        self.show_current_month_link_button_test.setTabletTracking(True)
+        self.show_current_month_link_button_test.setObjectName("show_current_month_link_button_test")
+        self.right_layout.addWidget(self.show_current_month_link_button_test)
+        self.restart_weekend_link_button_test = QtWidgets.QCommandLinkButton()
+        self.restart_weekend_link_button_test.setTabletTracking(True)
+        self.restart_weekend_link_button_test.setObjectName("restart_weekend_link_button_test")
+        self.right_layout.addWidget(self.restart_weekend_link_button_test)
+        self.show_weekend_link_button_test = QtWidgets.QCommandLinkButton()
+        self.show_weekend_link_button_test.setTabletTracking(True)
+        self.show_weekend_link_button_test.setObjectName("show_weekend_link_button_test")
+        self.right_layout.addWidget(self.show_weekend_link_button_test)
+
+        line = QtWidgets.QFrame()
+        line.setFrameShape(QtWidgets.QFrame.Shape.HLine)
+        line.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
+        line.setObjectName("line")
+        self.right_layout.addWidget(line)
+        self.right_layout.addItem(QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum,
+                                                        QtWidgets.QSizePolicy.Policy.Expanding))
+
+        self.main_layout.addLayout(self.left_layout)
+        self.main_layout.addLayout(self.right_layout)
+
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.verticalLayout_10.addWidget(self.scrollArea)
 
@@ -2074,10 +2352,21 @@ class ProfileTab(QtWidgets.QWidget):
                                    background: black;
                                   
                                    }
+                                #scrollAreaWidgetContents {background-color:white}
                                    """)
         self.parent = parent
         self.setObjectName("profile")
-        self.center_layout = QtWidgets.QHBoxLayout(self)
+        self.base_layout = QtWidgets.QVBoxLayout(self)
+        self.scrollArea = QtWidgets.QScrollArea(self)
+        self.scrollArea.setWidgetResizable(True)
+
+        self.scrollArea.setObjectName("scrollArea")
+
+        self.scrollAreaWidgetContents = QtWidgets.QWidget()
+        # self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 25, 712))
+        self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
+
+        self.center_layout = QtWidgets.QHBoxLayout(self.scrollAreaWidgetContents)
         self.center_layout.setObjectName("center_layout")
         self.center_layout.addItem(QtWidgets.QSpacerItem(5000, 0, QtWidgets.QSizePolicy.Policy.Maximum,
                                                          QtWidgets.QSizePolicy.Policy.Expanding))
@@ -2143,8 +2432,8 @@ class ProfileTab(QtWidgets.QWidget):
         self.information_user_layout.addWidget(self.message_profile)
 
         self.left_layout.addLayout(self.information_user_layout)
-        self.left_layout.addItem(QtWidgets.QSpacerItem(20, 2000, QtWidgets.QSizePolicy.Policy.Maximum,
-                                                       QtWidgets.QSizePolicy.Policy.Expanding))
+        # self.left_layout.addItem(QtWidgets.QSpacerItem(20, 2000, QtWidgets.QSizePolicy.Policy.Maximum,
+        #                                                QtWidgets.QSizePolicy.Policy.Expanding))
 
         self.security_level_layout = QtWidgets.QVBoxLayout()
         # self.security_level_layout.addItem(QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Maximum,
@@ -2156,8 +2445,8 @@ class ProfileTab(QtWidgets.QWidget):
         self.security_level_photo_layout = QtWidgets.QVBoxLayout()
         self.update_photo_security_level()
         self.security_level_layout.addLayout(self.security_level_photo_layout)
-        self.security_level_layout.addItem(QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Maximum,
-                                                                 QtWidgets.QSizePolicy.Policy.Expanding))
+        # self.security_level_layout.addItem(QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Maximum,
+        #                                                          QtWidgets.QSizePolicy.Policy.Expanding))
         self.security_level_slider = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
         self.security_level_slider.setTickPosition(QtWidgets.QSlider.TickPosition.TicksBelow)
         self.security_level_slider.setTickInterval(50)
@@ -2188,6 +2477,8 @@ class ProfileTab(QtWidgets.QWidget):
         self.horizontalLayout_7.addWidget(self.logout_push)
 
         self.left_layout.addLayout(self.horizontalLayout_7)
+        self.left_layout.addItem(QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Maximum,
+                                                       QtWidgets.QSizePolicy.Policy.Expanding))
 
         self.center_layout.addLayout(self.left_layout)
         self.center_layout.addItem(QtWidgets.QSpacerItem(5000, 0, QtWidgets.QSizePolicy.Policy.Maximum,
@@ -2214,9 +2505,14 @@ class ProfileTab(QtWidgets.QWidget):
         self.verticalLayout_13.setObjectName("verticalLayout_13")
 
         self.verticalLayout_7.addLayout(self.verticalLayout_13)
+        self.verticalLayout_7.addItem(QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Maximum,
+                                                            QtWidgets.QSizePolicy.Policy.Expanding))
         self.center_layout.addLayout(self.verticalLayout_7)
         self.center_layout.addItem(QtWidgets.QSpacerItem(5000, 0, QtWidgets.QSizePolicy.Policy.Maximum,
                                                          QtWidgets.QSizePolicy.Policy.Expanding))
+
+        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
+        self.base_layout.addWidget(self.scrollArea)
 
         self.setObjectName("profile")
 
@@ -3736,10 +4032,10 @@ USER_MANAGER.save_users()
 #     audio_output = QAudioOutput()
 #     player.setAudioOutput(audio_output)
 #     player.setSource(QUrl.fromLocalFile(filename))
-#     audio_output.setVolume(25)
-#     player.play()
-# except:
-#     print('No sound')
+# #     audio_output.setVolume(25)
+# #     player.play()
+# # except:
+# #     print('No sound')
 
 
 windows = ControlerWindows(SplashScreen, Auth, Regist, MainWindow)

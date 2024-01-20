@@ -428,7 +428,7 @@
              <height>712</height>
             </rect>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout_9">
+           <layout class="QVBoxLayout" name="left_layout">
             <item>
              <widget class="QLabel" name="setings1_label">
               <property name="font">
