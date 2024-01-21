@@ -32,6 +32,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
 from docx import Document
+import doc2docx
 
 from StudentsManager import ManagerStudents
 from UserManager import UserManager
@@ -39,7 +40,7 @@ import math, calendar
 
 matplotlib.use('Qt5Agg')
 
-VERSION = '1.0.0'
+VERSION = '1.1.0'
 LANGUAGES = ManagerStudents.crate_eternal_iter(['english', 'china', 'russia'])
 CURRENT_LANGUAGE = None
 IS_CHANGE = False
@@ -59,6 +60,7 @@ USER_MANAGER = UserManager(DOCUMENTS_PATH)
 MANAGER_STUDENTS = None
 
 is_click_license = 0
+
 
 class WorkerSignals(QtCore.QObject):
     '''
@@ -710,10 +712,25 @@ class ScheduleLoadWindow(QtWidgets.QDialog):
 
         self.verticalLayout.addWidget(self.path_lineEdit)
 
+        self.is_convert_checkBox = QtWidgets.QCheckBox(self)
+        self.is_convert_checkBox.setObjectName(u"is_convert_lineEdit")
+
+        self.verticalLayout.addWidget(self.is_convert_checkBox)
+
+        self.is_delete_original_files_checkBox = QtWidgets.QCheckBox(self)
+        self.is_convert_checkBox.setObjectName(u"is_delete_original_files_checkBox")
+        self.is_convert_checkBox.setChecked(True)
+
+        self.verticalLayout.addWidget(self.is_delete_original_files_checkBox)
+
         self.message = QtWidgets.QLabel(self)
         self.message.setObjectName(u"message")
 
         self.verticalLayout.addWidget(self.message)
+
+        self.table_layout = QtWidgets.QVBoxLayout(self)
+        self.table_layout.setObjectName(u"table_layout")
+        self.verticalLayout.addLayout(self.table_layout)
 
         self.verticalSpacer = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum,
                                                     QtWidgets.QSizePolicy.Policy.Expanding)
@@ -730,10 +747,10 @@ class ScheduleLoadWindow(QtWidgets.QDialog):
 
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.pushButton_2 = QtWidgets.QPushButton()
-        self.pushButton_2.setObjectName(u"pushButton_2")
+        self.cancel_button = QtWidgets.QPushButton()
+        self.cancel_button.setObjectName(u"cancel_button")
 
-        self.horizontalLayout.addWidget(self.pushButton_2)
+        self.horizontalLayout.addWidget(self.cancel_button)
 
         self.search_button = QtWidgets.QPushButton()
         self.search_button.setObjectName(u"search_button")
@@ -746,6 +763,8 @@ class ScheduleLoadWindow(QtWidgets.QDialog):
 
         self.threadpool = QThreadPool()
 
+        # self.update_table()
+
         self.retranslateUi()
         self.add_function()
 
@@ -753,15 +772,18 @@ class ScheduleLoadWindow(QtWidgets.QDialog):
         self.setWindowTitle(self.tr(u"Загрузить расписание"))
         self.search_label.setText(self.tr(u"Искать"))
         self.path_label.setText(self.tr(u"Путь"))
-        self.message.setText(self.tr(u"TextLabel"))
-        self.pushButton_2.setText(self.tr(u"PushButton"))
+        # self.message.setText(self.tr(u"TextLabel"))
+        self.cancel_button.setText(self.tr(u"Отмена"))
         self.search_button.setText(self.tr(u"Поиск"))
+        self.is_convert_checkBox.setText(self.tr(u"Конвертировать doc в docx"))
+        self.is_delete_original_files_checkBox.setText(self.tr(u"Удалить исходные файлы doc"))
 
         self.search_lineEdit.setText(USER_MANAGER.user.parametrs.get('group'))
 
     def add_function(self):
         self.path_lineEdit.clicked.connect(self.click_load_path)
         self.search_button.clicked.connect(self.click_search_button)
+        self.is_convert_checkBox.stateChanged.connect(self.convert_status)
 
     def click_load_path(self):
         file_name = QtWidgets.QFileDialog.getExistingDirectoryUrl(self, self.tr(
@@ -769,31 +791,62 @@ class ScheduleLoadWindow(QtWidgets.QDialog):
         self.path = QtCore.QUrl(file_name.url()).toLocalFile()
         self.path_lineEdit.setText(self.path)
 
+    def convert_status(self):
+        if not self.is_convert_checkBox.isChecked():
+            self.is_delete_original_files_checkBox.hide()
+        else:
+            self.is_delete_original_files_checkBox.show()
+
     def set_progressBar(self, value):
         self.progressBar.setValue(value)
 
-    def get_result(self):
-        print(self.w.signals.result)
+    def get_result(self, s):
+        self.search_button.setEnabled(True)
+        self.update_table(s)
 
+
+    def get_load_error(self, e):
+        self.search_button.setEnabled(True)
+        self.message.setText(self.tr('Внутренняя ошибка. Проверьте верность заполнения полей.'))
 
     def click_search_button(self):
-        self.w = Worker(self.load_files)
+        self.search_button.setEnabled(False)
+        self.message.clear()
+
+
+        self.w = Worker(self.load_files, MANAGER_STUDENTS.period)
         self.w.signals.progress.connect(self.set_progressBar)
         self.w.signals.result.connect(self.get_result)
+        self.w.signals.error.connect(self.get_load_error)
 
         self.threadpool.start(self.w)
 
-    def load_files(self, progress_callback, period=None,):
-        search = self.search_lineEdit.text()
+    def load_files(self, period, progress_callback, ):
+        search = ''.join(self.search_lineEdit.text().strip().split())
         months = {}
-        period = [12, 2023]
+        if not search:
+            return months
         path_folder_input, _, files = \
             list(os.walk(self.path))[0]
+
+        doc_files = list(filter(lambda x: x.endswith('.doc'), files))
+
+        if self.is_convert_checkBox.isChecked():
+            for i in range(len(doc_files)):
+                progress_callback.emit(i / len(doc_files) / 2 * 100)
+                path_file = os.path.join(path_folder_input, doc_files[i])
+                doc2docx.convert(path_file)
+                if self.is_delete_original_files_checkBox.isChecked():
+                    os.remove(path_file)
+            path_folder_input, _, files = \
+                list(os.walk(self.path))[0]
+        else:
+            progress_callback.emit(50)
 
         files = list(filter(lambda x: x.endswith('.docx'), files))
 
         for f in range(len(files)):
-            progress_callback.emit(f/len(files)*100)
+            progress_callback.emit(f / len(files) / 2 * 100 + 50)
             try:
                 doc = Document(os.path.join(path_folder_input, files[f]))
                 for paragraph in doc.paragraphs:
@@ -802,42 +855,74 @@ class ScheduleLoadWindow(QtWidgets.QDialog):
                         p.getparent().remove(p)
                         p._p = p._element = None
                 month = doc.paragraphs[1].text.split()[1]
-                for i in range(len(doc.tables[0].rows)):
 
-                    for j in range(len(doc.tables[0].rows[i].cells)):
-                        if i <= 1:
-                            continue
-                        if j == 0:
-                            group = ''.join(doc.tables[0].rows[i].cells[j].text.strip().split(' ')).lower()
-                        else:
-                            r = doc.tables[0].rows[i].cells[j].text.split('\n')
+                dd, mm, yyyy = month.split('.')
+                if [int(mm), int(yyyy)] == list(period):
+                    for i in range(len(doc.tables[0].rows)):
+                        for j in range(len(doc.tables[0].rows[i].cells)):
 
-                            if len(r) == 1 and not r[0].startswith('---'):
-                                r = r[0].split()
-                                r1 = ''.join(r[:-3])
-                                r2 = ' '.join(r[-3:-1])
-                                r = [r1, r2]
-                            if len(r) > 2 and (r[-1].upper().startswith('АУД') or r[-1].upper().startswith('ДОТ')):
-                                del r[-1]
+                            if i <= 1:
+                                continue
+                            if j == 0:
+                                group = ''.join(doc.tables[0].rows[i].cells[0].text.strip().split()).lower()
+                                # print(i, j)
 
-                            if len(r) == 2 and (r[-1].upper().find('АУД.') != -1 or r[-1].upper().find('ДОТ') != -1):
-                                r[-1] = ' '.join(r[-1].split()[:-1])
+                            else:
+                                r = doc.tables[0].rows[i].cells[j].text.split('\n')
 
-                            result = [i.strip() for i in r if i]
-                            if result:
-                                if not r[0].startswith('---'):
-                                    discipline = ''.join(result[0].split()).upper().strip()
-                                    if not discipline.startswith('КЛАССНЫЙ'):
-                                        if group.lower() == search.lower():
-                                            header = result[-1]
-                                            months[month] = months.get(month, {})
-                                            months[month][group] = months[month].get(group, {})
-                                            months[month][group][discipline + '_' + header] = months[month].get(group, {}).get(
-                                                discipline + '_' + header, 0) + 1
+                                if len(r) == 1 and not r[0].startswith('---'):
+                                    r = r[0].split()
+                                    r1 = ''.join(r[:-3])
+                                    r2 = ' '.join(r[-3:-1])
+                                    r = [r1, r2]
+                                if len(r) > 2 and (r[-1].upper().startswith('АУД') or r[-1].upper().startswith('ДОТ')):
+                                    del r[-1]
+
+                                if len(r) == 2 and (
+                                        r[-1].upper().find('АУД.') != -1 or r[-1].upper().find('ДОТ') != -1):
+                                    r[-1] = ' '.join(r[-1].split()[:-1])
+
+                                result = [i.strip() for i in r if i]
+                                if result:
+                                    if not r[0].startswith('---'):
+                                        discipline = ''.join(result[0].split()).upper().strip()
+                                        if not discipline.startswith('КЛАССНЫЙ'):
+                                            if group.lower() == search.lower():
+                                                # header = result[-1]
+                                                # months[int(dd)] = months.get(int(dd), {})
+                                                # months[int(dd)][discipline + '_' + header] = months[int(dd)].get(
+                                                #     discipline + '_' + header, 0) + 1
+                                                months[int(dd)] = months.get(int(dd), 0) + 1
+
             except BaseException:
-                pass
+                print('load_files schedule')
+
+        progress_callback.emit(100)
 
         return months
+
+    def update_table(self, data=None):
+        if hasattr(self, 'table'):
+            self.table.deleteLater()
+
+        self.table = QtWidgets.QTableWidget()
+        self.table.horizontalHeader().setVisible(False)
+        self.table.verticalHeader().setVisible(False)
+        self.table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
+
+        if data:
+
+            n = math.ceil(len(MANAGER_STUDENTS.days) ** (1/2))
+            self.table.setColumnCount(n)
+            self.table.setRowCount(n * 2)
+            for i, v in zip(range(len(data)), data.values()):
+                self.table.setItem(1, i, QTableWidgetItem(str(v)))
+                print(i, v,)
+            print(data)
+            print()
+
+        self.table_layout.addWidget(self.table)
+        print('JR')
 
 
 class BaseTable:
@@ -2294,7 +2379,8 @@ class SettingsTab(QtWidgets.QWidget):
         except BaseException as f:
             print(repr(f))
         else:
-            self.parent.init_students_manager(period=tuple(map(lambda x: int(x), s.dateEdit.text().split('.'))))
+            if s.status == 'finished':
+                self.parent.init_students_manager(period=tuple(map(lambda x: int(x), s.dateEdit.text().split('.'))))
 
     def del_table_marks(self):
         MANAGER_STUDENTS.clear_marks()
@@ -3747,13 +3833,14 @@ class SettingsData(QtWidgets.QDialog):
         super(SettingsData, self).__init__(parent)
         self.setObjectName("SettingsData")
         self.resize(431, 160)
+        self.status = 'finished'
         self.setFixedSize(QtCore.QSize(430, 160))
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
         self.dateEdit = QtWidgets.QDateEdit(self)
-        self.dateEdit.setDateTime(QtCore.QDateTime(QtCore.QDate(2022, 1, 1), QtCore.QTime(0, 0, 0)))
+        self.dateEdit.setDateTime(QtCore.QDateTime(QtCore.QDate.currentDate(), QtCore.QTime(0, 0, 0)))
         self.dateEdit.setObjectName("dateEdit")
         self.dateEdit.setDisplayFormat("MM.yyyy")
         self.verticalLayout.addWidget(self.dateEdit)
@@ -3789,6 +3876,7 @@ class SettingsData(QtWidgets.QDialog):
         self.close()
 
     def clicked_cancel(self):
+        self.status = 'exit'
         self.close()
 
 
