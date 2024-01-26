@@ -23,8 +23,7 @@ import traceback
 import matplotlib
 import matplotlib.font_manager as font_manager
 from PySide6 import QtCore, QtGui, QtWidgets
-# from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
-from PySide6.QtCore import QRunnable, Slot, QThreadPool
+from PySide6.QtCore import QRunnable, Slot, QThreadPool, QUrl
 from PySide6 import QtSvgWidgets
 from PySide6.QtCore import QTranslator, QLibraryInfo, Signal
 from PySide6.QtWidgets import QTableWidgetItem
@@ -41,6 +40,9 @@ import math, calendar
 matplotlib.use('Qt5Agg')
 
 VERSION = '1.1.0'
+
+QtCore.QCoreApplication.setLibraryPaths(['plugins'])
+
 LANGUAGES = ManagerStudents.crate_eternal_iter(['english', 'china', 'russia'])
 CURRENT_LANGUAGE = None
 IS_CHANGE = False
@@ -266,7 +268,7 @@ class GratutudeWindow(QtWidgets.QWidget):
     def retranslateUi(self):
         self.setWindowTitle(self.tr("Благодарность"))
         self.textBrowser.setHtml(self.tr(
-            '<h1 style="text-align: center; color: red;">Благодарность</h1> <p style="text-align: center;">Выражаю огромную благодарность всем тем, кто постоянно окружал все это время.</p><p style="text-align: center;">Отдельная благодарность: <br>моей маме - <b>Макаровой Наталье Алексеевне</b>, <br>куратору работы – <b>Кузьминой Ирине Александровне</b>, <br>лучшему педагогу -  <b>Поповой Наталии Евгеньевне</b>,<br>моему соседу – <b>Амангильдину Рамису</b>, <br>тестировщикам – <b>Кубагушеву Искандер</b> <br>и <b>Александрову Александру</b>.'))
+            '<h1 style="text-align: center; color: red;">Благодарность</h1> <p style="text-align: center;">Выражаю огромную благодарность всем тем, кто постоянно окружал все это время.</p><p style="text-align: center;">Отдельная благодарность: <br>моей маме - <b>Макаровой Наталье Алексеевне</b>, <br>куратору работы – <b>Кузьминой Ирине Александровне</b>, <br>лучшему педагогу -  <b>Поповой Наталии Евгеньевне</b>,<br>моим соседям  – <b>Амангильдину Рамису и Ильясову Айсару</b>, <br>тестировщикам – <b>Кубагушеву Искандеру</b>, <br> <b>Александрову Александру</b><br> и <b>Владиславу Васильеву</b>.'))
         self.pushButton.setText(self.tr("ОК"))
 
     def click_OK(self, e=None):
@@ -777,6 +779,7 @@ class ScheduleLoadWindow(QtWidgets.QDialog):
         self.search_button.setText(self.tr(u"Поиск"))
         self.is_convert_checkBox.setText(self.tr(u"Конвертировать doc в docx"))
         self.is_delete_original_files_checkBox.setText(self.tr(u"Удалить исходные файлы doc"))
+        self.path_lineEdit.setText(self.tr(u"Путь ..."))
 
         self.search_lineEdit.setText(USER_MANAGER.user.parametrs.get('group'))
 
@@ -803,7 +806,6 @@ class ScheduleLoadWindow(QtWidgets.QDialog):
     def get_result(self, s):
         self.search_button.setEnabled(True)
         self.update_table(s)
-
 
     def get_load_error(self, e):
         self.search_button.setEnabled(True)
@@ -911,13 +913,29 @@ class ScheduleLoadWindow(QtWidgets.QDialog):
         self.table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
 
         if data:
+            n = len(data)
 
-            n = math.ceil(len(MANAGER_STUDENTS.days) ** (1/2))
-            self.table.setColumnCount(n)
-            self.table.setRowCount(n * 2)
-            for i, v in zip(range(len(data)), data.values()):
-                self.table.setItem(1, i, QTableWidgetItem(str(v)))
-                print(i, v,)
+            n_top = int(len(data) ** (1 / 2) + 1)
+            n_bottom = int(len(data) ** (1 / 2))
+            print(n)
+            self.table.setColumnCount(n_top)
+            self.table.setRowCount(n_bottom * 2)
+
+            for i in range(n_top):
+                for j in range(0, n_bottom * 2, 2):
+
+                    if data:
+                        k, v = data.popitem()
+                        title = QTableWidgetItem(str(k))
+                        value = QTableWidgetItem(str(v))
+
+
+                        self.table.setItem(j, i, title)
+                        self.table.setItem(j+1, i, value)
+
+
+                        # self.table.setItem(j, i, QTableWidgetItem())
+
             print(data)
             print()
 
@@ -941,7 +959,7 @@ class BaseTable:
 
 class AbsenceTab(QtWidgets.QWidget, BaseTable):
     def __init__(self, parent):
-        super(AbsenceTab, self).__init__(parent=parent)
+        super(AbsenceTab, self).__init__()
         self.setStyleSheet('''QRadioButton::indicator {
         width: 15px;
         height: 15px;
@@ -1459,7 +1477,7 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
 
 class MarksTab(QtWidgets.QWidget, BaseTable):
     def __init__(self, parent):
-        super(MarksTab, self).__init__(parent=parent)
+        super(MarksTab, self).__init__()
         self.parent = parent
         self.setObjectName("marks")
         self.verticalLayout_25 = QtWidgets.QVBoxLayout(self)
@@ -4113,17 +4131,20 @@ else:
     translator.load("qt_" + 'ru_RU', QLibraryInfo.location(QLibraryInfo.TranslationsPath))
     app.installTranslator(translator)
     CURRENT_LANGUAGE = 'russia'
+
 USER_MANAGER.save_users()
+
+# from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 # try:
 #     filename = os.path.join('sounds', "logo.mp3")
 #     player = QMediaPlayer()
 #     audio_output = QAudioOutput()
 #     player.setAudioOutput(audio_output)
 #     player.setSource(QUrl.fromLocalFile(filename))
-# #     audio_output.setVolume(25)
-# #     player.play()
-# # except:
-# #     print('No sound')
+#     audio_output.setVolume(25)
+#     player.play()
+# except:
+#     print('No sound')
 
 
 windows = ControlerWindows(SplashScreen, Auth, Regist, MainWindow)
@@ -4132,5 +4153,6 @@ windows.show()
 status = app.exec()
 if USER_MANAGER.user:
     USER_MANAGER.user.save_user()
+
 print(status, '-')
 sys.exit(status)
