@@ -39,7 +39,7 @@ import math, calendar
 
 matplotlib.use('Qt5Agg')
 
-VERSION = '1.1.0'
+VERSION = '1.1.1'
 
 QtCore.QCoreApplication.setLibraryPaths(['plugins'])
 
@@ -3800,10 +3800,10 @@ class UpdateManager(QtWidgets.QDialog):
         try:
             update_massage = json.loads(requests.api.get(self.URL_PROJECT,
                                                          params={'User-Agent:': str(platform.node())}).text)
-        except requests.exceptions.ConnectionError:
+        except requests.exceptions.ConnectionError as f:
             return data
 
-        if not data:
+        if not update_massage:
             return {}
 
         version = [int(i) if i.isnumeric() else i for i in
@@ -3815,18 +3815,20 @@ class UpdateManager(QtWidgets.QDialog):
             'message': update_massage['body'],
             'show_url': update_massage['html_url'],
             'download_url': update_massage['assets'][0]['browser_download_url'],
-
         }
+
         return data
 
     @staticmethod
     def check_new_version(old, new):
+        print(old, new)
         if old < new:
             return True
         return False
 
     def show(self):
         data = self.link_host()
+
         if not data:
             return
         if not self.check_new_version([int(i) if i.isnumeric() else i for i in VERSION.split('.')], data['version']):
