@@ -685,8 +685,9 @@ class Auth(QtWidgets.QWidget):
 
 
 class ScheduleLoadWindow(QtWidgets.QDialog):
-    def __init__(self, *args):
+    def __init__(self, *args, parent=None):
         super().__init__(*args)
+        self.parent = parent
         self.setObjectName(u"ScheduleLoadWindow")
         self.setModal(True)
         self.resize(389, 393)
@@ -704,15 +705,29 @@ class ScheduleLoadWindow(QtWidgets.QDialog):
 
         self.verticalLayout.addWidget(self.search_lineEdit)
 
+        self.period_label = QtWidgets.QLabel(self)
+        self.period_label.setObjectName(u"period_label")
+        self.verticalLayout.addWidget(self.period_label)
+
+        self.period_lineEdit = QtWidgets.QDateEdit(self)
+        self.period_lineEdit.setDateTime(QtCore.QDateTime(QtCore.QDate(MANAGER_STUDENTS.period[1], MANAGER_STUDENTS.period[0], 2), QtCore.QTime(0, 0, 0)))
+        self.period_lineEdit.setObjectName("dateEdit")
+        self.period_lineEdit.setDisplayFormat("MM.yyyy")
+        self.period_lineEdit.setObjectName(u"period_lineEdit")
+        self.verticalLayout.addWidget(self.period_lineEdit)
+        # self.period_lineEdit.setEnabled(False)
+
+
+
         self.path_label = QtWidgets.QLabel(self)
         self.path_label.setObjectName(u"path_label")
-
         self.verticalLayout.addWidget(self.path_label)
 
         self.path_lineEdit = QtWidgets.QPushButton(self)
         self.path_lineEdit.setObjectName(u"path_lineEdit")
-
         self.verticalLayout.addWidget(self.path_lineEdit)
+
+
 
         self.is_convert_checkBox = QtWidgets.QCheckBox(self)
         self.is_convert_checkBox.setObjectName(u"is_convert_lineEdit")
@@ -749,23 +764,28 @@ class ScheduleLoadWindow(QtWidgets.QDialog):
 
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.cancel_button = QtWidgets.QPushButton()
-        self.cancel_button.setObjectName(u"cancel_button")
-
-        self.horizontalLayout.addWidget(self.cancel_button)
-
         self.search_button = QtWidgets.QPushButton()
         self.search_button.setObjectName(u"search_button")
-
         self.horizontalLayout.addWidget(self.search_button)
+        self.load_data_button = QtWidgets.QPushButton()
+        self.load_data_button.setObjectName(u"load_data_button")
+        self.load_data_button.setEnabled(False)
+
+        self.horizontalLayout.addWidget(self.load_data_button)
 
         self.verticalLayout.addLayout(self.horizontalLayout)
+
+
+
 
         self.verticalLayout_2.addLayout(self.verticalLayout)
 
         self.threadpool = QThreadPool()
 
         # self.update_table()
+        self.is_stop = False
+        self.is_load = False
+        self.result = {}
 
         self.retranslateUi()
         self.add_function()
@@ -774,8 +794,9 @@ class ScheduleLoadWindow(QtWidgets.QDialog):
         self.setWindowTitle(self.tr(u"Загрузить расписание"))
         self.search_label.setText(self.tr(u"Искать"))
         self.path_label.setText(self.tr(u"Путь"))
+        self.period_label.setText(self.tr(u'Период'))
         # self.message.setText(self.tr(u"TextLabel"))
-        self.cancel_button.setText(self.tr(u"Отмена"))
+        self.load_data_button.setText(self.tr(u"Загрузить"))
         self.search_button.setText(self.tr(u"Поиск"))
         self.is_convert_checkBox.setText(self.tr(u"Конвертировать doc в docx"))
         self.is_delete_original_files_checkBox.setText(self.tr(u"Удалить исходные файлы doc"))
@@ -784,6 +805,7 @@ class ScheduleLoadWindow(QtWidgets.QDialog):
         self.search_lineEdit.setText(USER_MANAGER.user.parametrs.get('group'))
 
     def add_function(self):
+        self.load_data_button.clicked.connect(self.click_load_data_button)
         self.path_lineEdit.clicked.connect(self.click_load_path)
         self.search_button.clicked.connect(self.click_search_button)
         self.is_convert_checkBox.stateChanged.connect(self.convert_status)
@@ -805,6 +827,9 @@ class ScheduleLoadWindow(QtWidgets.QDialog):
 
     def get_result(self, s):
         self.search_button.setEnabled(True)
+        if s:
+            self.load_data_button.setEnabled(True)
+            self.result = s
         self.update_table(s)
 
     def get_load_error(self, e):
@@ -812,11 +837,12 @@ class ScheduleLoadWindow(QtWidgets.QDialog):
         self.message.setText(self.tr('Внутренняя ошибка. Проверьте верность заполнения полей.'))
 
     def click_search_button(self):
+        self.is_load = False
         self.search_button.setEnabled(False)
+        self.load_data_button.setEnabled(False)
         self.message.clear()
 
-
-        self.w = Worker(self.load_files, MANAGER_STUDENTS.period)
+        self.w = Worker(self.load_files, [self.period_lineEdit.date().month(), self.period_lineEdit.date().year()])
         self.w.signals.progress.connect(self.set_progressBar)
         self.w.signals.result.connect(self.get_result)
         self.w.signals.error.connect(self.get_load_error)
@@ -836,18 +862,27 @@ class ScheduleLoadWindow(QtWidgets.QDialog):
         if self.is_convert_checkBox.isChecked():
             for i in range(len(doc_files)):
                 progress_callback.emit(i / len(doc_files) / 2 * 100)
+                if self.is_stop:
+                    return {}
                 path_file = os.path.join(path_folder_input, doc_files[i])
-                doc2docx.convert(path_file)
+                try:
+                    doc2docx.convert(path_file)
+                except BaseException as e:
+                    self.message.setText(str(e))
                 if self.is_delete_original_files_checkBox.isChecked():
                     os.remove(path_file)
             path_folder_input, _, files = \
                 list(os.walk(self.path))[0]
         else:
+            if self.is_stop:
+                return {}
             progress_callback.emit(50)
 
         files = list(filter(lambda x: x.endswith('.docx'), files))
 
         for f in range(len(files)):
+            if self.is_stop:
+                return {}
             progress_callback.emit(f / len(files) / 2 * 100 + 50)
             try:
                 doc = Document(os.path.join(path_folder_input, files[f]))
@@ -913,11 +948,12 @@ class ScheduleLoadWindow(QtWidgets.QDialog):
         self.table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
 
         if data:
+            data = data.copy()
             n = len(data)
 
             n_top = int(len(data) ** (1 / 2) + 1)
             n_bottom = int(len(data) ** (1 / 2))
-            print(n)
+
             self.table.setColumnCount(n_top)
             self.table.setRowCount(n_bottom * 2)
 
@@ -936,11 +972,17 @@ class ScheduleLoadWindow(QtWidgets.QDialog):
 
                         # self.table.setItem(j, i, QTableWidgetItem())
 
-            print(data)
-            print()
-
         self.table_layout.addWidget(self.table)
-        print('JR')
+
+    def click_load_data_button(self):
+        self.is_load = True
+        self.close()
+
+    def closeEvent(self, arg__1):
+        self.is_stop = True
+        super().closeEvent(arg__1)
+
+
 
 
 class BaseTable:
@@ -1187,7 +1229,18 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
 
     def click_load_shedule_push(self):
         b = ScheduleLoadWindow(self)
-        b.show()
+        b.exec()
+        data = b.result
+        b.deleteLater()
+
+        if b.is_load:
+            for k, v in data.items():
+                MANAGER_STUDENTS.add_hours_by_day(k, v)
+
+            self.tableWidget.update_hours_by_days()
+        del b
+
+
 
     def update_statistics(self):
         statistics = MANAGER_STUDENTS.get_statistics()
@@ -2065,7 +2118,7 @@ class ArchiveTab(QtWidgets.QWidget):
             except BaseException as f:
                 QtWidgets.QMessageBox.critical(self, self.tr('Просмотр архивного файла'),
                                                self.tr(
-                                                   f'При попытки  загрузки файла {item.text()} произошла ошибка. Попробуйте загрузить его заного. Если проблема не исчезнет, то скорее всего файл поврежден или удален.'),
+                                                   f'При попытки  загрузки файла произошла ошибка. Попробуйте загрузить его заново. Если проблема не исчезнет, то скорее всего файл поврежден или удален.'),
                                                QtWidgets.QMessageBox.StandardButton.Ok)
 
             else:
@@ -2245,6 +2298,11 @@ class SettingsTab(QtWidgets.QWidget):
         self.show_weekend_link_button_test.setTabletTracking(True)
         self.show_weekend_link_button_test.setObjectName("show_weekend_link_button_test")
         self.right_layout.addWidget(self.show_weekend_link_button_test)
+
+        self.show_current_month_link_button_test.hide()
+        self.restart_weekend_link_button_test.hide()
+        self.show_weekend_link_button_test.hide()
+
 
         line = QtWidgets.QFrame()
         line.setFrameShape(QtWidgets.QFrame.Shape.HLine)
@@ -3383,34 +3441,7 @@ class TableAbsence(BaseTable, QtWidgets.QTableWidget):
 
         self.setItem(2, 33, QTableWidgetItem(str(sum(MANAGER_STUDENTS.days.values()))))
 
-        for i in range(2, 32 + 1):
-            if i - 1 in MANAGER_STUDENTS.days:
-                self.setItem(1, i, QTableWidgetItem(
-                    str(MANAGER_STUDENTS.days[i - 1] if MANAGER_STUDENTS.days[i - 1] else '')))
-                self.item(1, i).setFont(QtGui.QFont('Calibri', 14 + size))
-            else:
-                self.setItem(1, i, QTableWidgetItem(str('✖')))
-                self.item(1, i).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-                self.item(1, i).setFont(QtGui.QFont('Calibri', 14 + size))
-                self.item(1, i).setBackground(QtGui.QColor(220, 220, 220))
-                self.item(1, i).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
-
-                try:
-                    for j in range(2, self.rowCount()):
-                        self.setItem(j, i, QTableWidgetItem(""))
-                        self.item(j, i).setBackground(QtGui.QColor(220, 220, 220))
-
-                        self.item(j, i).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
-
-                except BaseException as f:
-                    print(f)
-            self.setItem(2, i, QTableWidgetItem(str(i - 1)))
-            self.item(2, i).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
-            self.item(2, i).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-            self.item(2, i).setFont(QtGui.QFont('Calibri', 14 + size))
-            if not i - 1 in MANAGER_STUDENTS.days:
-                self.item(2, i).setBackground(QtGui.QColor(220, 220, 220))
-            self.setColumnWidth(i, 10)
+        self.update_hours_by_days(size)
 
         for i, student in enumerate(MANAGER_STUDENTS.students):
             i += 3
@@ -3473,6 +3504,36 @@ class TableAbsence(BaseTable, QtWidgets.QTableWidget):
         """Обновляет значения часов для всех рабочих дней"""
         self.item(2, 33).setText(str(sum(MANAGER_STUDENTS.days.values())))
         self.item(2, 33).setFont(QtGui.QFont('Calibri', 14 + self.mod_size))
+
+    def update_hours_by_days(self, size=0):
+        for i in range(2, 32 + 1):
+            if i - 1 in MANAGER_STUDENTS.days:
+                self.setItem(1, i, QTableWidgetItem(
+                    str(MANAGER_STUDENTS.days[i - 1] if MANAGER_STUDENTS.days[i - 1] else '')))
+                self.item(1, i).setFont(QtGui.QFont('Calibri', 14 + size))
+            else:
+                self.setItem(1, i, QTableWidgetItem(str('✖')))
+                self.item(1, i).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+                self.item(1, i).setFont(QtGui.QFont('Calibri', 14 + size))
+                self.item(1, i).setBackground(QtGui.QColor(220, 220, 220))
+                self.item(1, i).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
+
+                try:
+                    for j in range(2, self.rowCount()):
+                        self.setItem(j, i, QTableWidgetItem(""))
+                        self.item(j, i).setBackground(QtGui.QColor(220, 220, 220))
+
+                        self.item(j, i).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
+
+                except BaseException as f:
+                    print(f)
+            self.setItem(2, i, QTableWidgetItem(str(i - 1)))
+            self.item(2, i).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
+            self.item(2, i).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+            self.item(2, i).setFont(QtGui.QFont('Calibri', 14 + size))
+            if not i - 1 in MANAGER_STUDENTS.days:
+                self.item(2, i).setBackground(QtGui.QColor(220, 220, 220))
+            self.setColumnWidth(i, 10)
 
     def update_statistics_student(self, row):
         """Обновляет значения прогулов для всех студентов"""
