@@ -902,34 +902,44 @@ class ScheduleLoadWindow(QtWidgets.QDialog):
                                 continue
                             if j == 0:
                                 group = ''.join(doc.tables[0].rows[i].cells[0].text.strip().split()).lower()
+                                if not group.lower() == search.lower():
+                                    is_skip = True
+                                    continue
+                                else:
+                                    is_skip = False
+
                                 # print(i, j)
 
                             else:
-                                r = doc.tables[0].rows[i].cells[j].text.split('\n')
+                                if not is_skip:
+                                    r = doc.tables[0].rows[i].cells[j].text.split('\n')
 
-                                if len(r) == 1 and not r[0].startswith('---'):
-                                    r = r[0].split()
-                                    r1 = ''.join(r[:-3])
-                                    r2 = ' '.join(r[-3:-1])
-                                    r = [r1, r2]
-                                if len(r) > 2 and (r[-1].upper().startswith('АУД') or r[-1].upper().startswith('ДОТ')):
-                                    del r[-1]
+                                    if len(r) == 1 and not r[0].startswith('---'):
+                                        r = r[0].split()
+                                        r1 = ''.join(r[:-3])
+                                        r2 = ' '.join(r[-3:-1])
+                                        r = [r1, r2]
+                                    if len(r) > 2 and (r[-1].upper().startswith('АУД') or r[-1].upper().startswith('ДОТ')):
+                                        del r[-1]
 
-                                if len(r) == 2 and (
-                                        r[-1].upper().find('АУД.') != -1 or r[-1].upper().find('ДОТ') != -1):
-                                    r[-1] = ' '.join(r[-1].split()[:-1])
+                                    if len(r) == 2 and (
+                                            r[-1].upper().find('АУД.') != -1 or r[-1].upper().find('ДОТ') != -1):
+                                        r[-1] = ' '.join(r[-1].split()[:-1])
 
-                                result = [i.strip() for i in r if i]
-                                if result:
-                                    if not r[0].startswith('---'):
-                                        discipline = ''.join(result[0].split()).upper().strip()
-                                        if not discipline.startswith('КЛАССНЫЙ'):
-                                            if group.lower() == search.lower():
-                                                # header = result[-1]
-                                                # months[int(dd)] = months.get(int(dd), {})
-                                                # months[int(dd)][discipline + '_' + header] = months[int(dd)].get(
-                                                #     discipline + '_' + header, 0) + 1
-                                                months[int(dd)] = months.get(int(dd), 0) + 2
+                                    result = [i.strip() for i in r if i]
+                                    if result:
+                                        if not r[0].startswith('---'):
+                                            discipline = ''.join(result[0].split('\n')).upper().strip()
+                                            if not discipline.startswith('КЛАССНЫЙ') and not discipline.startswith('КЛ.') and not discipline.startswith('КЛАС.'):
+                                                if group.lower() == search.lower() and discipline.strip():
+                                                    # header = result[-1]
+                                                    # months[int(dd)] = months.get(int(dd), {})
+                                                    # months[int(dd)][discipline + '_' + header] = months[int(dd)].get(
+                                                    #     discipline + '_' + header, 0) + 1
+                                                    months[int(dd)] = months.get(int(dd), 0) + 2
+
+
+
 
             except BaseException:
                 print('load_files schedule')
@@ -2119,7 +2129,6 @@ class ArchiveTab(QtWidgets.QWidget):
                                                self.tr(
                                                    f'При попытки  загрузки файла произошла ошибка. Попробуйте загрузить его заново. Если проблема не исчезнет, то скорее всего файл поврежден или удален.'),
                                                QtWidgets.QMessageBox.StandardButton.Ok)
-
             else:
                 self.logout_archive_push.show()
 
