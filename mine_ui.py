@@ -929,7 +929,7 @@ class ScheduleLoadWindow(QtWidgets.QDialog):
                                                 # months[int(dd)] = months.get(int(dd), {})
                                                 # months[int(dd)][discipline + '_' + header] = months[int(dd)].get(
                                                 #     discipline + '_' + header, 0) + 1
-                                                months[int(dd)] = months.get(int(dd), 0) + 1
+                                                months[int(dd)] = months.get(int(dd), 0) + 2
 
             except BaseException:
                 print('load_files schedule')
@@ -1236,7 +1236,6 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
         if b.is_load:
             for k, v in data.items():
                 MANAGER_STUDENTS.add_hours_by_day(k, v)
-
             self.tableWidget.update_hours_by_days()
         del b
 
