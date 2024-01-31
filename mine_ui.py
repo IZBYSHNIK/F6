@@ -29,6 +29,7 @@ from PySide6.QtCore import QTranslator, QLibraryInfo, Signal
 from PySide6.QtWidgets import QTableWidgetItem
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
+from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 
 from docx import Document
 import doc2docx
@@ -41,7 +42,7 @@ matplotlib.use('Qt5Agg')
 
 VERSION = '1.1.1'
 
-QtCore.QCoreApplication.setLibraryPaths(['plugins'])
+QtCore.QCoreApplication.setLibraryPaths([os.path.join('PySide6','qt-plugins')])
 
 LANGUAGES = ManagerStudents.crate_eternal_iter(['english', 'china', 'russia'])
 CURRENT_LANGUAGE = None
@@ -51,6 +52,8 @@ NAME_FONT = 'Calibri'
 dirname, filename = os.path.split(os.path.abspath(__file__))
 DEBAG = True
 BASE_PATH = dirname
+CONTENT_PATH = os.path.join(dirname, 'content')
+
 # DOCUMENTS_PATH = dirname
 # if not os.path.exists(os.path.join(DOCUMENTS_PATH, 'BD')):
 #     os.makedirs(os.path.join(DOCUMENTS_PATH, "BD"))
@@ -128,7 +131,7 @@ class SplashScreen(QtWidgets.QSplashScreen):
         self.move((app.primaryScreen().size().width() - self.size().width()) // 2,
                   (app.primaryScreen().size().height() - self.size().height()) // 2 - 40)
 
-        self.logo = QtSvgWidgets.QSvgWidget(os.path.join(BASE_PATH, 'media', 'logo.svg'), parent=self)
+        self.logo = QtSvgWidgets.QSvgWidget(os.path.join(CONTENT_PATH, 'media', 'logo.svg'), parent=self)
         self.logo.move(65, 25)
         self.logo.setFixedSize(256, 256)
         self.logo.setObjectName("logo")
@@ -168,11 +171,11 @@ class LicenseWindow(QtWidgets.QWidget):
         super(LicenseWindow, self).__init__(parent=parent)
         self.setObjectName("Form")
         self.resize(600, 700)
-        self.setWindowIcon(QtGui.QIcon('media\\logo.svg'))
+        self.setWindowIcon(QtGui.QIcon(os.path.join(CONTENT_PATH, 'media', 'logo.svg')))
         self.setFixedSize(QtCore.QSize(600, 700))
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.logo = QtSvgWidgets.QSvgWidget(os.path.join(BASE_PATH, 'media', 'logo.svg'))
+        self.logo = QtSvgWidgets.QSvgWidget(os.path.join(CONTENT_PATH, 'media', 'logo.svg'))
         self.logo.setFixedSize(QtCore.QSize(50, 50))
 
         self.logo.setObjectName("label_2")
@@ -233,11 +236,11 @@ class GratutudeWindow(QtWidgets.QWidget):
         super(GratutudeWindow, self).__init__(parent=parent)
         self.setObjectName("Form")
         self.resize(600, 700)
-        self.setWindowIcon(QtGui.QIcon('media\\logo.svg'))
+        self.setWindowIcon(QtGui.QIcon(os.path.join(CONTENT_PATH, 'media', 'logo.svg')))
         self.setFixedSize(QtCore.QSize(600, 700))
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.logo = QtSvgWidgets.QSvgWidget(os.path.join(BASE_PATH, 'media', 'heart.svg'))
+        self.logo = QtSvgWidgets.QSvgWidget(os.path.join(CONTENT_PATH, 'media', 'heart.svg'))
         self.logo.setFixedSize(QtCore.QSize(50, 50))
 
         self.logo.setObjectName("label_2")
@@ -281,7 +284,7 @@ class Regist(QtWidgets.QWidget):
     def __init__(self):
         self.status = 0
         super().__init__()
-        self.setWindowIcon(QtGui.QIcon('media\\logo.svg'))
+        self.setWindowIcon(QtGui.QIcon(os.path.join(CONTENT_PATH, 'media', 'logo.svg')))
         self.setObjectName("Regist")
         self.setFixedSize(442, 700)
         self.setStyleSheet("QPushButton{\n"
@@ -433,7 +436,7 @@ class Regist(QtWidgets.QWidget):
             'border: none; color: red; font: 14px; background-color: rgba(249, 248, 244, 0);')
 
         self.logo = QtSvgWidgets.QSvgWidget(self)
-        self.logo.load(os.path.join(BASE_PATH, 'media', 'language.svg'))
+        self.logo.load(os.path.join(CONTENT_PATH, 'media', 'language.svg'))
         self.logo.setFixedSize(QtCore.QSize(50, 50))
         self.logo.move(362, 100)
         self.logo.mousePressEvent = set_language
@@ -523,7 +526,7 @@ class Auth(QtWidgets.QWidget):
     def __init__(self):
         self.status = 0
         super(Auth, self).__init__()
-        self.setWindowIcon(QtGui.QIcon('media\\logo.svg'))
+        self.setWindowIcon(QtGui.QIcon(os.path.join(CONTENT_PATH, 'media', 'logo.svg')))
         self.setFixedSize(442, 580)
 
         self.setStyleSheet("QPushButton{font: 18px; border: none; color: white; padding: 0px; margin: 0px}\n"
@@ -546,7 +549,7 @@ class Auth(QtWidgets.QWidget):
         self.auth.setObjectName("auth")
 
         self.logo = QtSvgWidgets.QSvgWidget(self)
-        self.logo.load(os.path.join(BASE_PATH, 'media', 'language.svg'))
+        self.logo.load(os.path.join(CONTENT_PATH, 'media', 'language.svg'))
         self.logo.setFixedSize(QtCore.QSize(50, 50))
         self.logo.move(362, 100)
 
@@ -580,7 +583,7 @@ class Auth(QtWidgets.QWidget):
         self.message_auth.setGeometry(60, 351 + 20, 351, 41)
 
         self.eye = QtSvgWidgets.QSvgWidget(self)
-        self.eye.load(os.path.join(BASE_PATH, 'media', 'eye_open.svg'))
+        self.eye.load(os.path.join(CONTENT_PATH, 'media', 'eye_open.svg'))
         self.eye.setFixedSize(QtCore.QSize(40, 40))
         self.eye.move(365, 300)
 
@@ -623,11 +626,11 @@ class Auth(QtWidgets.QWidget):
         if not self.is_open:
             self.password_edit.setEchoMode(QtWidgets.QLineEdit.EchoMode.Normal)
             self.is_open = 1
-            self.eye.load(os.path.join(BASE_PATH, 'media', 'eye_close.svg'))
+            self.eye.load(os.path.join(CONTENT_PATH, 'media', 'eye_close.svg'))
         else:
             self.password_edit.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
             self.is_open = 0
-            self.eye.load(os.path.join(BASE_PATH, 'media', 'eye_open.svg'))
+            self.eye.load(os.path.join(CONTENT_PATH, 'media', 'eye_open.svg'))
 
     def keyPressEvent(self, e):
         k = e.key()
@@ -644,7 +647,7 @@ class Auth(QtWidgets.QWidget):
                 list_user.remove(username)
                 list_user.insert(0, username)
         for i in list_user:
-            self.spin_box.addItem(QtGui.QIcon(os.path.join(BASE_PATH, 'media', 'student_icon.svg')), i)
+            self.spin_box.addItem(QtGui.QIcon(os.path.join(CONTENT_PATH, 'media', 'student_icon.svg')), i)
 
     def checking_log_password(self):
 
@@ -1094,17 +1097,17 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
 
         # ________________________________________
         self.load_schedule_push = Push(self.frame, 40, 40, 5,
-                                       icon_path=os.path.join('media', 'buttons', 'load_schedule.svg'))
+                                       icon_path=os.path.join(CONTENT_PATH, 'media', 'buttons', 'load_schedule.svg'))
         self.load_schedule_push.setObjectName("load_schedule_push")
         self.horizontalLayout_2.addWidget(self.load_schedule_push)
 
         self.set_size_posetiv_font_push = Push(self.frame, 40, 40, 5,
-                                               icon_path=os.path.join('media', 'posetive.svg'))
+                                               icon_path=os.path.join(CONTENT_PATH, 'media', 'posetive.svg'))
 
         self.horizontalLayout_2.addWidget(self.set_size_posetiv_font_push)
 
         self.set_size_negativ_font_push = Push(self.frame, 40, 40, 5,
-                                               icon_path=os.path.join('media', 'negative.svg'))
+                                               icon_path=os.path.join(CONTENT_PATH, 'media', 'negative.svg'))
         self.horizontalLayout_2.addWidget(self.set_size_negativ_font_push)
 
         # _________________________________________
@@ -1112,15 +1115,15 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
         self.horizontalLayout_2.addLayout(self.horizontalLayout_4)
 
         self.save_table_push = Push(self.frame, 40, 40, 5,
-                                    icon_path=os.path.join('media', 'buttons', 'save.svg'))
+                                    icon_path=os.path.join(CONTENT_PATH, 'media', 'buttons', 'save.svg'))
         self.save_table_push.setObjectName("save_table_push")
         self.horizontalLayout_2.addWidget(self.save_table_push)
         self.game_over_push = Push(self.frame, 40, 40, 5,
-                                   icon_path=os.path.join('media', 'game_over.svg'))
+                                   icon_path=os.path.join(CONTENT_PATH, 'media', 'game_over.svg'))
         self.game_over_push.setObjectName("game_over_push")
         self.horizontalLayout_2.addWidget(self.game_over_push)
         self.save_to_exel_push = Push(self.frame, 55, 55, 5,
-                                      icon_path=os.path.join('media', 'save_exel.svg'))
+                                      icon_path=os.path.join(CONTENT_PATH, 'media', 'save_exel.svg'))
         self.save_to_exel_push.setObjectName("save_to_exel_push")
         self.horizontalLayout_2.addWidget(self.save_to_exel_push)
         self.horizontalLayout_3.addLayout(self.horizontalLayout_2)
@@ -1162,17 +1165,17 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
         self.properties_table_view_horizontalLayout.addLayout(self.section_second)
 
         self.arrow_narrow_top_push = Push(self.properties_table_view_horizontalLayout, 25, 25, 5,
-                                          icon_path=os.path.join('media', 'arrow_narrow_top.svg'))
+                                          icon_path=os.path.join(CONTENT_PATH, 'media', 'arrow_narrow_top.svg'))
         self.arrow_narrow_top_push.setObjectName("arrow_narrow_top_push")
         self.properties_table_view_horizontalLayout.addWidget(self.arrow_narrow_top_push)
 
         self.arrow_narrow_down_push = Push(self.properties_table_view_horizontalLayout, 25, 25, 5,
-                                           icon_path=os.path.join('media', 'arrow_narrow_down.svg'))
+                                           icon_path=os.path.join(CONTENT_PATH, 'media', 'arrow_narrow_down.svg'))
         self.arrow_narrow_down_push.setObjectName("arrow_narrow_down_push")
         self.properties_table_view_horizontalLayout.addWidget(self.arrow_narrow_down_push)
 
         self.update_table_push = Push(self.properties_table_view_horizontalLayout, 25, 25, 5,
-                                      icon_path=os.path.join('media', 'update.svg'))
+                                      icon_path=os.path.join(CONTENT_PATH, 'media', 'update.svg'))
         self.update_table_push.setObjectName("update_table_push")
         self.properties_table_view_horizontalLayout.addWidget(self.update_table_push)
 
@@ -1569,22 +1572,22 @@ class MarksTab(QtWidgets.QWidget, BaseTable):
         self.horizontalLayout_19.setContentsMargins(7, -1, -1, -1)
         self.horizontalLayout_19.setObjectName("horizontalLayout_19")
         self.pushButton_9 = Push(self.frame_3, 40, 40, 5,
-                                 icon_path=os.path.join('media', 'buttons', 'save.svg'))
+                                 icon_path=os.path.join(CONTENT_PATH, 'media', 'buttons', 'save.svg'))
         self.pushButton_9.setObjectName("pushButton_9")
 
         # ___________________________________________________________________
         self.set_size_posetiv_font_push = Push(self.frame_3, 40, 40, 5,
-                                               icon_path=os.path.join('media', 'posetive.svg'))
+                                               icon_path=os.path.join(CONTENT_PATH, 'media', 'posetive.svg'))
         self.horizontalLayout_19.addWidget(self.set_size_posetiv_font_push)
 
         self.set_size_negativ_font_push = Push(self.frame_3, 40, 40, 5,
-                                               icon_path=os.path.join('media', 'negative.svg'))
+                                               icon_path=os.path.join(CONTENT_PATH, 'media', 'negative.svg'))
         self.horizontalLayout_19.addWidget(self.set_size_negativ_font_push)
 
         # ___________________________________________________________________
         self.horizontalLayout_19.addWidget(self.pushButton_9)
         self.save_to_exel_marks_push = Push(self.frame_3, 55, 55, 5,
-                                            icon_path=os.path.join('media', 'save_exel.svg'))
+                                            icon_path=os.path.join(CONTENT_PATH, 'media', 'save_exel.svg'))
         self.save_to_exel_marks_push.setObjectName("pushButton_10")
         self.horizontalLayout_19.addWidget(self.save_to_exel_marks_push)
         self.horizontalLayout_17.addLayout(self.horizontalLayout_19)
@@ -1625,12 +1628,12 @@ class MarksTab(QtWidgets.QWidget, BaseTable):
         self.properties_table_view_horizontalLayout.addLayout(self.section_second)
 
         self.arrow_narrow_top_push = Push(self.properties_table_view_horizontalLayout, 25, 25, 5,
-                                          icon_path=os.path.join('media', 'arrow_narrow_top.svg'))
+                                          icon_path=os.path.join(CONTENT_PATH, 'media', 'arrow_narrow_top.svg'))
         self.arrow_narrow_top_push.setObjectName("arrow_narrow_top_push")
         self.properties_table_view_horizontalLayout.addWidget(self.arrow_narrow_top_push)
 
         self.arrow_narrow_down_push = Push(self.properties_table_view_horizontalLayout, 25, 25, 5,
-                                           icon_path=os.path.join('media', 'arrow_narrow_down.svg'))
+                                           icon_path=os.path.join(CONTENT_PATH, 'media', 'arrow_narrow_down.svg'))
         self.arrow_narrow_down_push.setObjectName("arrow_narrow_down_push")
         self.properties_table_view_horizontalLayout.addWidget(self.arrow_narrow_down_push)
 
@@ -2084,7 +2087,7 @@ class ArchiveTab(QtWidgets.QWidget):
         self.horizontalLayout_9.addWidget(self.load_file_push)
         self.verticalLayout_11.addLayout(self.horizontalLayout_9)
         self.logout_archive_push = Push(self.parent.F6.frame, 40, 40, 5, tool_tip=self.tr('Выйти из архива'),
-                                        icon_path=os.path.join('media', 'undo.svg'))
+                                        icon_path=os.path.join(CONTENT_PATH, 'media', 'undo.svg'))
         self.logout_archive_push.hide()
         self.logout_archive_push.setObjectName("logout_archive_push")
 
@@ -2399,7 +2402,7 @@ class SettingsTab(QtWidgets.QWidget):
 
     def show_weekend(self):
         self.list_weekend = QtWidgets.QTextBrowser()
-        self.list_weekend.setWindowIcon(QtGui.QIcon('media\\logo.svg'))
+        self.list_weekend.setWindowIcon(QtGui.QIcon(os.path.join(CONTENT_PATH, 'media', 'logo.svg')))
         self.list_weekend.setWindowTitle(self.tr('Список выходных дней'))
         self.list_weekend.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
 
@@ -2630,19 +2633,19 @@ class ProfileTab(QtWidgets.QWidget):
         self.horizontalLayout_7.setContentsMargins(0, 65, 0, 0)
         self.horizontalLayout_7.setObjectName("horizontalLayout_7")
         self.save_user_push = Push(self.horizontalLayout_7, 35, 35, 5,
-                                   icon_path=os.path.join('media', 'buttons', 'save.svg'))
+                                   icon_path=os.path.join(CONTENT_PATH, 'media', 'buttons', 'save.svg'))
         self.save_user_push.setObjectName("save_user_push")
         self.horizontalLayout_7.addWidget(self.save_user_push)
         self.set_password_push = Push(self.horizontalLayout_7, 35, 35, 5,
-                                      icon_path=os.path.join('media', 'buttons', 'set_password.svg'))
+                                      icon_path=os.path.join(CONTENT_PATH, 'media', 'buttons', 'set_password.svg'))
         self.set_password_push.setObjectName("set_password_push")
         self.horizontalLayout_7.addWidget(self.set_password_push)
         self.del_user_push = Push(self.horizontalLayout_7, 35, 35, 5,
-                                  icon_path=os.path.join('media', 'buttons', 'del_user.svg'))
+                                  icon_path=os.path.join(CONTENT_PATH, 'media', 'buttons', 'del_user.svg'))
         self.del_user_push.setObjectName("del_user_push")
         self.horizontalLayout_7.addWidget(self.del_user_push)
         self.logout_push = Push(self.horizontalLayout_7, 35, 35, 5,
-                                icon_path=os.path.join('media', 'buttons', 'logout.svg'))
+                                icon_path=os.path.join(CONTENT_PATH, 'media', 'buttons', 'logout.svg'))
         self.logout_push.setObjectName("logout_push")
         self.horizontalLayout_7.addWidget(self.logout_push)
 
@@ -2658,7 +2661,7 @@ class ProfileTab(QtWidgets.QWidget):
         self.verticalLayout_7.setObjectName("verticalLayout_7")
         self.verticalLayout_12 = QtWidgets.QVBoxLayout()
         self.verticalLayout_12.setObjectName("verticalLayout_12")
-        self.photo = QtSvgWidgets.QSvgWidget(os.path.join('media', 'profile', f'{str(random.randint(1, 15))}.svg'))
+        self.photo = QtSvgWidgets.QSvgWidget(os.path.join(CONTENT_PATH, 'media', 'profile', f'{str(random.randint(1, 15))}.svg'))
         self.photo.setFixedSize(QtCore.QSize(250, 250))
         self.photo.setObjectName("photo")
 
@@ -2694,26 +2697,26 @@ class ProfileTab(QtWidgets.QWidget):
 
     def load_atchivments(self):
         self.ACHIEVEMENT = {
-            (0, 0): (self.tr('Поехали!'), os.path.join('media', 'achievements', '10.svg')),
-            (0, 1): (self.tr('Полный набор'), os.path.join('media', 'achievements', '1.svg')),
-            (0, 2): (self.tr('Игра окончена'), os.path.join('media', 'achievements', '2.svg')),
-            (0, 3): (self.tr('Шерлок?'), os.path.join('media', 'achievements', '4.svg')),
-            (0, 4): (self.tr('Исследователь'), os.path.join('media', 'achievements', '5.svg')),
-            (1, 0): (self.tr('Делу время....'), os.path.join('media', 'achievements', '7.svg')),
-            (1, 1): (self.tr('..потехе час'), os.path.join('media', 'achievements', '8.svg')),
-            (1, 2): (self.tr('Частичка истории'), os.path.join('media', 'achievements', '14.svg')),
-            (1, 3): (self.tr('Это что? Микробы!'), os.path.join('media', 'achievements', '12.svg')),
-            (1, 4): (self.tr('Я видел темную сторону Луны'), os.path.join('media', 'achievements', '13.svg')),
-            (2, 0): (self.tr('Моя прелесть'), os.path.join('media', 'achievements', '16.svg')),
-            (2, 1): (self.tr('Сова'), os.path.join('media', 'achievements', '17.svg')),
-            (2, 2): (self.tr('Классику сэр?'), os.path.join('media', 'achievements', '15.svg')),
-            (2, 3): (self.tr('Трансформация'), os.path.join('media', 'achievements', '3.svg')),
-            (2, 4): (self.tr('Быть или не быть'), os.path.join('media', 'achievements', '9.svg')),
-            (3, 0): (self.tr('Ушел по-английски'), os.path.join('media', 'achievements', '11.svg')),
-            (3, 1): (self.tr('Назад в будущее'), os.path.join('media', 'achievements', '18.svg')),
-            (3, 2): (self.tr('Коллекционер'), os.path.join('media', 'achievements', '6.svg')),
-            (3, 3): (self.tr('С НГ!'), os.path.join('media', 'achievements', '19.svg')),
-            (3, 4): (self.tr('Звезда'), os.path.join('media', 'achievements', '20.svg')),
+            (0, 0): (self.tr('Поехали!'), os.path.join(CONTENT_PATH, 'media', 'achievements', '10.svg')),
+            (0, 1): (self.tr('Полный набор'), os.path.join(CONTENT_PATH, 'media', 'achievements', '1.svg')),
+            (0, 2): (self.tr('Игра окончена'), os.path.join(CONTENT_PATH, 'media', 'achievements', '2.svg')),
+            (0, 3): (self.tr('Шерлок?'), os.path.join(CONTENT_PATH, 'media', 'achievements', '4.svg')),
+            (0, 4): (self.tr('Исследователь'), os.path.join(CONTENT_PATH, 'media', 'achievements', '5.svg')),
+            (1, 0): (self.tr('Делу время....'), os.path.join(CONTENT_PATH, 'media', 'achievements', '7.svg')),
+            (1, 1): (self.tr('..потехе час'), os.path.join(CONTENT_PATH, 'media', 'achievements', '8.svg')),
+            (1, 2): (self.tr('Частичка истории'), os.path.join(CONTENT_PATH, 'media', 'achievements', '14.svg')),
+            (1, 3): (self.tr('Это что? Микробы!'), os.path.join(CONTENT_PATH, 'media', 'achievements', '12.svg')),
+            (1, 4): (self.tr('Я видел темную сторону Луны'), os.path.join(CONTENT_PATH, 'media', 'achievements', '13.svg')),
+            (2, 0): (self.tr('Моя прелесть'), os.path.join(CONTENT_PATH, 'media', 'achievements', '16.svg')),
+            (2, 1): (self.tr('Сова'), os.path.join(CONTENT_PATH, 'media', 'achievements', '17.svg')),
+            (2, 2): (self.tr('Классику сэр?'), os.path.join(CONTENT_PATH, 'media', 'achievements', '15.svg')),
+            (2, 3): (self.tr('Трансформация'), os.path.join(CONTENT_PATH, 'media', 'achievements', '3.svg')),
+            (2, 4): (self.tr('Быть или не быть'), os.path.join(CONTENT_PATH, 'media', 'achievements', '9.svg')),
+            (3, 0): (self.tr('Ушел по-английски'), os.path.join(CONTENT_PATH, 'media', 'achievements', '11.svg')),
+            (3, 1): (self.tr('Назад в будущее'), os.path.join(CONTENT_PATH, 'media', 'achievements', '18.svg')),
+            (3, 2): (self.tr('Коллекционер'), os.path.join(CONTENT_PATH, 'media', 'achievements', '6.svg')),
+            (3, 3): (self.tr('С НГ!'), os.path.join(CONTENT_PATH, 'media', 'achievements', '19.svg')),
+            (3, 4): (self.tr('Звезда'), os.path.join(CONTENT_PATH, 'media', 'achievements', '20.svg')),
         }
 
     def add_function(self):
@@ -2753,7 +2756,7 @@ class ProfileTab(QtWidgets.QWidget):
         self.security_leve_label.setFont(QtGui.QFont(NAME_FONT, 16 + ADD_FONT_SIZE))
 
     def click_profile(self, *args, **kwargs):
-        photo = QtSvgWidgets.QSvgWidget(os.path.join('media', 'profile', f'{str(random.randint(1, 15))}.svg'))
+        photo = QtSvgWidgets.QSvgWidget(os.path.join(CONTENT_PATH, 'media', 'profile', f'{str(random.randint(1, 15))}.svg'))
         photo.setFixedSize(QtCore.QSize(250, 250))
         self.verticalLayout_12.replaceWidget(self.photo, photo)
         self.photo.deleteLater()
@@ -2780,7 +2783,7 @@ class ProfileTab(QtWidgets.QWidget):
                     qlable.setToolTip(str(self.ACHIEVEMENT[(i, j)][0]))
                     qlable.setFixedSize(QtCore.QSize(80, 80))
                 else:
-                    qlable = QtSvgWidgets.QSvgWidget(os.path.join('media', 'achievements', '0.svg'))
+                    qlable = QtSvgWidgets.QSvgWidget(os.path.join(CONTENT_PATH, 'media', 'achievements', '0.svg'))
                     # qlable.setToolTip(str(self.ACHIEVEMENT[(i, j)][0]))
                     qlable.setFixedSize(QtCore.QSize(80, 80))
                 self.atchivmenys_layout.addWidget(qlable)
@@ -2927,7 +2930,7 @@ class ProfileTab(QtWidgets.QWidget):
         if value in [0, 50, 100]:
             self.security_level_photo.deleteLater()
             self.security_level_photo = QtSvgWidgets.QSvgWidget(
-                os.path.join('media', 'security_level', f'security_level_{str(value // 50)}.svg'))
+                os.path.join(CONTENT_PATH, 'media', 'security_level', f'security_level_{str(value // 50)}.svg'))
             self.security_level_photo.setFixedSize(100, 100)
 
             self.security_level_photo_layout.addWidget(self.security_level_photo, QtCore.Qt.AlignmentFlag.AlignVCenter,
@@ -2943,10 +2946,10 @@ class ProfileTab(QtWidgets.QWidget):
             self.security_level_photo.deleteLater()
         if isinstance(level, int) and 0 <= level <= 2:
             self.security_level_photo = QtSvgWidgets.QSvgWidget(
-                os.path.join('media', 'security_level', f'security_level_{str(level)}.svg'))
+                os.path.join(CONTENT_PATH, 'media', 'security_level', f'security_level_{str(level)}.svg'))
         else:
             self.security_level_photo = QtSvgWidgets.QSvgWidget(
-                os.path.join('media', 'security_level', 'security_level_none.svg'))
+                os.path.join(CONTENT_PATH, 'media', 'security_level', 'security_level_none.svg'))
 
         self.security_level_photo.setFixedSize(100, 100)
         self.security_level_photo_layout.addWidget(self.security_level_photo, QtCore.Qt.AlignmentFlag.AlignVCenter,
@@ -3193,7 +3196,7 @@ class MainWindow(QtWidgets.QMainWindow):
             
 
             """)
-        self.setWindowIcon(QtGui.QIcon('media\\logo.svg'))
+        self.setWindowIcon(QtGui.QIcon(os.path.join(CONTENT_PATH, 'media', 'logo.svg')))
         self.setObjectName("MainWindow")
         self.resize(1024, 768)
         self.setMinimumSize(800, 450)
@@ -3821,7 +3824,6 @@ class UpdateManager(QtWidgets.QDialog):
 
     @staticmethod
     def check_new_version(old, new):
-        print(old, new)
         if old < new:
             return True
         return False
@@ -4181,7 +4183,7 @@ class ControlerWindows(QtWidgets.QWidget):
 def set_language(*args, **kwargs):
     global CURRENT_LANGUAGE, USER_MANAGER
     CURRENT_LANGUAGE = next(LANGUAGES)
-    if translator.load(os.path.join(BASE_PATH, 'languages', CURRENT_LANGUAGE)):
+    if translator.load(os.path.join(CONTENT_PATH, 'languages', CURRENT_LANGUAGE)):
         app.installTranslator(translator)
         USER_MANAGER.parametrs['language'] = CURRENT_LANGUAGE
     else:
@@ -4190,6 +4192,18 @@ def set_language(*args, **kwargs):
         USER_MANAGER.parametrs['language'] = 'russia'
     USER_MANAGER.save_users()
     windows.retranslateUi()
+
+
+try:
+    filename = os.path.join(CONTENT_PATH, 'sounds', "logo.mp3")
+    player = QMediaPlayer()
+    audio_output = QAudioOutput()
+    player.setAudioOutput(audio_output)
+    player.setSource(QUrl.fromLocalFile(filename))
+    audio_output.setVolume(0.03)
+    player.play()
+except:
+    print('No sound')
 
 
 app = QtWidgets.QApplication(sys.argv)
@@ -4205,17 +4219,8 @@ else:
 
 USER_MANAGER.save_users()
 
-# from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
-# try:
-#     filename = os.path.join('sounds', "logo.mp3")
-#     player = QMediaPlayer()
-#     audio_output = QAudioOutput()
-#     player.setAudioOutput(audio_output)
-#     player.setSource(QUrl.fromLocalFile(filename))
-#     audio_output.setVolume(25)
-#     player.play()
-# except:
-#     print('No sound')
+
+
 
 
 windows = ControlerWindows(SplashScreen, Auth, Regist, MainWindow)
