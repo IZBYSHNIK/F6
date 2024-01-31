@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 25.4.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Слой_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 80 80" enable-background="new 0 0 80 80" xml:space="preserve">
+<linearGradient id="SVGID_1_" gradientUnits="userSpaceOnUse" x1="39.8599" y1="3" x2="39.8599" y2="77.5223">
+	<stop  offset="0" style="stop-color:#006A2A"/>
+	<stop  offset="1" style="stop-color:#22007F"/>
+</linearGradient>
+<linearGradient id="SVGID_00000170993026456325798010000009079007208163697837_" gradientUnits="userSpaceOnUse" x1="39.8599" y1="2" x2="39.8599" y2="78.5223">
+	<stop  offset="0" style="stop-color:#006A2A"/>
+	<stop  offset="1" style="stop-color:#22007F"/>
+</linearGradient>
+<path fill="url(#SVGID_1_)" stroke="url(#SVGID_00000170993026456325798010000009079007208163697837_)" stroke-width="2" stroke-miterlimit="10" d="
+	M67,77.5H12.7c-6,0-10.8-4.9-10.8-10.8V13.8C1.9,7.9,6.7,3,12.7,3H67c6,0,10.8,4.9,10.8,10.8v52.9C77.9,72.7,73,77.5,67,77.5z"/>
+<g>
+	<path fill="#FFFFFF" d="M7.7,36v-2.7H5.4V20h2.3v-2.7h9.2V20h2.3v2.7h-4.6V20H10v13.3h4.6V28h-2.3v-2.7h6.9V36H7.7z"/>
+	<path fill="#FFFFFF" d="M23.9,36v-2.7h-2.3v-2.7h2.3V28h6.9v-2.7h-6.9v-2.7h9.2v2.7h2.3V36H23.9z M30.8,33.3v-2.7h-4.6v2.7H30.8z"
+		/>
+	<path fill="#FFFFFF" d="M37.7,36V22.7h16.1v2.7h2.3V36h-4.6V25.3h-2.3V36h-4.6V25.3h-2.3V36H37.7z"/>
+	<path fill="#FFFFFF" d="M60.7,36v-2.7h-2.3v-8h2.3v-2.7H70v2.7h2.3v5.3h-9.2v2.7h9.2V36H60.7z M67.7,28v-2.7h-4.6V28H67.7z"/>
+	<path fill="#FFFFFF" d="M11.2,60v-2.7H8.9V44h2.3v-2.7h9.2V44h2.3v13.3h-2.3V60H11.2z M18.1,57.3V44h-4.6v13.3H18.1z"/>
+	<path fill="#FFFFFF" d="M29.6,60v-2.7h-2.3v-2.7H25v-8h4.6v8h4.6v-8h4.6v8h-2.3v2.7h-2.3V60H29.6z"/>
+	<path fill="#FFFFFF" d="M43.5,60v-2.7h-2.3v-8h2.3v-2.7h9.2v2.7H55v5.3h-9.2v2.7H55V60H43.5z M50.4,52v-2.7h-4.6V52H50.4z"/>
+	<path fill="#FFFFFF" d="M57.3,60V46.7h9.2v2.7h2.3V52h-4.6v-2.7h-2.3V60H57.3z"/>
+</g>
+<g>
+	<g>
+		<path fill="none" stroke="#FF0000" stroke-miterlimit="10" d="M29.6,56.4"/>
+	</g>
+</g>
+<rect x="25" y="45.7" fill="#FF0000" width="4.9" height="9.2"/>
+<rect x="34" y="45.5" fill="#FF0000" width="4.9" height="9.2"/>
+<rect x="27.2" y="48.5" fill="#FF0000" width="9.5" height="9.5"/>
+<rect x="29.6" y="55.4" fill="#FF0000" width="4.7" height="4.7"/>
+<rect x="32.6" y="47" fill="#FF0000" width="4.7" height="4.7"/>
+<rect x="26.2" y="47" fill="#FF0000" width="4.7" height="4.7"/>
+<rect x="23.4" y="46.7" fill="#FF0000" width="4.7" height="4.7"/>
+<rect x="35.8" y="46.7" fill="#FF0000" width="4.7" height="4.7"/>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+</svg>
