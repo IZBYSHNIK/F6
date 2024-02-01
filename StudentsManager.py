@@ -213,28 +213,30 @@ class ManagerStudents:
     def is_valud_year(year: int) -> bool:
         return isinstance(year, int) and 1700 <= year
 
-    def off_day(self, day: int, is_happy_day=False) -> None:
+    def off_day(self, day: int, is_happy_day=False, month=0) -> None:
         """Удаляет рабочий день из переменной self.days"""
         self.CLASS_STUDENT.check_day(day)
-        if day in self.days:
-            for st in self.students:
-                if st.sick_days.get(day):
-                    del st.sick_days[day]
-                elif st.absence_days.get(day):
-                    del st.absence_days[day]
-            del self.days[day]
+        if not month or month == self.period[0]:
+            if day in self.days:
+                for st in self.students:
+                    if st.sick_days.get(day):
+                        del st.sick_days[day]
+                    elif st.absence_days.get(day):
+                        del st.absence_days[day]
+                del self.days[day]
         if is_happy_day:
-            self.user.happy_days[str(self.period[0])] = self.user.happy_days.get(str(self.period[0]), set()) | {day}
+            self.user.happy_days[str(self.period[0] if not month else month)] = self.user.happy_days.get(str(self.period[0] if not month else month), set()) | {day}
 
-    def on_day(self, day: int, hours: int = 0, is_happy_day=False) -> None:
+    def on_day(self, day: int, hours: int = 0, is_happy_day=False, month=0) -> None:
         """Добавляет рабочий день из переменной self.days"""
         self.CLASS_STUDENT.check_day(day)
         self.CLASS_STUDENT.check_hours(hours)
-        self.days[day] = hours
+        if not month or month == self.period[0]:
+            self.days[day] = hours
 
         if is_happy_day:
-            if day in self.user.happy_days.get(str(self.period[0])):
-                self.user.happy_days[str(self.period[0])].remove(day)
+            if day in self.user.happy_days.get(str(self.period[0] if not month else month)):
+                self.user.happy_days[str(self.period[0] if not month else month)].remove(day)
 
     def add_day(self, student, number_day, hours, type_day='a'):
         type_day = type_day.lower()

@@ -40,9 +40,9 @@ import math, calendar
 
 matplotlib.use('Qt5Agg')
 
-VERSION = '1.1.1'
+VERSION = '1.2.0'
 
-QtCore.QCoreApplication.setLibraryPaths([os.path.join('PySide6','qt-plugins')])
+QtCore.QCoreApplication.setLibraryPaths([os.path.join('PySide6', 'qt-plugins')])
 
 LANGUAGES = ManagerStudents.crate_eternal_iter(['english', 'china', 'russia'])
 CURRENT_LANGUAGE = None
@@ -2310,7 +2310,7 @@ class SettingsTab(QtWidgets.QWidget):
         self.show_weekend_link_button_test.setObjectName("show_weekend_link_button_test")
         self.right_layout.addWidget(self.show_weekend_link_button_test)
 
-        self.show_current_month_link_button_test.hide()
+        # self.show_current_month_link_button_test.hide()
         self.restart_weekend_link_button_test.hide()
         self.show_weekend_link_button_test.hide()
 
@@ -2342,7 +2342,7 @@ class SettingsTab(QtWidgets.QWidget):
         self.set_data_table_link_button.setText(self.tr("Изменить месяц и год"))
         self.del_work_day_link_button.setText(self.tr("Удалить рабочий день"))
         self.restart_weekend_link_button.setText(self.tr('Сброс праздников'))
-        self.show_weekend_link_button.setText(self.tr('Просмотреть список праздничных дней'))
+        self.show_weekend_link_button.setText(self.tr('Праздничные дни'))
 
         self.set_data_table_label.setText(self.tr('Период'))
         self.language_label.setText(self.tr('Язык'))
@@ -2381,7 +2381,8 @@ class SettingsTab(QtWidgets.QWidget):
         self.on_off_statistics_link_button.clicked.connect(self.on_off_statistics)
         self.set_language_link_button.clicked.connect(self.set_language)
         self.restart_weekend_link_button.clicked.connect(self.restart_weekend)
-        self.show_weekend_link_button.clicked.connect(self.show_weekend)
+        self.show_weekend_link_button.clicked.connect(self.show_year)
+        self.show_current_month_link_button_test.clicked.connect(self.show_weekend)
 
     def set_language(self):
         global set_language
@@ -2415,13 +2416,13 @@ class SettingsTab(QtWidgets.QWidget):
         self.list_weekend.show()
 
     def show_current_month(self):
-        month = MonthCalendarView(MANAGER_STUDENTS, self.parent)
+        month = MonthCalendarView(MANAGER_STUDENTS, parent=self.parent)
         month.show()
         month.exec()
         try:
             MANAGER_STUDENTS.user.save_happy_days()
         except BaseException as f:
-            print(f)
+            self.parent.get_down_message(self.tr('НЕ удалось сохранить файл'))
         else:
             try:
                 MANAGER_STUDENTS.save_students()
@@ -2431,6 +2432,46 @@ class SettingsTab(QtWidgets.QWidget):
                 self.parent.get_down_message(self.tr('НЕ удалось сохранить файл'))
             else:
                 self.parent.get_down_message(self.tr('Успешное сохранение'))
+
+        month.deleteLater()
+
+    def show_year(self):
+        window = QtWidgets.QDialog()#parent=self.parent)
+        window.setWindowTitle(self.tr('Праздничные дни'))
+        window.setWindowIcon(QtGui.QIcon(os.path.join(CONTENT_PATH, 'media', 'logo.svg')))
+        window.setModal(True)
+        centerLayout = QtWidgets.QVBoxLayout(window)
+        scrollArea = QtWidgets.QScrollArea(window)
+        scrollArea.setWidgetResizable(True)
+        scrollAreaWidgetContents = QtWidgets.QWidget()
+        layout = QtWidgets.QVBoxLayout(scrollAreaWidgetContents)
+        month = MANAGER_STUDENTS.period[0] - 1
+        for i in range(4):
+            layout_row = QtWidgets.QHBoxLayout()
+            for j in range(3):
+                layout_row.addWidget(YearCalendarView(MANAGER_STUDENTS, period=[month % 12 + 1, MANAGER_STUDENTS.period[1] + month // 12], parent=self.parent, is_only_happy_days=True))
+                month += 1
+            layout.addLayout(layout_row)
+        scrollArea.setWidget(scrollAreaWidgetContents)
+        centerLayout.addWidget(scrollArea)
+        scrollAreaWidgetContents.show()
+        window.show()
+        window.exec()
+        try:
+            MANAGER_STUDENTS.user.save_happy_days()
+        except BaseException as f:
+            self.parent.get_down_message(self.tr('НЕ удалось сохранить файл'))
+        else:
+            try:
+                MANAGER_STUDENTS.save_students()
+                global IS_CHANGE
+                IS_CHANGE = False
+            except BaseException:
+                self.parent.get_down_message(self.tr('НЕ удалось сохранить файл'))
+            else:
+                self.parent.get_down_message(self.tr('Успешное сохранение'))
+
+        window.deleteLater()
 
     def show_academic_year(self):
         pass
@@ -3665,7 +3706,7 @@ class TableMarks(BaseTable, QtWidgets.QTableWidget):
 
 
 class MonthCalendarView(QtWidgets.QDialog):
-    def __init__(self, manager, parent=None, size=0):
+    def __init__(self, manager, period=None, parent=None, size=0, is_only_happy_days=False):
         super(MonthCalendarView, self).__init__(parent)
         self.setStyleSheet("* {border: none;}")
         self.setObjectName("ControlDays")
@@ -3673,47 +3714,98 @@ class MonthCalendarView(QtWidgets.QDialog):
 
         self.setModal(True)
         self.manager = manager
+        if period:
+            self.period = period
+        else:
+            self.period = self.manager.period
         self.parent = parent
+        self.size = size
+        self.is_only_happy_days = is_only_happy_days
 
         self.vertical_layout = QtWidgets.QVBoxLayout(self)
 
         if LANGUAGES == 'rassia':
-            self.name_month = QtWidgets.QLabel(f'{str(manager.MONTHS[manager.period[0] - 1])} {str(manager.period[1])}')
+            self.name_month = QtWidgets.QLabel(f'{str(manager.MONTHS[self.period[0] - 1])} {str(self.period[1])}')
         else:
-            self.name_month = QtWidgets.QLabel(self.tr("Месяц") + " " + str(manager.period)[1:-1])
+            self.name_month = QtWidgets.QLabel(self.tr("Месяц") + " " + str(self.period)[1:-1])
         self.name_month.setFont(QtGui.QFont(NAME_FONT, 16 + ADD_FONT_SIZE))
         self.name_month.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.vertical_layout.addWidget(self.name_month)
 
-        self.table = QtWidgets.QTableWidget(self)
-        self.table.setMinimumSize(450, 250)
+        self.table_layout = QtWidgets.QVBoxLayout()
+
+        self.update_table(self.is_only_happy_days)
+
+
+
+
+    def click_cell(self, row, column):
+        if self.period[0] == self.manager.period[0]:
+            if self.table.item(row, column).text().isnumeric():
+                if self.table.item(row, column).background() == QtGui.QColor(0, 0, 0, 0):
+                    self.manager.off_day(int(self.table.item(row, column).text()))
+                    self.table.item(row, column).setBackground(QtGui.QColor(60, 170, 60))
+                    self.parent.F6.init_table_absence()
+                elif self.table.item(row, column).background() == QtGui.QColor(60, 170, 60):
+                    self.manager.on_day(int(self.table.item(row, column).text()))
+                    self.table.item(row, column).setBackground(QtGui.QColor(0, 0, 0, 0))
+                    self.parent.F6.init_table_absence()
+        else:
+            self.click_double_cell(row, column)
+
+    def update_table(self, is_only_happy_days=False):
+        if hasattr(self, 'table'):
+            del self.table
+            self.table_layout.deleteLater()
+
+        self.table = QtWidgets.QTableWidget()
+        if is_only_happy_days:
+            self.table.setMinimumSize(350, 250)
+        else:
+            self.table.setMinimumSize(450, 250)
 
         self.table.setColumnCount(7)
 
-        self.table.setRowCount(len(list(calendar.monthcalendar(month=manager.period[0], year=manager.period[1]))))
+        self.table.setRowCount(len(list(calendar.monthcalendar(month=self.period[0], year=self.period[1]))))
         row_id = 0
+        if not is_only_happy_days:
+            for week in calendar.monthcalendar(month=self.period[0], year=self.period[1]):
+                for i in range(len(week)):
+                    if not week[i]:
+                        self.table.setItem(row_id, i, QTableWidgetItem(str('✖')))
+                    elif (not (week[i] in self.manager.days)) and (self.manager.user.happy_days.get(str(self.period[0])) and
+                                                              week[i] in self.manager.user.happy_days.get(
+                                str(self.period[0]))):
+                        self.table.setItem(row_id, i, QTableWidgetItem(str(week[i])))
+                        self.table.item(row_id, i).setBackground(QtGui.QColor(181, 71, 71))
+                    elif not (week[i] in self.manager.days):  # and self.period[0] != self.manager.period[0]
+                        self.table.setItem(row_id, i, QTableWidgetItem(str(week[i])))
+                        self.table.item(row_id, i).setBackground(QtGui.QColor(60, 170, 60))
 
-        for week in calendar.monthcalendar(month=manager.period[0], year=manager.period[1]):
-            for i in range(len(week)):
-                if not week[i]:
-                    self.table.setItem(row_id, i, QTableWidgetItem(str('✖')))
-                elif (not (week[i] in manager.days)) and (manager.user.happy_days.get(str(manager.period[0])) and
-                                                          week[i] in manager.user.happy_days.get(
-                            str(manager.period[0]))):
-                    self.table.setItem(row_id, i, QTableWidgetItem(str(week[i])))
-                    self.table.item(row_id, i).setBackground(QtGui.QColor(181, 71, 71))
-                elif not (week[i] in manager.days):
-                    self.table.setItem(row_id, i, QTableWidgetItem(str(week[i])))
-                    self.table.item(row_id, i).setBackground(QtGui.QColor(60, 170, 60))
+                    elif week[i] in self.manager.days:
+                        self.table.setItem(row_id, i, QTableWidgetItem(str(week[i])))
+                        self.table.item(row_id, i).setBackground(QtGui.QColor(0, 0, 0, 0))
 
-                elif week[i] in manager.days:
-                    self.table.setItem(row_id, i, QTableWidgetItem(str(week[i])))
-                    self.table.item(row_id, i).setBackground(QtGui.QColor(0, 0, 0, 0))
+                    self.table.item(row_id, i).setFont(QtGui.QFont('Calibri', 14 + self.size))
+                    self.table.item(row_id, i).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+                    self.table.item(row_id, i).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
+                row_id += 1
+        else:
+            for week in calendar.monthcalendar(month=self.period[0], year=self.period[1]):
+                for i in range(len(week)):
+                    if not week[i]:
+                        self.table.setItem(row_id, i, QTableWidgetItem(str('✖')))
+                    elif self.manager.user.happy_days.get(str(self.period[0])) and (week[i] in self.manager.user.happy_days.get(str(self.period[0]))):
+                        self.table.setItem(row_id, i, QTableWidgetItem(str(week[i])))
+                        self.table.item(row_id, i).setBackground(QtGui.QColor(181, 71, 71))
+                    else:
+                        self.table.setItem(row_id, i, QTableWidgetItem(str(week[i])))
+                        self.table.item(row_id, i).setBackground(QtGui.QColor(0, 0, 0, 0))
 
-                self.table.item(row_id, i).setFont(QtGui.QFont('Calibri', 14 + size))
-                self.table.item(row_id, i).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-                self.table.item(row_id, i).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
-            row_id += 1
+                    self.table.item(row_id, i).setFont(QtGui.QFont('Calibri', 14 + self.size))
+                    self.table.item(row_id, i).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+                    self.table.item(row_id, i).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
+                row_id += 1
 
         self.table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
         self.table.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
@@ -3722,30 +3814,31 @@ class MonthCalendarView(QtWidgets.QDialog):
 
         self.table.cellClicked.connect(self.click_cell)
         self.table.cellDoubleClicked.connect(self.click_double_cell)
-
-        self.vertical_layout.addWidget(self.table)
-
-    def click_cell(self, row, column):
-        if self.table.item(row, column).text().isnumeric():
-            if self.table.item(row, column).background() == QtGui.QColor(0, 0, 0, 0):
-                self.manager.off_day(int(self.table.item(row, column).text()))
-                self.table.item(row, column).setBackground(QtGui.QColor(60, 170, 60))
-                self.parent.F6.init_table_absence()
-            elif self.table.item(row, column).background() == QtGui.QColor(60, 170, 60):
-                self.manager.on_day(int(self.table.item(row, column).text()))
-                self.table.item(row, column).setBackground(QtGui.QColor(0, 0, 0, 0))
-                self.parent.F6.init_table_absence()
+        self.table_layout.addWidget(self.table)
+        self.vertical_layout.addLayout(self.table_layout)
 
     def click_double_cell(self, row, column):
         if self.table.item(row, column).text().isnumeric():
             if not (self.table.item(row, column).background() == QtGui.QColor(181, 71, 71)):
-                self.manager.off_day(int(self.table.item(row, column).text()), is_happy_day=True)
+                if not self.period[0] != self.manager.period[0]:
+                    self.manager.off_day(int(self.table.item(row, column).text()), is_happy_day=True)
+                else:
+                    self.manager.off_day(int(self.table.item(row, column).text()), is_happy_day=True, month=self.period[0])
                 self.table.item(row, column).setBackground(QtGui.QColor(181, 71, 71))
                 self.parent.F6.init_table_absence()
             else:
-                self.manager.on_day(int(self.table.item(row, column).text()), is_happy_day=True)
+                if not self.period[0] != self.manager.period[0]:
+                    self.manager.on_day(int(self.table.item(row, column).text()), is_happy_day=True)
+                else:
+                    self.manager.on_day(int(self.table.item(row, column).text()), is_happy_day=True, month=self.period[0])
                 self.table.item(row, column).setBackground(QtGui.QColor(0, 0, 0, 0))
                 self.parent.F6.init_table_absence()
+
+
+class YearCalendarView(MonthCalendarView):
+    def click_cell(self, row, column):
+        self.click_double_cell(row, column)
+
 
 
 class UpdateManager(QtWidgets.QDialog):
@@ -4200,7 +4293,7 @@ try:
     audio_output = QAudioOutput()
     player.setAudioOutput(audio_output)
     player.setSource(QUrl.fromLocalFile(filename))
-    audio_output.setVolume(0.03)
+    audio_output.setVolume(0.15)
     player.play()
 except:
     print('No sound')
