@@ -60,6 +60,8 @@ CONTENT_PATH = os.path.join(dirname, 'content')
 # DOCUMENTS_PATH = os.path.join(dirname, 'BD')
 # print(DOCUMENTS_PATH, 'DOC_PATH')
 DOCUMENTS_PATH = os.path.expanduser("~/F6")
+# DOCUMENTS_PATH = os.path.expanduser("~/000")
+# DOCUMENTS_PATH = dirname
 
 USER_MANAGER = UserManager(DOCUMENTS_PATH)
 MANAGER_STUDENTS = None
@@ -638,9 +640,10 @@ class Auth(QtWidgets.QWidget):
         if k == 16777220:
             self.click_auth_push()
 
+
     def update_users(self):
         self.spin_box.clear()
-        list_user = list(USER_MANAGER.users_id.values())
+        list_user = list(map(lambda x: f'{x[1]} ({x[0]})', USER_MANAGER.users_id.items()))
         if USER_MANAGER.parametrs.get('LastUser'):
             username = USER_MANAGER.users_id.get(USER_MANAGER.parametrs.get('LastUser'))
             if username in list_user:
@@ -649,24 +652,25 @@ class Auth(QtWidgets.QWidget):
         for i in list_user:
             self.spin_box.addItem(QtGui.QIcon(os.path.join(CONTENT_PATH, 'media', 'student_icon.svg')), i)
 
-    def checking_log_password(self):
-
-        if not USER_MANAGER.USER_CLASS.is_valid_username(self.spin_box.currentText()):
+    def checking_log_password(self, login: str, password: str) -> tuple: 
+        if not USER_MANAGER.USER_CLASS.is_valid_username(login):
             raise ValueError(self.tr('Имя пользователя должено быть строкой из 3-20 букв или числовых символов'))
-        if not USER_MANAGER.USER_CLASS.is_valid_password(self.password_edit.text()):
+        if not USER_MANAGER.USER_CLASS.is_valid_password(password):
             raise ValueError(self.tr('Пароль должен быть строкой из 4-30 символов'))
-        return self.spin_box.currentText(), self.password_edit.text()
+        return login, password
 
     def click_auth_push(self):
 
         try:
-            username, password = self.checking_log_password()
+            id_ = list(USER_MANAGER.users_id)[self.spin_box.currentIndex()]          
+            login = USER_MANAGER.users_id[id_]
+            username, password = self.checking_log_password(login, self.password_edit.text())
         except BaseException as message:
             self.message_auth.setText(str(message))
 
         else:
             try:
-                USER_MANAGER.link_user_by_username(username, password)
+                USER_MANAGER.link_user_by_username(username, password, id_=id_)
             except (FileNotFoundError, json.JSONDecodeError):
                 self.message_auth.setText(self.tr('*Файлы пользователя повреждены'))
             except ValueError:
@@ -674,6 +678,7 @@ class Auth(QtWidgets.QWidget):
             except BaseException:
                 self.message_auth.setText(self.tr('*Внутренняя ошибка программы'))
             else:
+                USER_MANAGER.user.user_id = id_
                 self.password_edit.clear()
                 self.status = 1
                 self.close()
@@ -3013,49 +3018,16 @@ class StatisticTab(QtWidgets.QWidget):
              'seaborn-v0_8-pastel', 'seaborn-v0_8-talk', 'seaborn-v0_8-whitegrid', 'tableau-colorblind10']
 
     def __init__(self, parent=None):
-        super(StatisticTab, self).__init__(parent=parent)
+        super(StatisticTab, self).__init__()
         self.parent = parent
         self.setObjectName(u"tab_2")
-        self.setStyleSheet(
-            """
-            #get_month_statistic {
-               font-size: 16px;
-               color: black;
-               background-color: Black;
-               border: none;
-               padding: 5px;
-               color: white;
-               margin: 0px;
-               
-               }
-
-            
-               
-            #get_more_statistic {
-               font-size: 16px;
-               color: black;
-               background-color: Black;
-               border: none;
-               padding: 5px;
-               color: white;
-               margin: 0px;
-               
-               }
-
-          
-
-            #button_before {
+        self.setStyleSheet("""
+                #button_before {
                 background-color: green;
                 font-size: 4em;
                 border: none;
                 color: white;
-            }
-            
-            #scrollAreaWidgetContents_2 {background-color:white; background-color:white}
-            QTableWidget {border: none; background-color:white;}
-         
-        )"""
-        )
+            }""")
 
         self.verticalLayout_14 = QtWidgets.QVBoxLayout(self)
         self.verticalLayout_14.setObjectName(u"verticalLayout_14")
@@ -3083,6 +3055,37 @@ class StatisticTab(QtWidgets.QWidget):
             self.retranslate()
 
     def init_statistic(self):
+        self.setStyleSheet(
+            """
+            #get_month_statistic {
+               font-size: 16px;
+               color: black;
+               background-color: Black;
+               border: none;
+               padding: 5px;
+               color: white;
+               margin: 0px;
+               
+               }
+
+            
+               
+            #get_more_statistic {
+               font-size: 16px;
+               color: black;
+               background-color: Black;
+               border: none;
+               padding: 5px;
+               color: white;
+               margin: 0px;
+               
+               }
+            
+            #scrollAreaWidgetContents_2 {background-color:white; background-color:white}
+            QTableWidget {border: none; background-color:white;}
+         
+        )"""
+        )
         self.scrollArea_2 = QtWidgets.QScrollArea()
         self.scrollArea_2.setObjectName(u"scrollArea_2")
         self.scrollArea_2.setWidgetResizable(True)
@@ -4187,6 +4190,7 @@ class WindowSetPassword(QtWidgets.QDialog):
                 MANAGER_STUDENTS.save_students()
                 self.parent.get_down_message(self.tr('Пароль успешно изменен'))
                 self.close()
+
 
 
 class ControlerWindows(QtWidgets.QWidget):

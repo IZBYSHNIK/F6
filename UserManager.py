@@ -56,7 +56,7 @@ class User:
         else:
             self.security_level = 1
 
-        self.user_id = self.generate_user_id() + '_' + username
+        self.user_id = self.generate_user_id()
         self.__password = self.check_password(password)
 
     @classmethod
@@ -213,12 +213,15 @@ class UserManager:
         if self.user.user_id not in self.users_id:
             self.users_id[self.user.user_id] = self.user.username
 
-    def link_user_by_username(self, username: str, ps: str) -> None:
-        user_id = None
-        for k, v in self.users_id.items():
-            if v == username:
-                user_id = k
-                break
+    def link_user_by_username(self, username: str, ps: str, id_=None) -> None:
+        if id_:
+            user_id = id_
+        else:
+            user_id = None
+            for k, v in self.users_id.items():
+                if v == username:
+                    user_id = k
+                    break
 
         if user_id is None:
             raise ValueError(f'Пользователя с именем {username} нет')
