@@ -1,4 +1,4 @@
-# Copyright 2022 Degtyarev Ivan
+# Copyright 2024 Degtyarev Ivan
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,37 +29,58 @@ from PySide6.QtCore import QTranslator, QLibraryInfo, Signal
 from PySide6.QtWidgets import QTableWidgetItem
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
+from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 
 from docx import Document
 import doc2docx
 
-from StudentsManager import ManagerStudents
-from UserManager import UserManager
+from F6_Core.students_manager import ManagerStudents
+from F6_Core.user_manager import UserManager
+from F6_Core.tools import ConfigManager
+
+
 import math, calendar
+
 
 matplotlib.use('Qt5Agg')
 
-VERSION = '1.1.1'
+VERSION = '1.2.0'
 
-QtCore.QCoreApplication.setLibraryPaths(['plugins'])
-
+QtCore.QCoreApplication.setLibraryPaths([os.path.join('PySide6', 'qt-plugins')])
 LANGUAGES = ManagerStudents.crate_eternal_iter(['english', 'china', 'russia'])
-CURRENT_LANGUAGE = None
-IS_CHANGE = False
-ADD_FONT_SIZE = 1
-NAME_FONT = 'Calibri'
+
+defalt_settings = {
+    'CURRENT_LANGUAGE': None,
+    'IS_CHANGE': False,
+    'ADD_FONT_SIZE': 1,
+    'NAME_FONT': 'Calibri',  
+}
+
 dirname, filename = os.path.split(os.path.abspath(__file__))
+
+CM = ConfigManager(dirname, **defalt_settings)
+try:
+    CM.load_config()
+except FileNotFoundError:
+    CM.dump_config()
+
 DEBAG = True
 BASE_PATH = dirname
+CONTENT_PATH = os.path.join(dirname, 'content')
+
 # DOCUMENTS_PATH = dirname
 # if not os.path.exists(os.path.join(DOCUMENTS_PATH, 'BD')):
 #     os.makedirs(os.path.join(DOCUMENTS_PATH, "BD"))
 # DOCUMENTS_PATH = os.path.join(dirname, 'BD')
 # print(DOCUMENTS_PATH, 'DOC_PATH')
 DOCUMENTS_PATH = os.path.expanduser("~/F6")
+# DOCUMENTS_PATH = os.path.expanduser("~/000")
+# DOCUMENTS_PATH = dirname
+
 
 USER_MANAGER = UserManager(DOCUMENTS_PATH)
 MANAGER_STUDENTS = None
+
 
 is_click_license = 0
 
@@ -128,7 +149,7 @@ class SplashScreen(QtWidgets.QSplashScreen):
         self.move((app.primaryScreen().size().width() - self.size().width()) // 2,
                   (app.primaryScreen().size().height() - self.size().height()) // 2 - 40)
 
-        self.logo = QtSvgWidgets.QSvgWidget(os.path.join(BASE_PATH, 'media', 'logo.svg'), parent=self)
+        self.logo = QtSvgWidgets.QSvgWidget(os.path.join(CONTENT_PATH, 'media', 'logo.svg'), parent=self)
         self.logo.move(65, 25)
         self.logo.setFixedSize(256, 256)
         self.logo.setObjectName("logo")
@@ -168,11 +189,11 @@ class LicenseWindow(QtWidgets.QWidget):
         super(LicenseWindow, self).__init__(parent=parent)
         self.setObjectName("Form")
         self.resize(600, 700)
-        self.setWindowIcon(QtGui.QIcon('media\\logo.svg'))
+        self.setWindowIcon(QtGui.QIcon(os.path.join(CONTENT_PATH, 'media', 'logo.svg')))
         self.setFixedSize(QtCore.QSize(600, 700))
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.logo = QtSvgWidgets.QSvgWidget(os.path.join(BASE_PATH, 'media', 'logo.svg'))
+        self.logo = QtSvgWidgets.QSvgWidget(os.path.join(CONTENT_PATH, 'media', 'logo.svg'))
         self.logo.setFixedSize(QtCore.QSize(50, 50))
 
         self.logo.setObjectName("label_2")
@@ -180,14 +201,14 @@ class LicenseWindow(QtWidgets.QWidget):
                                         QtCore.Qt.AlignmentFlag.AlignHCenter)
         self.label = QtWidgets.QLabel(self)
         font = QtGui.QFont()
-        font.setPointSize(16 + ADD_FONT_SIZE)
+        font.setPointSize(16 + CM.ADD_FONT_SIZE)
         self.label.setFont(font)
         self.label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.label.setObjectName("label")
         self.verticalLayout_2.addWidget(self.label)
         self.textBrowser = QtWidgets.QTextBrowser(self)
         font = QtGui.QFont()
-        font.setPointSize(14 + ADD_FONT_SIZE)
+        font.setPointSize(14 + CM.ADD_FONT_SIZE)
         self.textBrowser.setFont(font)
         self.textBrowser.setStyleSheet('border: none; background-color: rgba(0, 0, 0, 0)')
         self.textBrowser.setObjectName("textBrowser")
@@ -233,11 +254,11 @@ class GratutudeWindow(QtWidgets.QWidget):
         super(GratutudeWindow, self).__init__(parent=parent)
         self.setObjectName("Form")
         self.resize(600, 700)
-        self.setWindowIcon(QtGui.QIcon('media\\logo.svg'))
+        self.setWindowIcon(QtGui.QIcon(os.path.join(CONTENT_PATH, 'media', 'logo.svg')))
         self.setFixedSize(QtCore.QSize(600, 700))
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.logo = QtSvgWidgets.QSvgWidget(os.path.join(BASE_PATH, 'media', 'heart.svg'))
+        self.logo = QtSvgWidgets.QSvgWidget(os.path.join(CONTENT_PATH, 'media', 'heart.svg'))
         self.logo.setFixedSize(QtCore.QSize(50, 50))
 
         self.logo.setObjectName("label_2")
@@ -246,7 +267,7 @@ class GratutudeWindow(QtWidgets.QWidget):
 
         self.textBrowser = QtWidgets.QTextBrowser(self)
         font = QtGui.QFont()
-        font.setPointSize(14 + ADD_FONT_SIZE)
+        font.setPointSize(14 + CM.ADD_FONT_SIZE)
         self.textBrowser.setFont(font)
         self.textBrowser.setObjectName("textBrowser")
         self.textBrowser.setStyleSheet('border: none; background-color: rgba(0, 0, 0, 0)')
@@ -281,7 +302,7 @@ class Regist(QtWidgets.QWidget):
     def __init__(self):
         self.status = 0
         super().__init__()
-        self.setWindowIcon(QtGui.QIcon('media\\logo.svg'))
+        self.setWindowIcon(QtGui.QIcon(os.path.join(CONTENT_PATH, 'media', 'logo.svg')))
         self.setObjectName("Regist")
         self.setFixedSize(442, 700)
         self.setStyleSheet("QPushButton{\n"
@@ -433,7 +454,7 @@ class Regist(QtWidgets.QWidget):
             'border: none; color: red; font: 14px; background-color: rgba(249, 248, 244, 0);')
 
         self.logo = QtSvgWidgets.QSvgWidget(self)
-        self.logo.load(os.path.join(BASE_PATH, 'media', 'language.svg'))
+        self.logo.load(os.path.join(CONTENT_PATH, 'media', 'language.svg'))
         self.logo.setFixedSize(QtCore.QSize(50, 50))
         self.logo.move(362, 100)
         self.logo.mousePressEvent = set_language
@@ -523,7 +544,7 @@ class Auth(QtWidgets.QWidget):
     def __init__(self):
         self.status = 0
         super(Auth, self).__init__()
-        self.setWindowIcon(QtGui.QIcon('media\\logo.svg'))
+        self.setWindowIcon(QtGui.QIcon(os.path.join(CONTENT_PATH, 'media', 'logo.svg')))
         self.setFixedSize(442, 580)
 
         self.setStyleSheet("QPushButton{font: 18px; border: none; color: white; padding: 0px; margin: 0px}\n"
@@ -546,7 +567,7 @@ class Auth(QtWidgets.QWidget):
         self.auth.setObjectName("auth")
 
         self.logo = QtSvgWidgets.QSvgWidget(self)
-        self.logo.load(os.path.join(BASE_PATH, 'media', 'language.svg'))
+        self.logo.load(os.path.join(CONTENT_PATH, 'media', 'language.svg'))
         self.logo.setFixedSize(QtCore.QSize(50, 50))
         self.logo.move(362, 100)
 
@@ -580,7 +601,7 @@ class Auth(QtWidgets.QWidget):
         self.message_auth.setGeometry(60, 351 + 20, 351, 41)
 
         self.eye = QtSvgWidgets.QSvgWidget(self)
-        self.eye.load(os.path.join(BASE_PATH, 'media', 'eye_open.svg'))
+        self.eye.load(os.path.join(CONTENT_PATH, 'media', 'eye_open.svg'))
         self.eye.setFixedSize(QtCore.QSize(40, 40))
         self.eye.move(365, 300)
 
@@ -623,11 +644,11 @@ class Auth(QtWidgets.QWidget):
         if not self.is_open:
             self.password_edit.setEchoMode(QtWidgets.QLineEdit.EchoMode.Normal)
             self.is_open = 1
-            self.eye.load(os.path.join(BASE_PATH, 'media', 'eye_close.svg'))
+            self.eye.load(os.path.join(CONTENT_PATH, 'media', 'eye_close.svg'))
         else:
             self.password_edit.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
             self.is_open = 0
-            self.eye.load(os.path.join(BASE_PATH, 'media', 'eye_open.svg'))
+            self.eye.load(os.path.join(CONTENT_PATH, 'media', 'eye_open.svg'))
 
     def keyPressEvent(self, e):
         k = e.key()
@@ -635,35 +656,37 @@ class Auth(QtWidgets.QWidget):
         if k == 16777220:
             self.click_auth_push()
 
+
     def update_users(self):
         self.spin_box.clear()
-        list_user = list(USER_MANAGER.users_id.values())
+        list_user = list(map(lambda x: f'{x[1]} ({x[0]})', USER_MANAGER.users_id.items()))
         if USER_MANAGER.parametrs.get('LastUser'):
             username = USER_MANAGER.users_id.get(USER_MANAGER.parametrs.get('LastUser'))
             if username in list_user:
                 list_user.remove(username)
                 list_user.insert(0, username)
         for i in list_user:
-            self.spin_box.addItem(QtGui.QIcon(os.path.join(BASE_PATH, 'media', 'student_icon.svg')), i)
+            self.spin_box.addItem(QtGui.QIcon(os.path.join(CONTENT_PATH, 'media', 'student_icon.svg')), i)
 
-    def checking_log_password(self):
-
-        if not USER_MANAGER.USER_CLASS.is_valid_username(self.spin_box.currentText()):
+    def checking_log_password(self, login: str, password: str) -> tuple: 
+        if not USER_MANAGER.USER_CLASS.is_valid_username(login):
             raise ValueError(self.tr('Имя пользователя должено быть строкой из 3-20 букв или числовых символов'))
-        if not USER_MANAGER.USER_CLASS.is_valid_password(self.password_edit.text()):
+        if not USER_MANAGER.USER_CLASS.is_valid_password(password):
             raise ValueError(self.tr('Пароль должен быть строкой из 4-30 символов'))
-        return self.spin_box.currentText(), self.password_edit.text()
+        return login, password
 
     def click_auth_push(self):
 
         try:
-            username, password = self.checking_log_password()
+            id_ = list(USER_MANAGER.users_id)[self.spin_box.currentIndex()]          
+            login = USER_MANAGER.users_id[id_]
+            username, password = self.checking_log_password(login, self.password_edit.text())
         except BaseException as message:
             self.message_auth.setText(str(message))
 
         else:
             try:
-                USER_MANAGER.link_user_by_username(username, password)
+                USER_MANAGER.link_user_by_username(username, password, id_=id_)
             except (FileNotFoundError, json.JSONDecodeError):
                 self.message_auth.setText(self.tr('*Файлы пользователя повреждены'))
             except ValueError:
@@ -671,6 +694,7 @@ class Auth(QtWidgets.QWidget):
             except BaseException:
                 self.message_auth.setText(self.tr('*Внутренняя ошибка программы'))
             else:
+                USER_MANAGER.user.user_id = id_
                 self.password_edit.clear()
                 self.status = 1
                 self.close()
@@ -1001,8 +1025,7 @@ class BaseTable:
     def save_table(self):
         try:
             MANAGER_STUDENTS.save_students()
-            global IS_CHANGE
-            IS_CHANGE = False
+            CM.IS_CHANGE = False
         except BaseException:
             self.parent.get_down_message(self.tr('НЕ удалось сохранить файл'))
         else:
@@ -1094,17 +1117,17 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
 
         # ________________________________________
         self.load_schedule_push = Push(self.frame, 40, 40, 5,
-                                       icon_path=os.path.join('media', 'buttons', 'load_schedule.svg'))
+                                       icon_path=os.path.join(CONTENT_PATH, 'media', 'buttons', 'load_schedule.svg'))
         self.load_schedule_push.setObjectName("load_schedule_push")
         self.horizontalLayout_2.addWidget(self.load_schedule_push)
 
         self.set_size_posetiv_font_push = Push(self.frame, 40, 40, 5,
-                                               icon_path=os.path.join('media', 'posetive.svg'))
+                                               icon_path=os.path.join(CONTENT_PATH, 'media', 'posetive.svg'))
 
         self.horizontalLayout_2.addWidget(self.set_size_posetiv_font_push)
 
         self.set_size_negativ_font_push = Push(self.frame, 40, 40, 5,
-                                               icon_path=os.path.join('media', 'negative.svg'))
+                                               icon_path=os.path.join(CONTENT_PATH, 'media', 'negative.svg'))
         self.horizontalLayout_2.addWidget(self.set_size_negativ_font_push)
 
         # _________________________________________
@@ -1112,15 +1135,15 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
         self.horizontalLayout_2.addLayout(self.horizontalLayout_4)
 
         self.save_table_push = Push(self.frame, 40, 40, 5,
-                                    icon_path=os.path.join('media', 'buttons', 'save.svg'))
+                                    icon_path=os.path.join(CONTENT_PATH, 'media', 'buttons', 'save.svg'))
         self.save_table_push.setObjectName("save_table_push")
         self.horizontalLayout_2.addWidget(self.save_table_push)
         self.game_over_push = Push(self.frame, 40, 40, 5,
-                                   icon_path=os.path.join('media', 'game_over.svg'))
+                                   icon_path=os.path.join(CONTENT_PATH, 'media', 'game_over.svg'))
         self.game_over_push.setObjectName("game_over_push")
         self.horizontalLayout_2.addWidget(self.game_over_push)
         self.save_to_exel_push = Push(self.frame, 55, 55, 5,
-                                      icon_path=os.path.join('media', 'save_exel.svg'))
+                                      icon_path=os.path.join(CONTENT_PATH, 'media', 'save_exel.svg'))
         self.save_to_exel_push.setObjectName("save_to_exel_push")
         self.horizontalLayout_2.addWidget(self.save_to_exel_push)
         self.horizontalLayout_3.addLayout(self.horizontalLayout_2)
@@ -1162,17 +1185,17 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
         self.properties_table_view_horizontalLayout.addLayout(self.section_second)
 
         self.arrow_narrow_top_push = Push(self.properties_table_view_horizontalLayout, 25, 25, 5,
-                                          icon_path=os.path.join('media', 'arrow_narrow_top.svg'))
+                                          icon_path=os.path.join(CONTENT_PATH, 'media', 'arrow_narrow_top.svg'))
         self.arrow_narrow_top_push.setObjectName("arrow_narrow_top_push")
         self.properties_table_view_horizontalLayout.addWidget(self.arrow_narrow_top_push)
 
         self.arrow_narrow_down_push = Push(self.properties_table_view_horizontalLayout, 25, 25, 5,
-                                           icon_path=os.path.join('media', 'arrow_narrow_down.svg'))
+                                           icon_path=os.path.join(CONTENT_PATH, 'media', 'arrow_narrow_down.svg'))
         self.arrow_narrow_down_push.setObjectName("arrow_narrow_down_push")
         self.properties_table_view_horizontalLayout.addWidget(self.arrow_narrow_down_push)
 
         self.update_table_push = Push(self.properties_table_view_horizontalLayout, 25, 25, 5,
-                                      icon_path=os.path.join('media', 'update.svg'))
+                                      icon_path=os.path.join(CONTENT_PATH, 'media', 'update.svg'))
         self.update_table_push.setObjectName("update_table_push")
         self.properties_table_view_horizontalLayout.addWidget(self.update_table_push)
 
@@ -1225,13 +1248,13 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
         self.save_to_exel_push.setToolTip(self.tr('Сохранить в EXEL'))
         self.double_mod.setText('2X')
 
-        self.is_sick_rb.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.radioButton_2.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.label_2.setFont(QtGui.QFont(NAME_FONT, 17 + ADD_FONT_SIZE))
+        self.is_sick_rb.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.radioButton_2.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.label_2.setFont(QtGui.QFont(CM.NAME_FONT, 17 + CM.ADD_FONT_SIZE))
 
-        self.statustic1.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
-        self.double_mod.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
-        self.statustic2.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
+        self.statustic1.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
+        self.double_mod.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
+        self.statustic2.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
 
         if hasattr(self, 'tableWidget'):
             self.tableWidget.retranslateUi()
@@ -1293,8 +1316,7 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
             self.tableWidget.update_table_students(size=self.tableWidget.mod_size - 2)
 
     def clicked_table(self, tablewidget):
-        global IS_CHANGE
-        IS_CHANGE = True
+        CM.IS_CHANGE = True
         if self.parent.group.indexOf(self.parent.students) == -1 and len(MANAGER_STUDENTS.students) != 0:
             self.parent.group.insertTab(2, self.parent.students, self.tr('Cтуденты'))
 
@@ -1569,22 +1591,22 @@ class MarksTab(QtWidgets.QWidget, BaseTable):
         self.horizontalLayout_19.setContentsMargins(7, -1, -1, -1)
         self.horizontalLayout_19.setObjectName("horizontalLayout_19")
         self.pushButton_9 = Push(self.frame_3, 40, 40, 5,
-                                 icon_path=os.path.join('media', 'buttons', 'save.svg'))
+                                 icon_path=os.path.join(CONTENT_PATH, 'media', 'buttons', 'save.svg'))
         self.pushButton_9.setObjectName("pushButton_9")
 
         # ___________________________________________________________________
         self.set_size_posetiv_font_push = Push(self.frame_3, 40, 40, 5,
-                                               icon_path=os.path.join('media', 'posetive.svg'))
+                                               icon_path=os.path.join(CONTENT_PATH, 'media', 'posetive.svg'))
         self.horizontalLayout_19.addWidget(self.set_size_posetiv_font_push)
 
         self.set_size_negativ_font_push = Push(self.frame_3, 40, 40, 5,
-                                               icon_path=os.path.join('media', 'negative.svg'))
+                                               icon_path=os.path.join(CONTENT_PATH, 'media', 'negative.svg'))
         self.horizontalLayout_19.addWidget(self.set_size_negativ_font_push)
 
         # ___________________________________________________________________
         self.horizontalLayout_19.addWidget(self.pushButton_9)
         self.save_to_exel_marks_push = Push(self.frame_3, 55, 55, 5,
-                                            icon_path=os.path.join('media', 'save_exel.svg'))
+                                            icon_path=os.path.join(CONTENT_PATH, 'media', 'save_exel.svg'))
         self.save_to_exel_marks_push.setObjectName("pushButton_10")
         self.horizontalLayout_19.addWidget(self.save_to_exel_marks_push)
         self.horizontalLayout_17.addLayout(self.horizontalLayout_19)
@@ -1625,12 +1647,12 @@ class MarksTab(QtWidgets.QWidget, BaseTable):
         self.properties_table_view_horizontalLayout.addLayout(self.section_second)
 
         self.arrow_narrow_top_push = Push(self.properties_table_view_horizontalLayout, 25, 25, 5,
-                                          icon_path=os.path.join('media', 'arrow_narrow_top.svg'))
+                                          icon_path=os.path.join(CONTENT_PATH, 'media', 'arrow_narrow_top.svg'))
         self.arrow_narrow_top_push.setObjectName("arrow_narrow_top_push")
         self.properties_table_view_horizontalLayout.addWidget(self.arrow_narrow_top_push)
 
         self.arrow_narrow_down_push = Push(self.properties_table_view_horizontalLayout, 25, 25, 5,
-                                           icon_path=os.path.join('media', 'arrow_narrow_down.svg'))
+                                           icon_path=os.path.join(CONTENT_PATH, 'media', 'arrow_narrow_down.svg'))
         self.arrow_narrow_down_push.setObjectName("arrow_narrow_down_push")
         self.properties_table_view_horizontalLayout.addWidget(self.arrow_narrow_down_push)
 
@@ -1660,8 +1682,8 @@ class MarksTab(QtWidgets.QWidget, BaseTable):
             self.tableWidget_3.retranslateUi()
             self.update_statistics_2()
 
-        self.statustic3.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
-        self.statustic4.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
+        self.statustic3.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
+        self.statustic4.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
 
     def add_function(self):
         self.pushButton_9.clicked.connect(self.save_table)
@@ -1777,8 +1799,7 @@ class MarksTab(QtWidgets.QWidget, BaseTable):
             self.tableWidget_3.cellChanged.connect(self.clicked_table_marks)
 
     def clicked_table_marks(self):
-        global IS_CHANGE
-        IS_CHANGE = True
+        CM.IS_CHANGE = True
         item = self.tableWidget_3.currentItem()
         if not item is None:
             if item.column() == 1:
@@ -1960,11 +1981,11 @@ class StudentsTab(QtWidgets.QWidget):
         self.save_push.setText(self.tr("Сохранить"))
         self.label.setText(self.tr("Список студентов"))
 
-        self.fio_label.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
-        self.del_push.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
-        self.save_push.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
-        self.label.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 16))
-        self.listWidget.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
+        self.fio_label.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
+        self.del_push.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
+        self.save_push.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
+        self.label.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 16))
+        self.listWidget.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
 
     def add_function(self):
         self.save_push.clicked.connect(self.save_student)
@@ -2084,7 +2105,7 @@ class ArchiveTab(QtWidgets.QWidget):
         self.horizontalLayout_9.addWidget(self.load_file_push)
         self.verticalLayout_11.addLayout(self.horizontalLayout_9)
         self.logout_archive_push = Push(self.parent.F6.frame, 40, 40, 5, tool_tip=self.tr('Выйти из архива'),
-                                        icon_path=os.path.join('media', 'undo.svg'))
+                                        icon_path=os.path.join(CONTENT_PATH, 'media', 'undo.svg'))
         self.logout_archive_push.hide()
         self.logout_archive_push.setObjectName("logout_archive_push")
 
@@ -2100,10 +2121,10 @@ class ArchiveTab(QtWidgets.QWidget):
         self.del_file_push.setText(self.tr("Удалить"))
         self.load_file_push.setText(self.tr("Активировать"))
 
-        self.list_archive.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
-        self.label_4.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 16))
-        self.del_file_push.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
-        self.load_file_push.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
+        self.list_archive.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
+        self.label_4.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 16))
+        self.del_file_push.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
+        self.load_file_push.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
 
     def add_function(self):
         self.del_file_push.clicked.connect(self.clicked_del_file_push)
@@ -2307,7 +2328,7 @@ class SettingsTab(QtWidgets.QWidget):
         self.show_weekend_link_button_test.setObjectName("show_weekend_link_button_test")
         self.right_layout.addWidget(self.show_weekend_link_button_test)
 
-        self.show_current_month_link_button_test.hide()
+        # self.show_current_month_link_button_test.hide()
         self.restart_weekend_link_button_test.hide()
         self.show_weekend_link_button_test.hide()
 
@@ -2339,7 +2360,7 @@ class SettingsTab(QtWidgets.QWidget):
         self.set_data_table_link_button.setText(self.tr("Изменить месяц и год"))
         self.del_work_day_link_button.setText(self.tr("Удалить рабочий день"))
         self.restart_weekend_link_button.setText(self.tr('Сброс праздников'))
-        self.show_weekend_link_button.setText(self.tr('Просмотреть список праздничных дней'))
+        self.show_weekend_link_button.setText(self.tr('Праздничные дни'))
 
         self.set_data_table_label.setText(self.tr('Период'))
         self.language_label.setText(self.tr('Язык'))
@@ -2351,22 +2372,22 @@ class SettingsTab(QtWidgets.QWidget):
         self.on_off_table_marks_link_button.setText(self.tr('Включить/выключить таблицу оценок'))
         self.on_off_statistics_link_button.setText(self.tr('Включить/выключить статистику'))
 
-        self.setings1_label.setFont(QtGui.QFont(NAME_FONT, 16 + ADD_FONT_SIZE))
-        self.show_current_month_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.restart_weekend_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.show_weekend_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.set_data_table_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.del_work_day_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.set_data_table_label.setFont(QtGui.QFont(NAME_FONT, 16 + ADD_FONT_SIZE))
-        self.set_data_table_label.setFont(QtGui.QFont(NAME_FONT, 16 + ADD_FONT_SIZE))
-        self.set_language_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.clear_table_label.setFont(QtGui.QFont(NAME_FONT, 16 + ADD_FONT_SIZE))
-        self.clear_table_marks_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.language_label.setFont(QtGui.QFont(NAME_FONT, 16 + ADD_FONT_SIZE))
-        self.clear_table_abcense_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.on_off_table_marks_label.setFont(QtGui.QFont(NAME_FONT, 16 + ADD_FONT_SIZE))
-        self.on_off_table_marks_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.on_off_statistics_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
+        self.setings1_label.setFont(QtGui.QFont(CM.NAME_FONT, 16 + CM.ADD_FONT_SIZE))
+        self.show_current_month_link_button.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.restart_weekend_link_button.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.show_weekend_link_button.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.set_data_table_link_button.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.del_work_day_link_button.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.set_data_table_label.setFont(QtGui.QFont(CM.NAME_FONT, 16 + CM.ADD_FONT_SIZE))
+        self.set_data_table_label.setFont(QtGui.QFont(CM.NAME_FONT, 16 + CM.ADD_FONT_SIZE))
+        self.set_language_link_button.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.clear_table_label.setFont(QtGui.QFont(CM.NAME_FONT, 16 + CM.ADD_FONT_SIZE))
+        self.clear_table_marks_link_button.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.language_label.setFont(QtGui.QFont(CM.NAME_FONT, 16 + CM.ADD_FONT_SIZE))
+        self.clear_table_abcense_link_button.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.on_off_table_marks_label.setFont(QtGui.QFont(CM.NAME_FONT, 16 + CM.ADD_FONT_SIZE))
+        self.on_off_table_marks_link_button.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.on_off_statistics_link_button.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
 
     def add_function(self):
         self.show_current_month_link_button.clicked.connect(self.show_current_month)
@@ -2378,7 +2399,8 @@ class SettingsTab(QtWidgets.QWidget):
         self.on_off_statistics_link_button.clicked.connect(self.on_off_statistics)
         self.set_language_link_button.clicked.connect(self.set_language)
         self.restart_weekend_link_button.clicked.connect(self.restart_weekend)
-        self.show_weekend_link_button.clicked.connect(self.show_weekend)
+        self.show_weekend_link_button.clicked.connect(self.show_year)
+        self.show_current_month_link_button_test.clicked.connect(self.show_weekend)
 
     def set_language(self):
         global set_language
@@ -2399,9 +2421,9 @@ class SettingsTab(QtWidgets.QWidget):
 
     def show_weekend(self):
         self.list_weekend = QtWidgets.QTextBrowser()
-        self.list_weekend.setWindowIcon(QtGui.QIcon('media\\logo.svg'))
+        self.list_weekend.setWindowIcon(QtGui.QIcon(os.path.join(CONTENT_PATH, 'media', 'logo.svg')))
         self.list_weekend.setWindowTitle(self.tr('Список выходных дней'))
-        self.list_weekend.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
+        self.list_weekend.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
 
         resalt = '<table>'
         for k, v in USER_MANAGER.user.happy_days.items():
@@ -2412,22 +2434,60 @@ class SettingsTab(QtWidgets.QWidget):
         self.list_weekend.show()
 
     def show_current_month(self):
-        month = MonthCalendarView(MANAGER_STUDENTS, self.parent)
+        month = MonthCalendarView(MANAGER_STUDENTS, parent=self.parent)
         month.show()
         month.exec()
         try:
             MANAGER_STUDENTS.user.save_happy_days()
         except BaseException as f:
-            print(f)
+            self.parent.get_down_message(self.tr('НЕ удалось сохранить файл'))
         else:
             try:
                 MANAGER_STUDENTS.save_students()
-                global IS_CHANGE
-                IS_CHANGE = False
+                CM.IS_CHANGE = False
             except BaseException:
                 self.parent.get_down_message(self.tr('НЕ удалось сохранить файл'))
             else:
                 self.parent.get_down_message(self.tr('Успешное сохранение'))
+
+        month.deleteLater()
+
+    def show_year(self):
+        window = QtWidgets.QDialog()#parent=self.parent)
+        window.setWindowTitle(self.tr('Праздничные дни'))
+        window.setWindowIcon(QtGui.QIcon(os.path.join(CONTENT_PATH, 'media', 'logo.svg')))
+        window.setModal(True)
+        centerLayout = QtWidgets.QVBoxLayout(window)
+        scrollArea = QtWidgets.QScrollArea(window)
+        scrollArea.setWidgetResizable(True)
+        scrollAreaWidgetContents = QtWidgets.QWidget()
+        layout = QtWidgets.QVBoxLayout(scrollAreaWidgetContents)
+        month = MANAGER_STUDENTS.period[0] - 1
+        for i in range(4):
+            layout_row = QtWidgets.QHBoxLayout()
+            for j in range(3):
+                layout_row.addWidget(YearCalendarView(MANAGER_STUDENTS, period=[month % 12 + 1, MANAGER_STUDENTS.period[1] + month // 12], parent=self.parent, is_only_happy_days=True))
+                month += 1
+            layout.addLayout(layout_row)
+        scrollArea.setWidget(scrollAreaWidgetContents)
+        centerLayout.addWidget(scrollArea)
+        scrollAreaWidgetContents.show()
+        window.show()
+        window.exec()
+        try:
+            MANAGER_STUDENTS.user.save_happy_days()
+        except BaseException as f:
+            self.parent.get_down_message(self.tr('НЕ удалось сохранить файл'))
+        else:
+            try:
+                MANAGER_STUDENTS.save_students()
+                CM.IS_CHANGE = False
+            except BaseException:
+                self.parent.get_down_message(self.tr('НЕ удалось сохранить файл'))
+            else:
+                self.parent.get_down_message(self.tr('Успешное сохранение'))
+
+        window.deleteLater()
 
     def show_academic_year(self):
         pass
@@ -2630,19 +2690,19 @@ class ProfileTab(QtWidgets.QWidget):
         self.horizontalLayout_7.setContentsMargins(0, 65, 0, 0)
         self.horizontalLayout_7.setObjectName("horizontalLayout_7")
         self.save_user_push = Push(self.horizontalLayout_7, 35, 35, 5,
-                                   icon_path=os.path.join('media', 'buttons', 'save.svg'))
+                                   icon_path=os.path.join(CONTENT_PATH, 'media', 'buttons', 'save.svg'))
         self.save_user_push.setObjectName("save_user_push")
         self.horizontalLayout_7.addWidget(self.save_user_push)
         self.set_password_push = Push(self.horizontalLayout_7, 35, 35, 5,
-                                      icon_path=os.path.join('media', 'buttons', 'set_password.svg'))
+                                      icon_path=os.path.join(CONTENT_PATH, 'media', 'buttons', 'set_password.svg'))
         self.set_password_push.setObjectName("set_password_push")
         self.horizontalLayout_7.addWidget(self.set_password_push)
         self.del_user_push = Push(self.horizontalLayout_7, 35, 35, 5,
-                                  icon_path=os.path.join('media', 'buttons', 'del_user.svg'))
+                                  icon_path=os.path.join(CONTENT_PATH, 'media', 'buttons', 'del_user.svg'))
         self.del_user_push.setObjectName("del_user_push")
         self.horizontalLayout_7.addWidget(self.del_user_push)
         self.logout_push = Push(self.horizontalLayout_7, 35, 35, 5,
-                                icon_path=os.path.join('media', 'buttons', 'logout.svg'))
+                                icon_path=os.path.join(CONTENT_PATH, 'media', 'buttons', 'logout.svg'))
         self.logout_push.setObjectName("logout_push")
         self.horizontalLayout_7.addWidget(self.logout_push)
 
@@ -2658,7 +2718,7 @@ class ProfileTab(QtWidgets.QWidget):
         self.verticalLayout_7.setObjectName("verticalLayout_7")
         self.verticalLayout_12 = QtWidgets.QVBoxLayout()
         self.verticalLayout_12.setObjectName("verticalLayout_12")
-        self.photo = QtSvgWidgets.QSvgWidget(os.path.join('media', 'profile', f'{str(random.randint(1, 15))}.svg'))
+        self.photo = QtSvgWidgets.QSvgWidget(os.path.join(CONTENT_PATH, 'media', 'profile', f'{str(random.randint(1, 15))}.svg'))
         self.photo.setFixedSize(QtCore.QSize(250, 250))
         self.photo.setObjectName("photo")
 
@@ -2694,26 +2754,26 @@ class ProfileTab(QtWidgets.QWidget):
 
     def load_atchivments(self):
         self.ACHIEVEMENT = {
-            (0, 0): (self.tr('Поехали!'), os.path.join('media', 'achievements', '10.svg')),
-            (0, 1): (self.tr('Полный набор'), os.path.join('media', 'achievements', '1.svg')),
-            (0, 2): (self.tr('Игра окончена'), os.path.join('media', 'achievements', '2.svg')),
-            (0, 3): (self.tr('Шерлок?'), os.path.join('media', 'achievements', '4.svg')),
-            (0, 4): (self.tr('Исследователь'), os.path.join('media', 'achievements', '5.svg')),
-            (1, 0): (self.tr('Делу время....'), os.path.join('media', 'achievements', '7.svg')),
-            (1, 1): (self.tr('..потехе час'), os.path.join('media', 'achievements', '8.svg')),
-            (1, 2): (self.tr('Частичка истории'), os.path.join('media', 'achievements', '14.svg')),
-            (1, 3): (self.tr('Это что? Микробы!'), os.path.join('media', 'achievements', '12.svg')),
-            (1, 4): (self.tr('Я видел темную сторону Луны'), os.path.join('media', 'achievements', '13.svg')),
-            (2, 0): (self.tr('Моя прелесть'), os.path.join('media', 'achievements', '16.svg')),
-            (2, 1): (self.tr('Сова'), os.path.join('media', 'achievements', '17.svg')),
-            (2, 2): (self.tr('Классику сэр?'), os.path.join('media', 'achievements', '15.svg')),
-            (2, 3): (self.tr('Трансформация'), os.path.join('media', 'achievements', '3.svg')),
-            (2, 4): (self.tr('Быть или не быть'), os.path.join('media', 'achievements', '9.svg')),
-            (3, 0): (self.tr('Ушел по-английски'), os.path.join('media', 'achievements', '11.svg')),
-            (3, 1): (self.tr('Назад в будущее'), os.path.join('media', 'achievements', '18.svg')),
-            (3, 2): (self.tr('Коллекционер'), os.path.join('media', 'achievements', '6.svg')),
-            (3, 3): (self.tr('С НГ!'), os.path.join('media', 'achievements', '19.svg')),
-            (3, 4): (self.tr('Звезда'), os.path.join('media', 'achievements', '20.svg')),
+            (0, 0): (self.tr('Поехали!'), os.path.join(CONTENT_PATH, 'media', 'achievements', '10.svg')),
+            (0, 1): (self.tr('Полный набор'), os.path.join(CONTENT_PATH, 'media', 'achievements', '1.svg')),
+            (0, 2): (self.tr('Игра окончена'), os.path.join(CONTENT_PATH, 'media', 'achievements', '2.svg')),
+            (0, 3): (self.tr('Шерлок?'), os.path.join(CONTENT_PATH, 'media', 'achievements', '4.svg')),
+            (0, 4): (self.tr('Исследователь'), os.path.join(CONTENT_PATH, 'media', 'achievements', '5.svg')),
+            (1, 0): (self.tr('Делу время....'), os.path.join(CONTENT_PATH, 'media', 'achievements', '7.svg')),
+            (1, 1): (self.tr('..потехе час'), os.path.join(CONTENT_PATH, 'media', 'achievements', '8.svg')),
+            (1, 2): (self.tr('Частичка истории'), os.path.join(CONTENT_PATH, 'media', 'achievements', '14.svg')),
+            (1, 3): (self.tr('Это что? Микробы!'), os.path.join(CONTENT_PATH, 'media', 'achievements', '12.svg')),
+            (1, 4): (self.tr('Я видел темную сторону Луны'), os.path.join(CONTENT_PATH, 'media', 'achievements', '13.svg')),
+            (2, 0): (self.tr('Моя прелесть'), os.path.join(CONTENT_PATH, 'media', 'achievements', '16.svg')),
+            (2, 1): (self.tr('Сова'), os.path.join(CONTENT_PATH, 'media', 'achievements', '17.svg')),
+            (2, 2): (self.tr('Классику сэр?'), os.path.join(CONTENT_PATH, 'media', 'achievements', '15.svg')),
+            (2, 3): (self.tr('Трансформация'), os.path.join(CONTENT_PATH, 'media', 'achievements', '3.svg')),
+            (2, 4): (self.tr('Быть или не быть'), os.path.join(CONTENT_PATH, 'media', 'achievements', '9.svg')),
+            (3, 0): (self.tr('Ушел по-английски'), os.path.join(CONTENT_PATH, 'media', 'achievements', '11.svg')),
+            (3, 1): (self.tr('Назад в будущее'), os.path.join(CONTENT_PATH, 'media', 'achievements', '18.svg')),
+            (3, 2): (self.tr('Коллекционер'), os.path.join(CONTENT_PATH, 'media', 'achievements', '6.svg')),
+            (3, 3): (self.tr('С НГ!'), os.path.join(CONTENT_PATH, 'media', 'achievements', '19.svg')),
+            (3, 4): (self.tr('Звезда'), os.path.join(CONTENT_PATH, 'media', 'achievements', '20.svg')),
         }
 
     def add_function(self):
@@ -2743,17 +2803,17 @@ class ProfileTab(QtWidgets.QWidget):
         self.logout_push.setToolTip(self.tr('Выйти из аккаунта'))
         self.load_atchivments()
 
-        self.accaunt_label.setFont(QtGui.QFont(NAME_FONT, 16 + ADD_FONT_SIZE))
-        self.username_label.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.fio_user_label.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.teamleader_label.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.group_label.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.specialization_label.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
+        self.accaunt_label.setFont(QtGui.QFont(CM.NAME_FONT, 16 + CM.ADD_FONT_SIZE))
+        self.username_label.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.fio_user_label.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.teamleader_label.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.group_label.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.specialization_label.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
 
-        self.security_leve_label.setFont(QtGui.QFont(NAME_FONT, 16 + ADD_FONT_SIZE))
+        self.security_leve_label.setFont(QtGui.QFont(CM.NAME_FONT, 16 + CM.ADD_FONT_SIZE))
 
     def click_profile(self, *args, **kwargs):
-        photo = QtSvgWidgets.QSvgWidget(os.path.join('media', 'profile', f'{str(random.randint(1, 15))}.svg'))
+        photo = QtSvgWidgets.QSvgWidget(os.path.join(CONTENT_PATH, 'media', 'profile', f'{str(random.randint(1, 15))}.svg'))
         photo.setFixedSize(QtCore.QSize(250, 250))
         self.verticalLayout_12.replaceWidget(self.photo, photo)
         self.photo.deleteLater()
@@ -2780,7 +2840,7 @@ class ProfileTab(QtWidgets.QWidget):
                     qlable.setToolTip(str(self.ACHIEVEMENT[(i, j)][0]))
                     qlable.setFixedSize(QtCore.QSize(80, 80))
                 else:
-                    qlable = QtSvgWidgets.QSvgWidget(os.path.join('media', 'achievements', '0.svg'))
+                    qlable = QtSvgWidgets.QSvgWidget(os.path.join(CONTENT_PATH, 'media', 'achievements', '0.svg'))
                     # qlable.setToolTip(str(self.ACHIEVEMENT[(i, j)][0]))
                     qlable.setFixedSize(QtCore.QSize(80, 80))
                 self.atchivmenys_layout.addWidget(qlable)
@@ -2927,7 +2987,7 @@ class ProfileTab(QtWidgets.QWidget):
         if value in [0, 50, 100]:
             self.security_level_photo.deleteLater()
             self.security_level_photo = QtSvgWidgets.QSvgWidget(
-                os.path.join('media', 'security_level', f'security_level_{str(value // 50)}.svg'))
+                os.path.join(CONTENT_PATH, 'media', 'security_level', f'security_level_{str(value // 50)}.svg'))
             self.security_level_photo.setFixedSize(100, 100)
 
             self.security_level_photo_layout.addWidget(self.security_level_photo, QtCore.Qt.AlignmentFlag.AlignVCenter,
@@ -2943,10 +3003,10 @@ class ProfileTab(QtWidgets.QWidget):
             self.security_level_photo.deleteLater()
         if isinstance(level, int) and 0 <= level <= 2:
             self.security_level_photo = QtSvgWidgets.QSvgWidget(
-                os.path.join('media', 'security_level', f'security_level_{str(level)}.svg'))
+                os.path.join(CONTENT_PATH, 'media', 'security_level', f'security_level_{str(level)}.svg'))
         else:
             self.security_level_photo = QtSvgWidgets.QSvgWidget(
-                os.path.join('media', 'security_level', 'security_level_none.svg'))
+                os.path.join(CONTENT_PATH, 'media', 'security_level', 'security_level_none.svg'))
 
         self.security_level_photo.setFixedSize(100, 100)
         self.security_level_photo_layout.addWidget(self.security_level_photo, QtCore.Qt.AlignmentFlag.AlignVCenter,
@@ -2969,49 +3029,16 @@ class StatisticTab(QtWidgets.QWidget):
              'seaborn-v0_8-pastel', 'seaborn-v0_8-talk', 'seaborn-v0_8-whitegrid', 'tableau-colorblind10']
 
     def __init__(self, parent=None):
-        super(StatisticTab, self).__init__(parent=parent)
+        super(StatisticTab, self).__init__()
         self.parent = parent
         self.setObjectName(u"tab_2")
-        self.setStyleSheet(
-            """
-            #get_month_statistic {
-               font-size: 16px;
-               color: black;
-               background-color: Black;
-               border: none;
-               padding: 5px;
-               color: white;
-               margin: 0px;
-               
-               }
-
-            
-               
-            #get_more_statistic {
-               font-size: 16px;
-               color: black;
-               background-color: Black;
-               border: none;
-               padding: 5px;
-               color: white;
-               margin: 0px;
-               
-               }
-
-          
-
-            #button_before {
+        self.setStyleSheet("""
+                #button_before {
                 background-color: green;
                 font-size: 4em;
                 border: none;
                 color: white;
-            }
-            
-            #scrollAreaWidgetContents_2 {background-color:white; background-color:white}
-            QTableWidget {border: none; background-color:white;}
-         
-        )"""
-        )
+            }""")
 
         self.verticalLayout_14 = QtWidgets.QVBoxLayout(self)
         self.verticalLayout_14.setObjectName(u"verticalLayout_14")
@@ -3039,6 +3066,37 @@ class StatisticTab(QtWidgets.QWidget):
             self.retranslate()
 
     def init_statistic(self):
+        self.setStyleSheet(
+            """
+            #get_month_statistic {
+               font-size: 16px;
+               color: black;
+               background-color: Black;
+               border: none;
+               padding: 5px;
+               color: white;
+               margin: 0px;
+               
+               }
+
+            
+               
+            #get_more_statistic {
+               font-size: 16px;
+               color: black;
+               background-color: Black;
+               border: none;
+               padding: 5px;
+               color: white;
+               margin: 0px;
+               
+               }
+            
+            #scrollAreaWidgetContents_2 {background-color:white; background-color:white}
+            QTableWidget {border: none; background-color:white;}
+         
+        )"""
+        )
         self.scrollArea_2 = QtWidgets.QScrollArea()
         self.scrollArea_2.setObjectName(u"scrollArea_2")
         self.scrollArea_2.setWidgetResizable(True)
@@ -3064,7 +3122,7 @@ class StatisticTab(QtWidgets.QWidget):
         self.message_none.hide()
         self.message_none.setStyleSheet('color: red;')
         self.message_none.setAlignment(QtCore.Qt.AlignCenter)
-        self.message_none.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
+        self.message_none.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
         self.verticalLayout_0.addWidget(self.message_none)
         # self.verticalLayout_16 = QtWidgets.QVBoxLayout()
         # self.verticalLayout_16.setObjectName(u"verticalLayout_16")
@@ -3113,15 +3171,15 @@ class StatisticTab(QtWidgets.QWidget):
                 is_draw = 0
 
         else:
-            if CURRENT_LANGUAGE:
-                if CURRENT_LANGUAGE == 'china':
+            if CM.CURRENT_LANGUAGE:
+                if CM.CURRENT_LANGUAGE == 'china':
                     font = font_manager.FontProperties(family='Microsoft JhengHei',
                                                        weight='bold',
-                                                       style='normal', size=12 + ADD_FONT_SIZE)
+                                                       style='normal', size=12 + CM.ADD_FONT_SIZE)
                 else:
                     font = font_manager.FontProperties(family='Arial',
                                                        weight='bold',
-                                                       style='normal', size=12 + ADD_FONT_SIZE)
+                                                       style='normal', size=12 + CM.ADD_FONT_SIZE)
 
             statistic = MANAGER_STUDENTS.get_total_statistic_period()
             if len(statistic) > 1:
@@ -3193,7 +3251,7 @@ class MainWindow(QtWidgets.QMainWindow):
             
 
             """)
-        self.setWindowIcon(QtGui.QIcon('media\\logo.svg'))
+        self.setWindowIcon(QtGui.QIcon(os.path.join(CONTENT_PATH, 'media', 'logo.svg')))
         self.setObjectName("MainWindow")
         self.resize(1024, 768)
         self.setMinimumSize(800, 450)
@@ -3233,7 +3291,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.text_massage = QtWidgets.QLabel()
         self.text_massage.hide()
-        self.text_massage.setFont(QtGui.QFont(NAME_FONT, 12 + ADD_FONT_SIZE))
+        self.text_massage.setFont(QtGui.QFont(CM.NAME_FONT, 12 + CM.ADD_FONT_SIZE))
         self.text_massage.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
         self.verticalLayout_2.addWidget(self.group)
 
@@ -3273,9 +3331,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.settings.retranslateUi()
         self.statistics.retranslateUi()
 
-        self.group.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        global IS_CHANGE
-        IS_CHANGE = False
+        self.group.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        CM.IS_CHANGE = False
 
     def keyPressEvent(self, e):
         k = e.key()
@@ -3283,8 +3340,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if k == 83:
             if not self.only_show:
                 self.F6.save_table()
-        global IS_CHANGE
-        IS_CHANGE = False
+        CM.IS_CHANGE = False
 
     def get_down_message(self, message, is_error=False, time=2000):
         self.text_massage.setText(message)
@@ -3398,7 +3454,7 @@ class TableAbsence(BaseTable, QtWidgets.QTableWidget):
     def retranslateUi(self, size=0):
         self.setItem(0, 0, QTableWidgetItem(
             self.tr(
-                'ВЕДОМОСТЬ УЧЁТА ЧАСОВ ПРОГУЛОВ за') + f" {str(ManagerStudents.MONTHS[MANAGER_STUDENTS.period[0] - 1]) + ' ' + str(MANAGER_STUDENTS.period[1]) if CURRENT_LANGUAGE == 'russia' else str((MANAGER_STUDENTS.period[0], MANAGER_STUDENTS.period[1]))}"))
+                'ВЕДОМОСТЬ УЧЁТА ЧАСОВ ПРОГУЛОВ за') + f" {str(ManagerStudents.MONTHS[MANAGER_STUDENTS.period[0] - 1]) + ' ' + str(MANAGER_STUDENTS.period[1]) if CM.CURRENT_LANGUAGE == 'russia' else str((MANAGER_STUDENTS.period[0], MANAGER_STUDENTS.period[1]))}"))
         title = self.item(0, 0)
         title.setBackground(QtGui.QColor(153, 153, 153))
         title.setFont(QtGui.QFont('Calibri', 26 + size))
@@ -3565,7 +3621,7 @@ class TableMarks(BaseTable, QtWidgets.QTableWidget):
     def retranslateUi(self, size=0):
         self.setItem(0, 0, QTableWidgetItem(
             self.tr(
-                'ВЕДОМОСТЬ УЧЁТА УСПЕВАЕМОСТИ за ') + f" {str(ManagerStudents.MONTHS[MANAGER_STUDENTS.period[0] - 1]) + ' ' + str(MANAGER_STUDENTS.period[1]) if CURRENT_LANGUAGE == 'russia' else str((MANAGER_STUDENTS.period[0], MANAGER_STUDENTS.period[1]))}"))
+                'ВЕДОМОСТЬ УЧЁТА УСПЕВАЕМОСТИ за ') + f" {str(ManagerStudents.MONTHS[MANAGER_STUDENTS.period[0] - 1]) + ' ' + str(MANAGER_STUDENTS.period[1]) if CM.CURRENT_LANGUAGE == 'russia' else str((MANAGER_STUDENTS.period[0], MANAGER_STUDENTS.period[1]))}"))
         title = self.item(0, 0)
         title.setBackground(QtGui.QColor(153, 153, 153))
         title.setFont(QtGui.QFont('Calibri', 26 + size))
@@ -3662,7 +3718,7 @@ class TableMarks(BaseTable, QtWidgets.QTableWidget):
 
 
 class MonthCalendarView(QtWidgets.QDialog):
-    def __init__(self, manager, parent=None, size=0):
+    def __init__(self, manager, period=None, parent=None, size=0, is_only_happy_days=False):
         super(MonthCalendarView, self).__init__(parent)
         self.setStyleSheet("* {border: none;}")
         self.setObjectName("ControlDays")
@@ -3670,47 +3726,98 @@ class MonthCalendarView(QtWidgets.QDialog):
 
         self.setModal(True)
         self.manager = manager
+        if period:
+            self.period = period
+        else:
+            self.period = self.manager.period
         self.parent = parent
+        self.size = size
+        self.is_only_happy_days = is_only_happy_days
 
         self.vertical_layout = QtWidgets.QVBoxLayout(self)
 
         if LANGUAGES == 'rassia':
-            self.name_month = QtWidgets.QLabel(f'{str(manager.MONTHS[manager.period[0] - 1])} {str(manager.period[1])}')
+            self.name_month = QtWidgets.QLabel(f'{str(manager.MONTHS[self.period[0] - 1])} {str(self.period[1])}')
         else:
-            self.name_month = QtWidgets.QLabel(self.tr("Месяц") + " " + str(manager.period)[1:-1])
-        self.name_month.setFont(QtGui.QFont(NAME_FONT, 16 + ADD_FONT_SIZE))
+            self.name_month = QtWidgets.QLabel(self.tr("Месяц") + " " + str(self.period)[1:-1])
+        self.name_month.setFont(QtGui.QFont(CM.NAME_FONT, 16 + CM.ADD_FONT_SIZE))
         self.name_month.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.vertical_layout.addWidget(self.name_month)
 
-        self.table = QtWidgets.QTableWidget(self)
-        self.table.setMinimumSize(450, 250)
+        self.table_layout = QtWidgets.QVBoxLayout()
+
+        self.update_table(self.is_only_happy_days)
+
+
+
+
+    def click_cell(self, row, column):
+        if self.period[0] == self.manager.period[0]:
+            if self.table.item(row, column).text().isnumeric():
+                if self.table.item(row, column).background() == QtGui.QColor(0, 0, 0, 0):
+                    self.manager.off_day(int(self.table.item(row, column).text()))
+                    self.table.item(row, column).setBackground(QtGui.QColor(60, 170, 60))
+                    self.parent.F6.init_table_absence()
+                elif self.table.item(row, column).background() == QtGui.QColor(60, 170, 60):
+                    self.manager.on_day(int(self.table.item(row, column).text()))
+                    self.table.item(row, column).setBackground(QtGui.QColor(0, 0, 0, 0))
+                    self.parent.F6.init_table_absence()
+        else:
+            self.click_double_cell(row, column)
+
+    def update_table(self, is_only_happy_days=False):
+        if hasattr(self, 'table'):
+            del self.table
+            self.table_layout.deleteLater()
+
+        self.table = QtWidgets.QTableWidget()
+        if is_only_happy_days:
+            self.table.setMinimumSize(350, 250)
+        else:
+            self.table.setMinimumSize(450, 250)
 
         self.table.setColumnCount(7)
 
-        self.table.setRowCount(len(list(calendar.monthcalendar(month=manager.period[0], year=manager.period[1]))))
+        self.table.setRowCount(len(list(calendar.monthcalendar(month=self.period[0], year=self.period[1]))))
         row_id = 0
+        if not is_only_happy_days:
+            for week in calendar.monthcalendar(month=self.period[0], year=self.period[1]):
+                for i in range(len(week)):
+                    if not week[i]:
+                        self.table.setItem(row_id, i, QTableWidgetItem(str('✖')))
+                    elif (not (week[i] in self.manager.days)) and (self.manager.user.happy_days.get(str(self.period[0])) and
+                                                              week[i] in self.manager.user.happy_days.get(
+                                str(self.period[0]))):
+                        self.table.setItem(row_id, i, QTableWidgetItem(str(week[i])))
+                        self.table.item(row_id, i).setBackground(QtGui.QColor(181, 71, 71))
+                    elif not (week[i] in self.manager.days):  # and self.period[0] != self.manager.period[0]
+                        self.table.setItem(row_id, i, QTableWidgetItem(str(week[i])))
+                        self.table.item(row_id, i).setBackground(QtGui.QColor(60, 170, 60))
 
-        for week in calendar.monthcalendar(month=manager.period[0], year=manager.period[1]):
-            for i in range(len(week)):
-                if not week[i]:
-                    self.table.setItem(row_id, i, QTableWidgetItem(str('✖')))
-                elif (not (week[i] in manager.days)) and (manager.user.happy_days.get(str(manager.period[0])) and
-                                                          week[i] in manager.user.happy_days.get(
-                            str(manager.period[0]))):
-                    self.table.setItem(row_id, i, QTableWidgetItem(str(week[i])))
-                    self.table.item(row_id, i).setBackground(QtGui.QColor(181, 71, 71))
-                elif not (week[i] in manager.days):
-                    self.table.setItem(row_id, i, QTableWidgetItem(str(week[i])))
-                    self.table.item(row_id, i).setBackground(QtGui.QColor(60, 170, 60))
+                    elif week[i] in self.manager.days:
+                        self.table.setItem(row_id, i, QTableWidgetItem(str(week[i])))
+                        self.table.item(row_id, i).setBackground(QtGui.QColor(0, 0, 0, 0))
 
-                elif week[i] in manager.days:
-                    self.table.setItem(row_id, i, QTableWidgetItem(str(week[i])))
-                    self.table.item(row_id, i).setBackground(QtGui.QColor(0, 0, 0, 0))
+                    self.table.item(row_id, i).setFont(QtGui.QFont('Calibri', 14 + self.size))
+                    self.table.item(row_id, i).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+                    self.table.item(row_id, i).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
+                row_id += 1
+        else:
+            for week in calendar.monthcalendar(month=self.period[0], year=self.period[1]):
+                for i in range(len(week)):
+                    if not week[i]:
+                        self.table.setItem(row_id, i, QTableWidgetItem(str('✖')))
+                    elif self.manager.user.happy_days.get(str(self.period[0])) and (week[i] in self.manager.user.happy_days.get(str(self.period[0]))):
+                        self.table.setItem(row_id, i, QTableWidgetItem(str(week[i])))
+                        self.table.item(row_id, i).setBackground(QtGui.QColor(181, 71, 71))
+                    else:
+                        self.table.setItem(row_id, i, QTableWidgetItem(str(week[i])))
+                        self.table.item(row_id, i).setBackground(QtGui.QColor(0, 0, 0, 0))
 
-                self.table.item(row_id, i).setFont(QtGui.QFont('Calibri', 14 + size))
-                self.table.item(row_id, i).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-                self.table.item(row_id, i).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
-            row_id += 1
+                    self.table.item(row_id, i).setFont(QtGui.QFont('Calibri', 14 + self.size))
+                    self.table.item(row_id, i).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+                    self.table.item(row_id, i).setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled)
+                row_id += 1
 
         self.table.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
         self.table.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.Stretch)
@@ -3719,30 +3826,31 @@ class MonthCalendarView(QtWidgets.QDialog):
 
         self.table.cellClicked.connect(self.click_cell)
         self.table.cellDoubleClicked.connect(self.click_double_cell)
-
-        self.vertical_layout.addWidget(self.table)
-
-    def click_cell(self, row, column):
-        if self.table.item(row, column).text().isnumeric():
-            if self.table.item(row, column).background() == QtGui.QColor(0, 0, 0, 0):
-                self.manager.off_day(int(self.table.item(row, column).text()))
-                self.table.item(row, column).setBackground(QtGui.QColor(60, 170, 60))
-                self.parent.F6.init_table_absence()
-            elif self.table.item(row, column).background() == QtGui.QColor(60, 170, 60):
-                self.manager.on_day(int(self.table.item(row, column).text()))
-                self.table.item(row, column).setBackground(QtGui.QColor(0, 0, 0, 0))
-                self.parent.F6.init_table_absence()
+        self.table_layout.addWidget(self.table)
+        self.vertical_layout.addLayout(self.table_layout)
 
     def click_double_cell(self, row, column):
         if self.table.item(row, column).text().isnumeric():
             if not (self.table.item(row, column).background() == QtGui.QColor(181, 71, 71)):
-                self.manager.off_day(int(self.table.item(row, column).text()), is_happy_day=True)
+                if not self.period[0] != self.manager.period[0]:
+                    self.manager.off_day(int(self.table.item(row, column).text()), is_happy_day=True)
+                else:
+                    self.manager.off_day(int(self.table.item(row, column).text()), is_happy_day=True, month=self.period[0])
                 self.table.item(row, column).setBackground(QtGui.QColor(181, 71, 71))
                 self.parent.F6.init_table_absence()
             else:
-                self.manager.on_day(int(self.table.item(row, column).text()), is_happy_day=True)
+                if not self.period[0] != self.manager.period[0]:
+                    self.manager.on_day(int(self.table.item(row, column).text()), is_happy_day=True)
+                else:
+                    self.manager.on_day(int(self.table.item(row, column).text()), is_happy_day=True, month=self.period[0])
                 self.table.item(row, column).setBackground(QtGui.QColor(0, 0, 0, 0))
                 self.parent.F6.init_table_absence()
+
+
+class YearCalendarView(MonthCalendarView):
+    def click_cell(self, row, column):
+        self.click_double_cell(row, column)
+
 
 
 class UpdateManager(QtWidgets.QDialog):
@@ -3821,7 +3929,6 @@ class UpdateManager(QtWidgets.QDialog):
 
     @staticmethod
     def check_new_version(old, new):
-        print(old, new)
         if old < new:
             return True
         return False
@@ -4052,12 +4159,12 @@ class WindowSetPassword(QtWidgets.QDialog):
         self.save_password_pushbutton.setText(self.tr("Сохранить"))
         self.cancel_pushbutton.setText(self.tr("Отмена"))
 
-        self.label.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.label_2.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.label_3.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.save_password_pushbutton.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.cancel_pushbutton.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.fielderrors.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
+        self.label.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.label_2.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.label_3.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.save_password_pushbutton.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.cancel_pushbutton.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.fielderrors.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
         self.fielderrors.setStyleSheet('color: red')
 
     def add_function(self):
@@ -4092,6 +4199,7 @@ class WindowSetPassword(QtWidgets.QDialog):
                 MANAGER_STUDENTS.save_students()
                 self.parent.get_down_message(self.tr('Пароль успешно изменен'))
                 self.close()
+
 
 
 class ControlerWindows(QtWidgets.QWidget):
@@ -4136,8 +4244,7 @@ class ControlerWindows(QtWidgets.QWidget):
             self.is_exit(self.main)
             self.main = type(self.main)()
             self.auth.show()
-            global IS_CHANGE
-            IS_CHANGE = False
+            CM.IS_CHANGE = False
 
         else:
             self.main.close()
@@ -4164,7 +4271,7 @@ class ControlerWindows(QtWidgets.QWidget):
             self.regist.show()
 
     def is_exit(self, parent):
-        if IS_CHANGE:
+        if CM.IS_CHANGE:
             message = QtWidgets.QMessageBox.question(self.main, self.tr('Сохранение изменений'),
                                                      self.tr("Сохранить изменения?"),
                                                      QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
@@ -4179,11 +4286,11 @@ class ControlerWindows(QtWidgets.QWidget):
 
 
 def set_language(*args, **kwargs):
-    global CURRENT_LANGUAGE, USER_MANAGER
-    CURRENT_LANGUAGE = next(LANGUAGES)
-    if translator.load(os.path.join(BASE_PATH, 'languages', CURRENT_LANGUAGE)):
+    global USER_MANAGER
+    CM.CURRENT_LANGUAGE = next(LANGUAGES)
+    if translator.load(os.path.join(CONTENT_PATH, 'languages', CM.CURRENT_LANGUAGE)):
         app.installTranslator(translator)
-        USER_MANAGER.parametrs['language'] = CURRENT_LANGUAGE
+        USER_MANAGER.parametrs['language'] = CM.CURRENT_LANGUAGE
     else:
         translator.load("qt_" + 'ru_RU', QLibraryInfo.location(QLibraryInfo.TranslationsPath))
         app.installTranslator(translator)
@@ -4192,30 +4299,33 @@ def set_language(*args, **kwargs):
     windows.retranslateUi()
 
 
+try:
+    filename = os.path.join(CONTENT_PATH, 'sounds', "logo.mp3")
+    player = QMediaPlayer()
+    audio_output = QAudioOutput()
+    player.setAudioOutput(audio_output)
+    player.setSource(QUrl.fromLocalFile(filename))
+    audio_output.setVolume(0.15)
+    player.play()
+except:
+    print('No sound')
+
+
 app = QtWidgets.QApplication(sys.argv)
 translator = QTranslator(app)
 
 if translator.load(os.path.join(BASE_PATH, 'languages', str(USER_MANAGER.parametrs.get('language')))):
     app.installTranslator(translator)
-    CURRENT_LANGUAGE = USER_MANAGER.parametrs.get('language')
+    CM.CURRENT_LANGUAGE = USER_MANAGER.parametrs.get('language')
 else:
     translator.load("qt_" + 'ru_RU', QLibraryInfo.location(QLibraryInfo.TranslationsPath))
     app.installTranslator(translator)
-    CURRENT_LANGUAGE = 'russia'
+    CM.CURRENT_LANGUAGE = 'russia'
 
 USER_MANAGER.save_users()
 
-# from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
-# try:
-#     filename = os.path.join('sounds', "logo.mp3")
-#     player = QMediaPlayer()
-#     audio_output = QAudioOutput()
-#     player.setAudioOutput(audio_output)
-#     player.setSource(QUrl.fromLocalFile(filename))
-#     audio_output.setVolume(25)
-#     player.play()
-# except:
-#     print('No sound')
+
+
 
 
 windows = ControlerWindows(SplashScreen, Auth, Regist, MainWindow)
