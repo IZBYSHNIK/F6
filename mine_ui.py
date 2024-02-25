@@ -1,4 +1,4 @@
-# Copyright 2022 Degtyarev Ivan
+# Copyright 2024 Degtyarev Ivan
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,22 +34,36 @@ from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from docx import Document
 import doc2docx
 
-from StudentsManager import ManagerStudents
-from UserManager import UserManager
+from F6_Core.students_manager import ManagerStudents
+from F6_Core.user_manager import UserManager
+from F6_Core.tools import ConfigManager
+
+
 import math, calendar
+
 
 matplotlib.use('Qt5Agg')
 
 VERSION = '1.2.0'
 
 QtCore.QCoreApplication.setLibraryPaths([os.path.join('PySide6', 'qt-plugins')])
-
 LANGUAGES = ManagerStudents.crate_eternal_iter(['english', 'china', 'russia'])
-CURRENT_LANGUAGE = None
-IS_CHANGE = False
-ADD_FONT_SIZE = 1
-NAME_FONT = 'Calibri'
+
+defalt_settings = {
+    'CURRENT_LANGUAGE': None,
+    'IS_CHANGE': False,
+    'ADD_FONT_SIZE': 1,
+    'NAME_FONT': 'Calibri',  
+}
+
 dirname, filename = os.path.split(os.path.abspath(__file__))
+
+CM = ConfigManager(dirname, **defalt_settings)
+try:
+    CM.load_config()
+except FileNotFoundError:
+    CM.dump_config()
+
 DEBAG = True
 BASE_PATH = dirname
 CONTENT_PATH = os.path.join(dirname, 'content')
@@ -63,8 +77,10 @@ DOCUMENTS_PATH = os.path.expanduser("~/F6")
 # DOCUMENTS_PATH = os.path.expanduser("~/000")
 # DOCUMENTS_PATH = dirname
 
+
 USER_MANAGER = UserManager(DOCUMENTS_PATH)
 MANAGER_STUDENTS = None
+
 
 is_click_license = 0
 
@@ -185,14 +201,14 @@ class LicenseWindow(QtWidgets.QWidget):
                                         QtCore.Qt.AlignmentFlag.AlignHCenter)
         self.label = QtWidgets.QLabel(self)
         font = QtGui.QFont()
-        font.setPointSize(16 + ADD_FONT_SIZE)
+        font.setPointSize(16 + CM.ADD_FONT_SIZE)
         self.label.setFont(font)
         self.label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.label.setObjectName("label")
         self.verticalLayout_2.addWidget(self.label)
         self.textBrowser = QtWidgets.QTextBrowser(self)
         font = QtGui.QFont()
-        font.setPointSize(14 + ADD_FONT_SIZE)
+        font.setPointSize(14 + CM.ADD_FONT_SIZE)
         self.textBrowser.setFont(font)
         self.textBrowser.setStyleSheet('border: none; background-color: rgba(0, 0, 0, 0)')
         self.textBrowser.setObjectName("textBrowser")
@@ -251,7 +267,7 @@ class GratutudeWindow(QtWidgets.QWidget):
 
         self.textBrowser = QtWidgets.QTextBrowser(self)
         font = QtGui.QFont()
-        font.setPointSize(14 + ADD_FONT_SIZE)
+        font.setPointSize(14 + CM.ADD_FONT_SIZE)
         self.textBrowser.setFont(font)
         self.textBrowser.setObjectName("textBrowser")
         self.textBrowser.setStyleSheet('border: none; background-color: rgba(0, 0, 0, 0)')
@@ -1009,8 +1025,7 @@ class BaseTable:
     def save_table(self):
         try:
             MANAGER_STUDENTS.save_students()
-            global IS_CHANGE
-            IS_CHANGE = False
+            CM.IS_CHANGE = False
         except BaseException:
             self.parent.get_down_message(self.tr('НЕ удалось сохранить файл'))
         else:
@@ -1233,13 +1248,13 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
         self.save_to_exel_push.setToolTip(self.tr('Сохранить в EXEL'))
         self.double_mod.setText('2X')
 
-        self.is_sick_rb.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.radioButton_2.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.label_2.setFont(QtGui.QFont(NAME_FONT, 17 + ADD_FONT_SIZE))
+        self.is_sick_rb.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.radioButton_2.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.label_2.setFont(QtGui.QFont(CM.NAME_FONT, 17 + CM.ADD_FONT_SIZE))
 
-        self.statustic1.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
-        self.double_mod.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
-        self.statustic2.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
+        self.statustic1.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
+        self.double_mod.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
+        self.statustic2.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
 
         if hasattr(self, 'tableWidget'):
             self.tableWidget.retranslateUi()
@@ -1301,8 +1316,7 @@ class AbsenceTab(QtWidgets.QWidget, BaseTable):
             self.tableWidget.update_table_students(size=self.tableWidget.mod_size - 2)
 
     def clicked_table(self, tablewidget):
-        global IS_CHANGE
-        IS_CHANGE = True
+        CM.IS_CHANGE = True
         if self.parent.group.indexOf(self.parent.students) == -1 and len(MANAGER_STUDENTS.students) != 0:
             self.parent.group.insertTab(2, self.parent.students, self.tr('Cтуденты'))
 
@@ -1668,8 +1682,8 @@ class MarksTab(QtWidgets.QWidget, BaseTable):
             self.tableWidget_3.retranslateUi()
             self.update_statistics_2()
 
-        self.statustic3.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
-        self.statustic4.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
+        self.statustic3.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
+        self.statustic4.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
 
     def add_function(self):
         self.pushButton_9.clicked.connect(self.save_table)
@@ -1785,8 +1799,7 @@ class MarksTab(QtWidgets.QWidget, BaseTable):
             self.tableWidget_3.cellChanged.connect(self.clicked_table_marks)
 
     def clicked_table_marks(self):
-        global IS_CHANGE
-        IS_CHANGE = True
+        CM.IS_CHANGE = True
         item = self.tableWidget_3.currentItem()
         if not item is None:
             if item.column() == 1:
@@ -1968,11 +1981,11 @@ class StudentsTab(QtWidgets.QWidget):
         self.save_push.setText(self.tr("Сохранить"))
         self.label.setText(self.tr("Список студентов"))
 
-        self.fio_label.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
-        self.del_push.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
-        self.save_push.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
-        self.label.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 16))
-        self.listWidget.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
+        self.fio_label.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
+        self.del_push.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
+        self.save_push.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
+        self.label.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 16))
+        self.listWidget.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
 
     def add_function(self):
         self.save_push.clicked.connect(self.save_student)
@@ -2108,10 +2121,10 @@ class ArchiveTab(QtWidgets.QWidget):
         self.del_file_push.setText(self.tr("Удалить"))
         self.load_file_push.setText(self.tr("Активировать"))
 
-        self.list_archive.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
-        self.label_4.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 16))
-        self.del_file_push.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
-        self.load_file_push.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
+        self.list_archive.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
+        self.label_4.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 16))
+        self.del_file_push.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
+        self.load_file_push.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
 
     def add_function(self):
         self.del_file_push.clicked.connect(self.clicked_del_file_push)
@@ -2359,22 +2372,22 @@ class SettingsTab(QtWidgets.QWidget):
         self.on_off_table_marks_link_button.setText(self.tr('Включить/выключить таблицу оценок'))
         self.on_off_statistics_link_button.setText(self.tr('Включить/выключить статистику'))
 
-        self.setings1_label.setFont(QtGui.QFont(NAME_FONT, 16 + ADD_FONT_SIZE))
-        self.show_current_month_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.restart_weekend_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.show_weekend_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.set_data_table_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.del_work_day_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.set_data_table_label.setFont(QtGui.QFont(NAME_FONT, 16 + ADD_FONT_SIZE))
-        self.set_data_table_label.setFont(QtGui.QFont(NAME_FONT, 16 + ADD_FONT_SIZE))
-        self.set_language_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.clear_table_label.setFont(QtGui.QFont(NAME_FONT, 16 + ADD_FONT_SIZE))
-        self.clear_table_marks_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.language_label.setFont(QtGui.QFont(NAME_FONT, 16 + ADD_FONT_SIZE))
-        self.clear_table_abcense_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.on_off_table_marks_label.setFont(QtGui.QFont(NAME_FONT, 16 + ADD_FONT_SIZE))
-        self.on_off_table_marks_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.on_off_statistics_link_button.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
+        self.setings1_label.setFont(QtGui.QFont(CM.NAME_FONT, 16 + CM.ADD_FONT_SIZE))
+        self.show_current_month_link_button.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.restart_weekend_link_button.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.show_weekend_link_button.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.set_data_table_link_button.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.del_work_day_link_button.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.set_data_table_label.setFont(QtGui.QFont(CM.NAME_FONT, 16 + CM.ADD_FONT_SIZE))
+        self.set_data_table_label.setFont(QtGui.QFont(CM.NAME_FONT, 16 + CM.ADD_FONT_SIZE))
+        self.set_language_link_button.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.clear_table_label.setFont(QtGui.QFont(CM.NAME_FONT, 16 + CM.ADD_FONT_SIZE))
+        self.clear_table_marks_link_button.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.language_label.setFont(QtGui.QFont(CM.NAME_FONT, 16 + CM.ADD_FONT_SIZE))
+        self.clear_table_abcense_link_button.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.on_off_table_marks_label.setFont(QtGui.QFont(CM.NAME_FONT, 16 + CM.ADD_FONT_SIZE))
+        self.on_off_table_marks_link_button.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.on_off_statistics_link_button.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
 
     def add_function(self):
         self.show_current_month_link_button.clicked.connect(self.show_current_month)
@@ -2410,7 +2423,7 @@ class SettingsTab(QtWidgets.QWidget):
         self.list_weekend = QtWidgets.QTextBrowser()
         self.list_weekend.setWindowIcon(QtGui.QIcon(os.path.join(CONTENT_PATH, 'media', 'logo.svg')))
         self.list_weekend.setWindowTitle(self.tr('Список выходных дней'))
-        self.list_weekend.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
+        self.list_weekend.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
 
         resalt = '<table>'
         for k, v in USER_MANAGER.user.happy_days.items():
@@ -2431,8 +2444,7 @@ class SettingsTab(QtWidgets.QWidget):
         else:
             try:
                 MANAGER_STUDENTS.save_students()
-                global IS_CHANGE
-                IS_CHANGE = False
+                CM.IS_CHANGE = False
             except BaseException:
                 self.parent.get_down_message(self.tr('НЕ удалось сохранить файл'))
             else:
@@ -2469,8 +2481,7 @@ class SettingsTab(QtWidgets.QWidget):
         else:
             try:
                 MANAGER_STUDENTS.save_students()
-                global IS_CHANGE
-                IS_CHANGE = False
+                CM.IS_CHANGE = False
             except BaseException:
                 self.parent.get_down_message(self.tr('НЕ удалось сохранить файл'))
             else:
@@ -2792,14 +2803,14 @@ class ProfileTab(QtWidgets.QWidget):
         self.logout_push.setToolTip(self.tr('Выйти из аккаунта'))
         self.load_atchivments()
 
-        self.accaunt_label.setFont(QtGui.QFont(NAME_FONT, 16 + ADD_FONT_SIZE))
-        self.username_label.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.fio_user_label.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.teamleader_label.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.group_label.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.specialization_label.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
+        self.accaunt_label.setFont(QtGui.QFont(CM.NAME_FONT, 16 + CM.ADD_FONT_SIZE))
+        self.username_label.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.fio_user_label.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.teamleader_label.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.group_label.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.specialization_label.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
 
-        self.security_leve_label.setFont(QtGui.QFont(NAME_FONT, 16 + ADD_FONT_SIZE))
+        self.security_leve_label.setFont(QtGui.QFont(CM.NAME_FONT, 16 + CM.ADD_FONT_SIZE))
 
     def click_profile(self, *args, **kwargs):
         photo = QtSvgWidgets.QSvgWidget(os.path.join(CONTENT_PATH, 'media', 'profile', f'{str(random.randint(1, 15))}.svg'))
@@ -3111,7 +3122,7 @@ class StatisticTab(QtWidgets.QWidget):
         self.message_none.hide()
         self.message_none.setStyleSheet('color: red;')
         self.message_none.setAlignment(QtCore.Qt.AlignCenter)
-        self.message_none.setFont(QtGui.QFont(NAME_FONT, ADD_FONT_SIZE + 14))
+        self.message_none.setFont(QtGui.QFont(CM.NAME_FONT, CM.ADD_FONT_SIZE + 14))
         self.verticalLayout_0.addWidget(self.message_none)
         # self.verticalLayout_16 = QtWidgets.QVBoxLayout()
         # self.verticalLayout_16.setObjectName(u"verticalLayout_16")
@@ -3160,15 +3171,15 @@ class StatisticTab(QtWidgets.QWidget):
                 is_draw = 0
 
         else:
-            if CURRENT_LANGUAGE:
-                if CURRENT_LANGUAGE == 'china':
+            if CM.CURRENT_LANGUAGE:
+                if CM.CURRENT_LANGUAGE == 'china':
                     font = font_manager.FontProperties(family='Microsoft JhengHei',
                                                        weight='bold',
-                                                       style='normal', size=12 + ADD_FONT_SIZE)
+                                                       style='normal', size=12 + CM.ADD_FONT_SIZE)
                 else:
                     font = font_manager.FontProperties(family='Arial',
                                                        weight='bold',
-                                                       style='normal', size=12 + ADD_FONT_SIZE)
+                                                       style='normal', size=12 + CM.ADD_FONT_SIZE)
 
             statistic = MANAGER_STUDENTS.get_total_statistic_period()
             if len(statistic) > 1:
@@ -3280,7 +3291,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.text_massage = QtWidgets.QLabel()
         self.text_massage.hide()
-        self.text_massage.setFont(QtGui.QFont(NAME_FONT, 12 + ADD_FONT_SIZE))
+        self.text_massage.setFont(QtGui.QFont(CM.NAME_FONT, 12 + CM.ADD_FONT_SIZE))
         self.text_massage.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight)
         self.verticalLayout_2.addWidget(self.group)
 
@@ -3320,9 +3331,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.settings.retranslateUi()
         self.statistics.retranslateUi()
 
-        self.group.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        global IS_CHANGE
-        IS_CHANGE = False
+        self.group.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        CM.IS_CHANGE = False
 
     def keyPressEvent(self, e):
         k = e.key()
@@ -3330,8 +3340,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if k == 83:
             if not self.only_show:
                 self.F6.save_table()
-        global IS_CHANGE
-        IS_CHANGE = False
+        CM.IS_CHANGE = False
 
     def get_down_message(self, message, is_error=False, time=2000):
         self.text_massage.setText(message)
@@ -3445,7 +3454,7 @@ class TableAbsence(BaseTable, QtWidgets.QTableWidget):
     def retranslateUi(self, size=0):
         self.setItem(0, 0, QTableWidgetItem(
             self.tr(
-                'ВЕДОМОСТЬ УЧЁТА ЧАСОВ ПРОГУЛОВ за') + f" {str(ManagerStudents.MONTHS[MANAGER_STUDENTS.period[0] - 1]) + ' ' + str(MANAGER_STUDENTS.period[1]) if CURRENT_LANGUAGE == 'russia' else str((MANAGER_STUDENTS.period[0], MANAGER_STUDENTS.period[1]))}"))
+                'ВЕДОМОСТЬ УЧЁТА ЧАСОВ ПРОГУЛОВ за') + f" {str(ManagerStudents.MONTHS[MANAGER_STUDENTS.period[0] - 1]) + ' ' + str(MANAGER_STUDENTS.period[1]) if CM.CURRENT_LANGUAGE == 'russia' else str((MANAGER_STUDENTS.period[0], MANAGER_STUDENTS.period[1]))}"))
         title = self.item(0, 0)
         title.setBackground(QtGui.QColor(153, 153, 153))
         title.setFont(QtGui.QFont('Calibri', 26 + size))
@@ -3612,7 +3621,7 @@ class TableMarks(BaseTable, QtWidgets.QTableWidget):
     def retranslateUi(self, size=0):
         self.setItem(0, 0, QTableWidgetItem(
             self.tr(
-                'ВЕДОМОСТЬ УЧЁТА УСПЕВАЕМОСТИ за ') + f" {str(ManagerStudents.MONTHS[MANAGER_STUDENTS.period[0] - 1]) + ' ' + str(MANAGER_STUDENTS.period[1]) if CURRENT_LANGUAGE == 'russia' else str((MANAGER_STUDENTS.period[0], MANAGER_STUDENTS.period[1]))}"))
+                'ВЕДОМОСТЬ УЧЁТА УСПЕВАЕМОСТИ за ') + f" {str(ManagerStudents.MONTHS[MANAGER_STUDENTS.period[0] - 1]) + ' ' + str(MANAGER_STUDENTS.period[1]) if CM.CURRENT_LANGUAGE == 'russia' else str((MANAGER_STUDENTS.period[0], MANAGER_STUDENTS.period[1]))}"))
         title = self.item(0, 0)
         title.setBackground(QtGui.QColor(153, 153, 153))
         title.setFont(QtGui.QFont('Calibri', 26 + size))
@@ -3731,7 +3740,7 @@ class MonthCalendarView(QtWidgets.QDialog):
             self.name_month = QtWidgets.QLabel(f'{str(manager.MONTHS[self.period[0] - 1])} {str(self.period[1])}')
         else:
             self.name_month = QtWidgets.QLabel(self.tr("Месяц") + " " + str(self.period)[1:-1])
-        self.name_month.setFont(QtGui.QFont(NAME_FONT, 16 + ADD_FONT_SIZE))
+        self.name_month.setFont(QtGui.QFont(CM.NAME_FONT, 16 + CM.ADD_FONT_SIZE))
         self.name_month.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.vertical_layout.addWidget(self.name_month)
 
@@ -4150,12 +4159,12 @@ class WindowSetPassword(QtWidgets.QDialog):
         self.save_password_pushbutton.setText(self.tr("Сохранить"))
         self.cancel_pushbutton.setText(self.tr("Отмена"))
 
-        self.label.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.label_2.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.label_3.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.save_password_pushbutton.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.cancel_pushbutton.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
-        self.fielderrors.setFont(QtGui.QFont(NAME_FONT, 14 + ADD_FONT_SIZE))
+        self.label.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.label_2.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.label_3.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.save_password_pushbutton.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.cancel_pushbutton.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
+        self.fielderrors.setFont(QtGui.QFont(CM.NAME_FONT, 14 + CM.ADD_FONT_SIZE))
         self.fielderrors.setStyleSheet('color: red')
 
     def add_function(self):
@@ -4235,8 +4244,7 @@ class ControlerWindows(QtWidgets.QWidget):
             self.is_exit(self.main)
             self.main = type(self.main)()
             self.auth.show()
-            global IS_CHANGE
-            IS_CHANGE = False
+            CM.IS_CHANGE = False
 
         else:
             self.main.close()
@@ -4263,7 +4271,7 @@ class ControlerWindows(QtWidgets.QWidget):
             self.regist.show()
 
     def is_exit(self, parent):
-        if IS_CHANGE:
+        if CM.IS_CHANGE:
             message = QtWidgets.QMessageBox.question(self.main, self.tr('Сохранение изменений'),
                                                      self.tr("Сохранить изменения?"),
                                                      QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
@@ -4278,11 +4286,11 @@ class ControlerWindows(QtWidgets.QWidget):
 
 
 def set_language(*args, **kwargs):
-    global CURRENT_LANGUAGE, USER_MANAGER
-    CURRENT_LANGUAGE = next(LANGUAGES)
-    if translator.load(os.path.join(CONTENT_PATH, 'languages', CURRENT_LANGUAGE)):
+    global USER_MANAGER
+    CM.CURRENT_LANGUAGE = next(LANGUAGES)
+    if translator.load(os.path.join(CONTENT_PATH, 'languages', CM.CURRENT_LANGUAGE)):
         app.installTranslator(translator)
-        USER_MANAGER.parametrs['language'] = CURRENT_LANGUAGE
+        USER_MANAGER.parametrs['language'] = CM.CURRENT_LANGUAGE
     else:
         translator.load("qt_" + 'ru_RU', QLibraryInfo.location(QLibraryInfo.TranslationsPath))
         app.installTranslator(translator)
@@ -4308,11 +4316,11 @@ translator = QTranslator(app)
 
 if translator.load(os.path.join(BASE_PATH, 'languages', str(USER_MANAGER.parametrs.get('language')))):
     app.installTranslator(translator)
-    CURRENT_LANGUAGE = USER_MANAGER.parametrs.get('language')
+    CM.CURRENT_LANGUAGE = USER_MANAGER.parametrs.get('language')
 else:
     translator.load("qt_" + 'ru_RU', QLibraryInfo.location(QLibraryInfo.TranslationsPath))
     app.installTranslator(translator)
-    CURRENT_LANGUAGE = 'russia'
+    CM.CURRENT_LANGUAGE = 'russia'
 
 USER_MANAGER.save_users()
 
