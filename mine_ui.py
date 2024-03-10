@@ -40,7 +40,7 @@ from F6_Core.tools import ConfigManager
 
 from F6_Core.encryption_data import EncryptionData
 
-import math, calendar, pyAesCrypt, io
+import math, calendar, pyAesCrypt, io, bcrypt
 
 class Coder():
     def encode(self, data: str | bytes, key) -> tuple:
@@ -53,7 +53,13 @@ class Coder():
         pyAesCrypt.decryptStream(data, sequence_byte, key)
         return json.loads(sequence_byte.getvalue().decode('UTF-16'))
     
-
+class Hasher():
+    def get_hash(self, key) -> tuple:
+        return bcrypt.hashpw(key.encode(), bcrypt.gensalt()).decode()
+    def compare(self, hash1, hash2):
+        return bcrypt.checkpw(hash1, hash2)
+    
+UserManager.HASHER = Hasher()
 EncryptionData.CODER = Coder()
 
 matplotlib.use('Qt5Agg')
