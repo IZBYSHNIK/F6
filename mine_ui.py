@@ -38,13 +38,27 @@ from F6_Core.students_manager import ManagerStudents
 from F6_Core.user_manager import UserManager
 from F6_Core.tools import ConfigManager
 
+from F6_Core.encryption_data import EncryptionData
 
-import math, calendar
+import math, calendar, pyAesCrypt, io
 
+class Coder():
+    def encode(self, data: str | bytes, key) -> tuple:
+        sequence_byte = io.BytesIO()
+        file_content = io.BytesIO(data)
+        pyAesCrypt.encryptStream(file_content, sequence_byte, key)
+        return (sequence_byte, None, None)
+    def decode(self, data: str, key, psc: list = None) -> str:
+        sequence_byte = io.BytesIO()
+        pyAesCrypt.decryptStream(data, sequence_byte, key)
+        return json.loads(sequence_byte.getvalue().decode('UTF-16'))
+    
+
+EncryptionData.CODER = Coder()
 
 matplotlib.use('Qt5Agg')
 
-VERSION = '1.2.0'
+VERSION = '1.2.1'
 
 QtCore.QCoreApplication.setLibraryPaths([os.path.join('PySide6', 'qt-plugins')])
 LANGUAGES = ManagerStudents.crate_eternal_iter(['english', 'china', 'russia'])
@@ -3375,6 +3389,7 @@ class MainWindow(QtWidgets.QMainWindow):
             try:
                 MANAGER_STUDENTS = ManagerStudents.load_manager_students(USER_MANAGER.user, file_name=path)
             except BaseException as message:
+                print(message, '---'*10)
                 if 'archive' in path:
                     raise FileNotFoundError
 
